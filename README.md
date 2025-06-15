@@ -64,4 +64,4 @@ Write detailed instructions for the user, making sure you clearly and unambiguou
 
 After specifying instructions, actions, and outputs, you can run the task to verify its complexity level. For this, open the `run_task.ipynb` Jupyter Notebook (download the VSCode extension to visualize it better) and enter the correct task_path pointing to your task. There you will see more instructions to understand the results.
 
-After all of this is complete, you should sumbit a pull request to the repo and your lead will review the task.
+After all of this is complete, push your task to a new branch with the name of the task and then sumbit a pull request to the repo and your lead will review the task.
