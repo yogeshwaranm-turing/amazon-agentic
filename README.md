@@ -28,6 +28,14 @@ Tasks are JSON files with the following keys:
   - actions: list of expected actions, only actions that mutate data state are relevant here. In the end we will compare database state mutations, therefore non-mutating actions (like read operations) can be optionally included, but mutating tool calls are required.
   - outputs: list of expected outputs from read operations.
 
+
+## Creating a new Branch and Task according to the structure
+- You can use `create_task_and_branch.sh` file to quickly switch to a new branch and create a filename for the task
+- In the root dir of the project run `chmod +x create_task_and_branch.sh`
+- Fill in the required fields in `create_task_and_branch.sh`
+- Run `./create_task_and_branch.sh`
+- It should switch you to a new Branch and create a new Task file.
+
 ### Example
 
 Find an example task in in `example/francisco.m-retail-1-medium-1750002030.json`
