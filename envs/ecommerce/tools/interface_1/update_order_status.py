@@ -2,6 +2,7 @@ import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
+
 class UpdateOrderStatus(Tool):
     VALID_STATUS = ["Pending", "Confirmed", "Shipped", "Delivered", "Cancelled"]
 

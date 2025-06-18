@@ -2,6 +2,7 @@ import json
 from typing import Any, Dict, List
 from tau_bench.envs.tool import Tool
 
+
 class GetAllOrdersRelatedToUser(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], user_id: str) -> str:
