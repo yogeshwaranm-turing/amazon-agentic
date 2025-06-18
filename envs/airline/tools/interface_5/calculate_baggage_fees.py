@@ -1,7 +1,6 @@
 import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
-from get_baggage_policy import GetBaggagePolicy
 
 class CalculateBaggageFees(Tool):
     @staticmethod
@@ -13,12 +12,16 @@ class CalculateBaggageFees(Tool):
         
         if reservation_id not in reservations:
             return "Error: reservation not found"
-          
+        
         res = reservations[reservation_id]
         count = res.get("total_baggages", 0)
 
         # fetch policy
-        policy = json.loads(GetBaggagePolicy.invoke(data))
+        policy: Dict[str, Any] = {
+            "basic_economy": {"free": 1, "weight_limit_kg": 20},
+            "economy":       {"free": 2, "weight_limit_kg": 23},
+            "business":      {"free": 3, "weight_limit_kg": 32},
+        }
         cabin = res.get("cabin")
         free_allowance = policy.get(cabin, {}).get("free", 0)
 
