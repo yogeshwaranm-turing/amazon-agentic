@@ -12,12 +12,12 @@ class SubscribeTravelAlerts(Tool):
         
         if user_id not in users:
             return "Error: user not found"
-          
+        
         sub = users[user_id].setdefault("alerts_subscribed", False)
         
         if sub:
             return "Error: already subscribed"
-          
+        
         users[user_id]["alerts_subscribed"] = True
         
         return json.dumps({

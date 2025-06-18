@@ -12,7 +12,7 @@ class CalculateChangeFee(Tool):
         
         if reservation_id not in reservations:
             return "Error: reservation not found"
-          
+        
         res = reservations[reservation_id]
         
         policy: Dict[str, Any] = {
@@ -27,7 +27,7 @@ class CalculateChangeFee(Tool):
         
         if fee is None:
             return json.dumps({"reservation_id": reservation_id, "change_allowed": False})
-          
+        
         return json.dumps({"reservation_id": reservation_id, "change_fee": fee})
 
     @staticmethod

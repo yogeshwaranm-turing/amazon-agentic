@@ -12,7 +12,7 @@ class CalculateBaggageFees(Tool):
         
         if reservation_id not in reservations:
             return "Error: reservation not found"
-        
+          
         res = reservations[reservation_id]
         count = res.get("total_baggages", 0)
 

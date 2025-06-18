@@ -6,6 +6,7 @@ from .enroll_loyalty_member import EnrollLoyaltyMember
 from .get_loyalty_balance import GetLoyaltyBalance
 from .get_membership_tier import GetMembershipTier
 from .get_travel_advisory import GetTravelAdvisory
+from .get_user_details import GetUserDetails
 from .get_user_payment_summary import GetUserPaymentSummary
 from .redeem_loyalty_miles import RedeemLoyaltyMiles
 from .remove_payment_method import RemovePaymentMethod
@@ -23,6 +24,7 @@ ALL_TOOLS_INTERFACE_3 = [
     GetLoyaltyBalance,
     GetMembershipTier,
     GetTravelAdvisory,
+    GetUserDetails,
     GetUserPaymentSummary,
     RedeemLoyaltyMiles,
     RemovePaymentMethod,
