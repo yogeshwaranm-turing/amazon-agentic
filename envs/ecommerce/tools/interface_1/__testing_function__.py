@@ -11,7 +11,7 @@ from tau_bench.envs.ecommerce.tools.interface_1.get_order_information_by_id impo
 from tau_bench.envs.ecommerce.tools.interface_1.get_all_orders_related_to_user import GetAllOrdersRelatedToUser
 from tau_bench.envs.ecommerce.tools.interface_1.get_product_information import GetProductInformation  # new import
 # Add a dynamic base directory for JSON files
-BASE_DATA_DIR = os.path.join(os.path.dirname(__file__), "tau_bench", "envs", "ecommerce", "data")
+BASE_DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
 
 def test_place_order():
     # Load users and products data from JSON files

@@ -11,7 +11,7 @@ from tau_bench.envs.ecommerce.tools.interface_2.add_new_sales_order_item import 
 from tau_bench.envs.ecommerce.tools.interface_2.modify_user_address import ModifyUserAddress
 
 # Add a dynamic base directory for JSON files
-BASE_DATA_DIR = os.path.join(os.path.dirname(__file__), "tau_bench", "envs", "ecommerce", "data")
+BASE_DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
 
 def test_get_user_info():
     with open(os.path.join(BASE_DATA_DIR, "users.json"), "r") as f:
