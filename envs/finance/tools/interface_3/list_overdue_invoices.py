@@ -6,15 +6,15 @@ from tau_bench.envs.tool import Tool
 class ListOverdueInvoices(Tool):
     @staticmethod
     def invoke(
-      data: Dict[str, Any], 
-      as_of_date: str = None
+        data: Dict[str, Any], 
+        as_of_date: str = None
     ) -> str:
         invs = data.get("invoices", {})
         today = as_of_date or datetime.now(timezone.utc).date().isoformat() 
         overdue: List[Dict[str,Any]] = []
         
         for inv in invs.values():
-            if inv.get("status") != "paid" and inv.get("due_date") < today:
+            if inv.get("status") == "overdue" and inv.get("due_date") < today:
                 overdue.append(inv)
 
         return json.dumps(overdue)
