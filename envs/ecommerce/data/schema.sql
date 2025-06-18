@@ -53,7 +53,8 @@ CREATE TABLE SalesOrder (
   sales_order_id VARCHAR(8) PRIMARY KEY,
   user_id        VARCHAR(8) REFERENCES "User"(user_id),
   order_date     DATE      NOT NULL,
-  status         VARCHAR(20)
+  status         VARCHAR(20),
+  cancel_reason  VARCHAR(200)
 );
 
 -- 7. Sales Order Item
