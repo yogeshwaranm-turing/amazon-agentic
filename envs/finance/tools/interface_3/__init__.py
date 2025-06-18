@@ -3,6 +3,7 @@ from .create_invoice_payment import CreateInvoicePayment
 from .create_refund import CreateRefund
 from .delete_invoice import DeleteInvoice
 from .delete_refund import DeleteRefund
+from .get_customer_details import GetCustomerDetails
 from .list_overdue_invoices import ListOverdueInvoices
 from .list_refunds_by_reason import ListRefundsByReason
 from .transfer_to_human_agents import TransferToHumanAgents
@@ -16,6 +17,7 @@ ALL_TOOLS_INTERFACE_3 = [
     CreateRefund,
     DeleteInvoice,  
     DeleteRefund,
+    GetCustomerDetails,
     ListOverdueInvoices,
     ListRefundsByReason,
     TransferToHumanAgents,

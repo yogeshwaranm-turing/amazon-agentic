@@ -2,6 +2,7 @@
 from .create_asset import CreateAsset
 from .dispose_asset import DisposeAsset
 from .get_audit_trails import GetAuditTrails
+from .get_customer_details import GetCustomerDetails
 from .get_depreciation_schedule import GetDepreciationSchedule
 from .get_disposal_summary import GetDisposalSummary
 from .list_assets_by_category import ListAssetsByCategory
@@ -17,6 +18,7 @@ ALL_TOOLS_INTERFACE_5 = [
     CreateAsset,
     DisposeAsset,
     GetAuditTrails,
+    GetCustomerDetails,
     GetDepreciationSchedule,
     GetDisposalSummary,
     ListAssetsByCategory,

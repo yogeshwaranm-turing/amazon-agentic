@@ -8,6 +8,7 @@ from .list_loans import ListLoans
 from .list_invoices import ListInvoices
 from .list_transactions import ListTransactions
 from .list_user_accounts import ListUserAccounts
+from .transfer_funds import TransferFunds
 from .transfer_to_human_agents import TransferToHumanAgents
 from .update_user_profile import UpdateUserProfile
 
@@ -21,6 +22,7 @@ ALL_TOOLS_INTERFACE_1 = [
     ListInvoices,
     ListTransactions,
     ListUserAccounts,
+    TransferFunds,
     TransferToHumanAgents,
     UpdateUserProfile,
 ]

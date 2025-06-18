@@ -5,15 +5,15 @@ from tau_bench.envs.tool import Tool
 class DeleteAuthorization(Tool):
     @staticmethod
     def invoke(
-      data: Dict[str, Any], 
-      auth_id: str
+        data: Dict[str, Any], 
+        auth_id: str
     ) -> str:
         auths = data.get("authorizations", {})
         auth = auths.pop(auth_id, None)
         
         if not auth:
             raise KeyError(f"Authorization {auth_id} not found")
-          
+        
         auth["status"] = "voided"
         
         return json.dumps(auth)

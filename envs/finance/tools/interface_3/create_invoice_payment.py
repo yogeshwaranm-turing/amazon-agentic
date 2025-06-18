@@ -6,10 +6,10 @@ from tau_bench.envs.tool import Tool
 class CreateInvoicePayment(Tool):
     @staticmethod
     def invoke(
-      data: Dict[str, Any], 
-      invoice_id: str, 
-      amount: float, 
-      account_id: str
+        data: Dict[str, Any], 
+        invoice_id: str, 
+        amount: float, 
+        account_id: str
     ) -> str:
         # Create payment transaction and apply to invoice
         invs = data.get("invoices", {})
@@ -17,7 +17,7 @@ class CreateInvoicePayment(Tool):
         
         if not invoice:
             raise KeyError(f"Invoice {invoice_id} not found")
-          
+        
         # Create transaction
         txns = data.setdefault("transactions", {})
         txn_id = f"TXN-{len(txns)+1:06d}"

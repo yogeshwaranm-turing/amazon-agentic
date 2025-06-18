@@ -3,6 +3,7 @@ from .apply_loan import ApplyLoan
 from .calculate_amortization import CalculateAmortization
 from .calculate_total_depreciation import CalculateTotalDepreciation
 from .close_loan import CloseLoan
+from .get_customer_details import GetCustomerDetails
 from .get_loan_amortization_schedule import GetLoanAmortizationSchedule
 from .get_loan_details import GetLoanDetails
 from .get_loan_portfolio_summary import GetLoanPortfolioSummary
@@ -17,6 +18,7 @@ ALL_TOOLS_INTERFACE_4 = [
     CalculateAmortization,
     CalculateTotalDepreciation,
     CloseLoan,
+    GetCustomerDetails,
     GetLoanAmortizationSchedule,
     GetLoanDetails,
     GetLoanPortfolioSummary,
