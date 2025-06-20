@@ -1,6 +1,6 @@
 from tau_bench.types import Action, Task
 
-TASKS = [
+INTERFACE_3_TEST = [
     Task(
         annotator="0",
         user_id="USR003",
