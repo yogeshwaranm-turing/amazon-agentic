@@ -3,100 +3,117 @@ from typing import Any, Dict
 from datetime import datetime, timezone
 from tau_bench.envs.tool import Tool
 
-class CreateDeposit(Tool):
+class TransferFunds(Tool):
     @staticmethod
     def invoke(
         data: Dict[str, Any], 
-        account_id: str, 
+        from_account_id: str, 
+        to_account_id: str, 
         amount: float, 
-        source: str
+        currency: str = "USD"
     ) -> str:
+        accounts = data["accounts"]
         txs = data["transactions"]
         
-        if not isinstance(txs, dict):
-            raise ValueError("Transaction data is not in the expected format.")
+        from_account = accounts.get(from_account_id)
+        to_account = accounts.get(to_account_id)
+        if from_account is None or to_account is None:
+            raise ValueError("Account not found.")
         
-        existing = [int(t.replace("TXN-", "").split('-')[-1]) for t in txs.keys()]
+        # Get available balances
+        from_balance = from_account["balances"]["available"]
+        to_balance = to_account["balances"]["available"]
         
-        new_tx = max(existing, default=0) + 1
-        tx_id = f"TXN-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{new_tx}"
+        if from_balance < amount:
+            raise ValueError("Insufficient funds in the source account.")
         
-        tx = {
-            "transaction_id": tx_id,
-            "account_id": account_id,
-            "type": "deposit",
+        # Update account balances
+        from_account["balances"]["available"] -= amount
+        to_account["balances"]["available"] += amount
+        
+        existing = [int(t.replace("TXN-", "").split('-')[-1]) for t in txs.keys() if t.startswith("TXN-")]
+        next_id = max(existing, default=0) + 1
+        dt = datetime.now(timezone.utc).isoformat()
+        
+        debit_id = f"TXN-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{next_id}"
+        credit_id = f"TXN-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{next_id+1}"
+        
+        # update the accounts in the data
+        accounts[from_account_id] = from_account
+        accounts[to_account_id] = to_account
+        
+        debit = {
+            "transaction_id": debit_id,
+            "account_id": from_account_id,
+            "type": "withdrawal",
             "amount": amount,
-            "currency": "USD",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "related_id": None,
-            "description": f"Deposit via {source}",
+            "currency": currency,
+            "timestamp": dt,
+            "related_id": credit_id,
+            "description": f"Transfer to account {to_account_id}",
             "status": "completed",
-            "fee": 0.00,
-            "running_balance": None,  # This would need to be calculated
-            "geo_location": {
-                "lat": None,
-                "lng": None,
-                "city": None,
-                "country": "USA"
-            },
+            "fee": 0.0,
+            "running_balance": from_balance - amount,
+            "geo_location": None,
             "reference_id": None,
-            "tags": ["deposit"],
+            "tags": ["transfer"],
             "notes": None,
             "merchant": None,
-            "channel": source
+            "channel": "api"
         }
         
-        txs[tx_id] = tx
-        deps = data["deposits"]
-        
-        dep_id = f"DEPST-{new_tx}"
-        dep = {
-            "deposit_id": dep_id,
-            "transaction_id": tx_id,
-            "account_id": account_id,
-            "source": source,
-            "deposit_method": source,
-            "channel": source,
+        credit = {
+            "transaction_id": credit_id,
+            "account_id": to_account_id,
+            "type": "deposit",
             "amount": amount,
-            "currency": "USD",
-            "received_at": tx["timestamp"],
+            "currency": currency,
+            "timestamp": dt,
+            "related_id": debit_id,
+            "description": f"Transfer from account {from_account_id}",
             "status": "completed",
-            "cleared_at": tx["timestamp"],
-            "fee": tx["fee"],
-            "geo_location": tx["geo_location"],
-            "notes": tx["notes"],
-            "originator": {
-            "company": None,
-            "reference": None
-            }
+            "fee": 0.0,
+            "running_balance": to_balance + amount,
+            "geo_location": None,
+            "reference_id": None,
+            "tags": ["transfer"],
+            "notes": None,
+            "merchant": None,
+            "channel": "api"
         }
         
-        deps[dep_id] = dep
+        txs[debit_id] = debit
+        txs[credit_id] = credit
         
-        return json.dumps(dep)
+        return json.dumps({
+            "debit_transaction": debit, 
+            "credit_transaction": credit
+        })
 
     @staticmethod
     def get_info() -> Dict[str, Any]:
         return {
             "type": "function",
             "function": {
-                "name": "create_deposit",
-                "description": "Record a deposit to an account.",
+                "name": "transfer_funds",
+                "description": "Automatically transfer funds between two accounts.",
                 "parameters": {
-                    "type":"object",
+                    "type": "object",
                     "properties": {
-                        "account_id": {
-                            "type":"string"
+                        "from_account_id": {
+                            "type": "string"
+                        },
+                        "to_account_id": {
+                            "type": "string"
                         },
                         "amount": {
-                            "type":"number"
+                            "type": "number"
                         },
-                        "source": {
-                            "type": "string",
-                            "enum": ["branch", "mobile", "online", "ATM"]
+                        "currency": {
+                            "type": "string"
                         }
                     },
-                    "required": ["account_id", "amount", "source"]
+                    "required": ["from_account_id", "to_account_id", "amount"]
                 }
             }
         }

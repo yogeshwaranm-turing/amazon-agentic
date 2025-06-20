@@ -11,9 +11,6 @@ class ListInvoices(Tool):
     ) -> str:
         invs = data.get("invoices", {}).values()
         
-        if not isinstance(invs, List):
-            raise ValueError("Invoice data is not in the expected format.")
-        
         results = [i for i in invs if i.get("user_id") == user_id]
         
         if status:

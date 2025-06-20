@@ -1,5 +1,7 @@
 from .capture_authorization import CaptureAuthorization
+from .close_account import CloseAccount
 from .create_account import CreateAccount
+from .create_authorization import CreateAuthorization
 from .capture_authorization import CaptureAuthorization
 from .create_deposit import CreateDeposit
 from .create_transaction import CreateTransaction
@@ -8,6 +10,7 @@ from .delete_account import DeleteAccount
 from .delete_authorization import DeleteAuthorization
 from .freeze_account import FreezeAccount
 from .get_account_balance import GetAccountBalance
+from .get_customer_details import GetCustomerDetails
 from .get_transaction_details import GetTransactionDetails
 from .list_authorizations import ListAuthorizations
 from .list_transactions import ListTransactions
@@ -26,7 +29,9 @@ from .void_authorization import VoidAuthorization
 
 ALL_TOOLS_INTERFACE_2 = [
     CaptureAuthorization,
+    CloseAccount,
     CreateAccount,
+    CreateAuthorization,
     CreateDeposit,
     CreateTransaction,
     CreateWithdrawal,
@@ -34,6 +39,7 @@ ALL_TOOLS_INTERFACE_2 = [
     DeleteAuthorization,
     FreezeAccount,
     GetAccountBalance,
+    GetCustomerDetails,
     GetTransactionDetails,
     ListAuthorizations,
     ListTransactions,

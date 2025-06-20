@@ -19,10 +19,6 @@ class ListAssets(Tool):
         if not isinstance(user_id, str):
             raise Exception("InvalidUserIdType")
         
-        # Filter assets by user_id
-        if not isinstance(assets, List):
-            raise Exception("InvalidAssetsDataType")
-        
         result = [a for a in assets if a.get("user_id") == user_id]
         return json.dumps(result)
 
@@ -32,7 +28,7 @@ class ListAssets(Tool):
             "type": "function",
             "function": {
                 "name": "list_assets",
-                "description": "List all assets for a customer.",
+                "description": "List all assets that belong to a customer based on the customer's user_id.",
                 "parameters": {
                     "type": "object",
                     "properties": {

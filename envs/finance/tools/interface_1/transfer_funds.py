@@ -15,9 +15,6 @@ class TransferFunds(Tool):
         accounts = data["accounts"]
         txs = data["transactions"]
         
-        if not isinstance(accounts, dict):
-            raise ValueError("Accounts data is not in the expected format.")
-        
         from_account = accounts.get(from_account_id)
         to_account = accounts.get(to_account_id)
         if from_account is None or to_account is None:

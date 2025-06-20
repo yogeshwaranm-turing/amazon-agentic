@@ -14,9 +14,6 @@ class ListTransactions(Tool):
     ) -> str:
         txs = data.get("transactions", {}).values()
         
-        if not isinstance(txs, list):
-            raise ValueError("Transactions data is not in the expected format.")
-        
         if not account_id:
             raise ValueError("Account ID cannot be empty.")
         

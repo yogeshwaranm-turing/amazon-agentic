@@ -21,9 +21,6 @@ class GetAuditTrails(Tool):
         if not isinstance(entity, str) or not isinstance(entity_id, str):
             raise Exception("InvalidEntityOrEntityIdType")
         
-        if not isinstance(trails, List):
-            raise Exception("InvalidAuditTrailsDataType")
-        
         # Filter trails by entity and entity_id
         if not isinstance(limit, int) or limit <= 0:
             raise Exception("InvalidLimitType")

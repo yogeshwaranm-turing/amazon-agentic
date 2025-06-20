@@ -12,8 +12,6 @@ class CreateWithdrawal(Tool):
         method: str
     ) -> str:
         txs = data["transactions"]
-        if not isinstance(txs, dict):
-            raise ValueError("Transaction data is not in the expected format.")
         
         if method not in ["ATM", "teller", "online"]:
             raise ValueError(f"Invalid withdrawal method: {method}. Must be one of ['ATM', 'teller', 'online'].")
