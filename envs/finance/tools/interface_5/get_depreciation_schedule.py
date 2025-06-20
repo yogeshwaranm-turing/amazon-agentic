@@ -19,9 +19,6 @@ class GetDepreciationSchedule(Tool):
         if not isinstance(asset_id, str):
             raise Exception("InvalidAssetIdType")
         
-        if not isinstance(deps, List):
-            raise Exception("InvalidDepreciationDataType")
-        
         schedule = [d for d in deps if d.get("asset_id") == asset_id]
         
         return json.dumps(schedule)

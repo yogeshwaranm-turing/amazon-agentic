@@ -25,9 +25,6 @@ class GetAccountDetails(Tool):
         if account.get("user_id") != user_id:
             raise ValueError(f"Account {account_id} does not belong to user {user_id}.")
         
-        if not isinstance(account, dict):
-            raise ValueError("Account data is not in the expected format.")
-        
         return json.dumps(account)
 
     @staticmethod

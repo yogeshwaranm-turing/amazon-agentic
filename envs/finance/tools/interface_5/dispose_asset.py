@@ -13,9 +13,6 @@ class DisposeAsset(Tool):
     ) -> str:
         disposals = data["disposals"]
         
-        if not isinstance(disposals, dict):
-            raise ValueError("Disposal data is not in the expected format.")
-        
         if asset_id not in data["assets"]:
             raise ValueError(f"Asset ID {asset_id} does not exist in the asset data.")
         
@@ -36,7 +33,7 @@ class DisposeAsset(Tool):
         record = {
             "disposal_id": disp_id,
             "asset_id": asset_id,
-            "disposed_at": disposed_at,
+            "disposed_at": disposed_at.isoformat(),
             "disposal_method": "unknown",
             "disposal_reason": "unknown",
             "sale_details": None,

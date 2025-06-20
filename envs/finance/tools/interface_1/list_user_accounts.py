@@ -10,10 +10,6 @@ class ListUserAccounts(Tool):
     ) -> str:
         accounts = data["accounts"]
         
-        # Validate accounts data
-        if not isinstance(accounts, dict):
-            raise ValueError("Accounts data is not in the expected format.")
-        
         # Validate user_id
         if not user_id:
             raise ValueError("User ID cannot be empty.")

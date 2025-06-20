@@ -9,9 +9,6 @@ class GetTransactionDetails(Tool):
       transaction_id: str
     ) -> str:
         tx = data.get("transactions", {}).get(transaction_id)
-        
-        if not isinstance(tx, dict):
-            raise ValueError("Transaction data is not in the expected format.")
           
         if not transaction_id:
             raise ValueError("Transaction ID cannot be empty.")

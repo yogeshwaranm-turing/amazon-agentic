@@ -14,9 +14,6 @@ class TransferFunds(Tool):
     ) -> str:
         txs = data["transactions"]
         
-        if not isinstance(txs, dict):
-            raise ValueError("Transaction data is not in the expected format.")
-        
         existing = [int(t.replace("TXN-", "").split('-')[-1]) for t in txs.keys()]
         next_id = max(existing, default=0) + 1
         dt = datetime.now(timezone.utc).isoformat()

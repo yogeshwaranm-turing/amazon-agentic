@@ -9,13 +9,13 @@ fake = Faker()
 class CreateAsset(Tool):
     @staticmethod
     def invoke(
-      data: Dict[str, Any], 
-      name: str, 
-      category: str, 
-      purchase_date: str, 
-      cost: float, 
-      location: str,
-      vendor: str
+        data: Dict[str, Any], 
+        name: str, 
+        category: str, 
+        purchase_date: str, 
+        cost: float, 
+        location: str,
+        vendor: str
     ) -> str:
         assets = data.setdefault("assets", {})
         
@@ -38,8 +38,8 @@ class CreateAsset(Tool):
             "warranty_expiration": "",
             "current_book_value": cost,
             "maintenance_schedule": {
-              "last_maintenance": purchase_date,
-              "next_due": purchase_date
+                "last_maintenance": purchase_date,
+                "next_due": purchase_date
             },
             "status": "active",
             "disposal_date": None,
@@ -60,7 +60,11 @@ class CreateAsset(Tool):
                 "type":"object",
                 "properties":{
                     "name":{"type":"string"},
-                    "category":{"type":"string"},
+                    "category":{
+                        "type":"string",
+                        "enum": ["IT Equipment", "Furniture", "Software", "Vehicle", "Machinery"],
+                        "description": "The category of the asset"
+                    },
                     "purchase_date":{"type":"string","format":"date"},
                     "cost":{"type":"number"},
                     "location":{"type":"string"},
