@@ -1,6 +1,6 @@
 from tau_bench.envs.ecommerce.data import load_data
 from tau_bench.envs.ecommerce.rules import RULES
-from tau_bench.envs.ecommerce.tools import ALL_TOOLS
+from tau_bench.envs.ecommerce.tools.interface_5 import ALL_TOOLS_INTERFACE_5
 from tau_bench.envs.ecommerce.wiki import WIKI
 from tau_bench.envs.base import Env
 from typing import Optional, Union
@@ -23,7 +23,7 @@ class MockEcommerceDomainEnv(Env):
                 raise ValueError(f"Unknown task split: {task_split}")
         super().__init__(
             data_load_func=load_data,
-            tools=ALL_TOOLS,
+            tools=ALL_TOOLS_INTERFACE_5,
             tasks=tasks,
             wiki=WIKI,
             rules=RULES,

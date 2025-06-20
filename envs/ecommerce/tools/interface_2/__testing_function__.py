@@ -10,7 +10,7 @@ from tau_bench.envs.ecommerce.tools.interface_2.remove_sales_order_item import R
 from tau_bench.envs.ecommerce.tools.interface_2.add_new_sales_order_item import AddNewSalesOrderItem
 from tau_bench.envs.ecommerce.tools.interface_2.modify_user_address import ModifyUserAddress
 
-# Add a dynamic base directory for JSON files
+# Update dynamic base directory for JSON files - go three directories up to reference the 'data' folder
 BASE_DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
 
 def test_get_user_info():

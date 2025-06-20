@@ -9,8 +9,11 @@ from tau_bench.envs.ecommerce.tools.interface_1.get_user_info import GetUserInfo
 from tau_bench.envs.ecommerce.tools.interface_1.import_purchase_order import ImportPurchaseOrder
 from tau_bench.envs.ecommerce.tools.interface_1.place_order import PlaceOrder
 from tau_bench.envs.ecommerce.tools.interface_1.update_order_status import UpdateOrderStatus
+from tau_bench.envs.ecommerce.tools.interface_1.get_product_by_name import GetProductByName
+from tau_bench.envs.ecommerce.tools.interface_1.get_product_by_supplier import GetProductBySupplier
+from tau_bench.envs.ecommerce.tools.interface_1.get_supplier_by_zip_code import GetSupplierByZipCode
 
-ALL_TOOLS = [
+ALL_TOOLS_INTERFACE_1 = [
     CreateNewUser,
     Think,
     CreateNewProduct,
@@ -22,4 +25,7 @@ ALL_TOOLS = [
     ImportPurchaseOrder,
     PlaceOrder,
     UpdateOrderStatus,
+    GetProductByName,
+    GetProductBySupplier,
+    GetSupplierByZipCode
 ]

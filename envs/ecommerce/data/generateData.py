@@ -143,7 +143,6 @@ def generateUsers(count):
     return users
 
 
-# --- New function: generateSalesOrders ---
 def generateSalesOrders(count):
     """
     Generate `count` new sales order entries and append them to sales_orders.json.
@@ -157,6 +156,7 @@ def generateSalesOrders(count):
     # Determine highest existing order number
     max_num = max(int(soid.replace("SO", "")) for soid in sales_orders) if sales_orders else 0
     statuses = ['Pending', 'Confirmed', 'Delivered', 'Shipped', 'Cancelled']
+    payment_methods = ["Credit Card", "Debit Card", "PayPal", "Bank Transfer", "Cash"]
     # Date range for order_date
     start = datetime.date(2022, 1, 1)
     end = datetime.date.today()
@@ -166,15 +166,17 @@ def generateSalesOrders(count):
         order_num = max_num + i + 1
         soid = f"SO{order_num:04d}"
         user_id = f"USR{random.randint(1, 966):03d}"
-        # Random order date
         order_date = start + datetime.timedelta(days=random.randint(0, delta_days))
         order_date_str = order_date.isoformat()
         status = random.choice(statuses)
+        # Added new payment_method field with a randomized value
+        payment_method = random.choice(payment_methods)
         sales_orders[soid] = {
             "sales_order_id": soid,
             "user_id": user_id,
             "order_date": order_date_str,
-            "status": status
+            "status": status,
+            "payment_method": payment_method
         }
     # Write back updated sales orders
     with open(sales_orders_path, 'w') as sf:
@@ -230,6 +232,8 @@ def generatePurchaseOrders(count):
     start = datetime.date(2022, 1, 1)
     end = datetime.date.today()
     delta_days = (end - start).days
+    # Define possible statuses
+    statuses = ["Pending", "Confirmed", "Delivered", "Cancelled"]
     for i in range(count):
         order_num = max_num + i + 1
         poid = f"PO{order_num:04d}"
@@ -240,13 +244,13 @@ def generatePurchaseOrders(count):
         purchase_orders[poid] = {
             "purchase_order_id": poid,
             "supplier_id": supplier_id,
-            "order_date": order_date_str
+            "order_date": order_date_str,
+            "status": random.choice(statuses)  # status now randomized
         }
     # Write back updated purchase orders
     with open(po_path, 'w') as pf:
         json.dump(purchase_orders, pf, indent=2)
     return purchase_orders
-
 
 def generatePurchaseOrderItems(count):
     """
@@ -283,14 +287,74 @@ def generatePurchaseOrderItems(count):
         json.dump(items, pf, indent=2)
     return items
 
+def generateShippingData(count):
+    """
+    Generate `count` new shipping records and append them to shipping.json.
+    Each shipping record has a sequential shipping id key (e.g., SH00001), a sales_order_id taken randomly
+    from sales_orders.json, a generated address, an estimated delivery date (today + 2–10 days),
+    a real delivery date (offset by -1 to +1 day), a method ("Standard" or "Express"),
+    a tracking number, and a status.
+    """
+    shipping_path = '/Users/luongpham/tau-bench/tau_bench/envs/ecommerce/data/shipping.json'
+    sales_orders_path = '/Users/luongpham/tau-bench/tau_bench/envs/ecommerce/data/sales_orders.json'
+    # Load existing shipping records
+    try:
+        with open(shipping_path, 'r') as f:
+            shipping = json.load(f)
+    except Exception:
+        shipping = {}
+    # Load sales orders
+    with open(sales_orders_path, 'r') as sf:
+        sales_orders = json.load(sf)
+    sales_order_ids = list(sales_orders.keys())
+    # Determine highest shipping number
+    if shipping:
+        max_num = max(int(sid.replace("SH", "")) for sid in shipping)
+    else:
+        max_num = 0
+    new_shipping = {}
+    # Date setup for estimated delivery
+    today = datetime.date.today()
+    statuses = ["Preparing", "In Transit", "Delivered"]
+    for i in range(count):
+        ship_num = max_num + i + 1
+        shipping_id = f"SH{ship_num:05d}"
+        # Randomly pick a sales_order_id
+        soid = random.choice(sales_order_ids)
+        # Generate a random address: number, street, city, "USA"
+        number = random.randint(100, 9999)
+        street = random.choice(street_names)
+        city, _ = random.choice(city_state_pairs)
+        address = f"{number} {street}, {city}, USA"
+        # Estimated delivery date: today + random(2,10) days
+        est_date = today + datetime.timedelta(days=random.randint(2,10))
+        # Real delivery date: offset by -1 to +1 day
+        real_date = est_date + datetime.timedelta(days=random.choice([-1, 0, 1]))
+        method = random.choice(["Standard", "Express"])
+        new_shipping[shipping_id] = {
+            "sales_order_id": soid,
+            "address": address,
+            "estimate_deliver_date": est_date.isoformat(),
+            "real_deliver_date": real_date.isoformat(),
+            "method": method,
+            "tracking_number": f"TRK{random.randint(100000, 999999)}",
+            "status": random.choice(statuses)  # new field added
+        }
+    shipping.update(new_shipping)
+    with open(shipping_path, 'w') as f:
+        json.dump(shipping, f, indent=2)
+    return shipping
+
 def main():
     # generateProducts()
     # generateSuppliers(300)
     # generateUsers(900)
-    #generateSalesOrders(900)
+    generateSalesOrders(1100)
     # generateSalesOrderItems(1500)
-    # generatePurchaseOrders(900)
-    generatePurchaseOrderItems(2000)
+    #  generatePurchaseOrders(1000)
+    # generatePurchaseOrderItems(2000)
+    # generateShippingData(500)
 
 if __name__ == "__main__":
     main()
+

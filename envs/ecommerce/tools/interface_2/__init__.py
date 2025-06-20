@@ -9,9 +9,13 @@ from tau_bench.envs.ecommerce.tools.interface_2.add_new_sales_order_item import 
 from tau_bench.envs.ecommerce.tools.interface_2.calculate_total_cost_of_order_by_id import CalculateTotalCostOfOrderById
 from tau_bench.envs.ecommerce.tools.interface_2.modify_user_address import ModifyUserAddress
 from tau_bench.envs.ecommerce.tools.interface_2.think import Think
+from tau_bench.envs.ecommerce.tools.interface_2.get_product_by_name import GetProductByName
+from tau_bench.envs.ecommerce.tools.interface_2.get_product_by_supplier import GetProductBySupplier
+from tau_bench.envs.ecommerce.tools.interface_2.get_supplier_by_zip_code import GetSupplierByZipCode
+from tau_bench.envs.ecommerce.tools.interface_2.get_all_orders_related_to_user import GetAllOrdersRelatedToUser
 
 
-ALL_TOOLS = [
+ALL_TOOLS_INTERFACE_2 = [
     CancelOrder,
     GetUserInfo,
     GetSupplierInfoById,
@@ -22,5 +26,9 @@ ALL_TOOLS = [
     AddNewSalesOrderItem,
     CalculateTotalCostOfOrderById,
     ModifyUserAddress,
-    Think
+    Think,
+    GetProductByName,
+    GetProductBySupplier,
+    GetSupplierByZipCode,
+    GetAllOrdersRelatedToUser
 ]

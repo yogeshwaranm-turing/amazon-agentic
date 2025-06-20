@@ -10,6 +10,8 @@ from tau_bench.envs.ecommerce.tools.interface_1.update_order_status import Updat
 from tau_bench.envs.ecommerce.tools.interface_1.get_order_information_by_id import GetOrderInformationById  # new import
 from tau_bench.envs.ecommerce.tools.interface_1.get_all_orders_related_to_user import GetAllOrdersRelatedToUser
 from tau_bench.envs.ecommerce.tools.interface_1.get_product_information import GetProductInformation  # new import
+from tau_bench.envs.ecommerce.tools.interface_1.get_product_by_name import GetProductByName  # new import
+from tau_bench.envs.ecommerce.tools.interface_1.get_product_by_supplier import GetProductBySupplier  # new import
 # Add a dynamic base directory for JSON files
 BASE_DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
 
@@ -209,6 +211,47 @@ def test_get_product_information():
     result_invalid = GetProductInformation.invoke(data, "INVALID_ID")
     print("Get Product Info for INVALID_ID:", result_invalid)
 
+def test_get_product_by_name():
+    import json
+    import os
+    # Load products data
+    BASE_DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
+    with open(os.path.join(BASE_DATA_DIR, "products.json"), "r") as f:
+        products = json.load(f)
+    data = {"products": products}
+    # Test with a valid product name (adjust "ValidProductName" as needed)
+    result_valid = GetProductByName.invoke(data, "Eco-Friendly Reusable Water Bottle")
+    print("Get Product By Name (valid):", result_valid)
+    # Test with an invalid product name
+    result_invalid = GetProductByName.invoke(data, "NonExistentProduct")
+    print("Get Product By Name (invalid):", result_invalid)
+
+def test_get_product_by_supplier():
+    import json
+    # Load products data from JSON file
+    with open(os.path.join(BASE_DATA_DIR, "products.json"), "r") as f:
+        products = json.load(f)
+    data = {"products": products}
+    # Test with a valid supplier id (adjust "SUP001" as needed)
+    result_valid = GetProductBySupplier.invoke(data, "SUP001")
+    print("Get Product By Supplier (valid):", result_valid)
+    # Test with an invalid supplier id
+    result_invalid = GetProductBySupplier.invoke(data, "INVALID_SUP")
+    print("Get Product By Supplier (invalid):", result_invalid)
+
+def test_get_supplier_by_zip_code():
+    import os, json
+    from tau_bench.envs.ecommerce.tools.interface_1.get_supplier_by_zip_code import GetSupplierByZipCode
+    BASE_DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
+    with open(os.path.join(BASE_DATA_DIR, "suppliers.json"), "r") as f:
+        suppliers = json.load(f)
+    data = {"suppliers": suppliers}
+    # Adjust "12345" to a zip code that exists in your test data
+    result_valid = GetSupplierByZipCode.invoke(data, "62704")
+    print("Get Supplier By Zip Code (valid):", result_valid)
+    result_invalid = GetSupplierByZipCode.invoke(data, "00000")
+    print("Get Supplier By Zip Code (invalid):", result_invalid)
+
 if __name__ == "__main__":
     test_place_order()
     test_create_new_product()
@@ -220,3 +263,7 @@ if __name__ == "__main__":
     test_get_order_information_by_id()
     test_get_all_orders_related_to_user()
     test_get_product_information()
+    test_get_product_by_name()
+    test_get_product_by_supplier()  # new test function call
+    test_get_supplier_by_zip_code()
+
