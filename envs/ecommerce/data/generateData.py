@@ -46,17 +46,17 @@ def generateProductDescription(pid):
     ]
     return random.choice(details)
 
-def generateProducts():
-    products_path = '/Users/luongpham/tau-bench/tau_bench/envs/ecommerce/data/products.json'
+def generateProducts(count):
+    products_path = 'products.json'
     with open(products_path, 'r') as f:
         products = json.load(f)
-    suppliers_path = '/Users/luongpham/tau-bench/tau_bench/envs/ecommerce/data/suppliers.json'
+    suppliers_path = 'suppliers.json'
     with open(suppliers_path, 'r') as sf:
         suppliers = json.load(sf)
     supplier_ids = list(suppliers.keys())
     max_num = max(int(pid.replace("PRD", "")) for pid in products)
     new_products = {}
-    for i in range(900):
+    for i in range(count):
         prod_num = max_num + i + 1
         pid = f"PRD{prod_num:04d}"
         new_products[pid] = {
@@ -76,7 +76,7 @@ def generateSuppliers(count):
     Generate `count` new supplier entries and append them to suppliers.json.
     Each supplier has sequential SUPXXX IDs, a placeholder name, contact_email, address, city, state, and zip_code.
     """
-    suppliers_path = '/Users/luongpham/tau-bench/tau_bench/envs/ecommerce/data/suppliers.json'
+    suppliers_path = 'suppliers.json'
     # Load existing suppliers
     with open(suppliers_path, 'r') as sf:
         suppliers = json.load(sf)
@@ -114,7 +114,7 @@ def generateSuppliers(count):
     return suppliers
 
 def generateUsers(count):
-    users_path = '/Users/luongpham/tau-bench/tau_bench/envs/ecommerce/data/users.json'
+    users_path = 'users.json'
     with open(users_path, 'r') as uf:
         users = json.load(uf)
     max_num = max(int(uid.replace("USR", "")) for uid in users) if users else 0
@@ -149,7 +149,7 @@ def generateSalesOrders(count):
     Each order has sequential SOXXXX IDs, a random user_id in USR001–USR966,
     a random order_date between 2022-01-01 and today, and a random status.
     """
-    sales_orders_path = '/Users/luongpham/tau-bench/tau_bench/envs/ecommerce/data/sales_orders.json'
+    sales_orders_path = 'sales_orders.json'
     # Load existing sales orders
     with open(sales_orders_path, 'r') as sf:
         sales_orders = json.load(sf)
@@ -189,7 +189,7 @@ def generateSalesOrderItems(count):
     Each item has sequential SOIXXXXX IDs, a random sales_order_id in SO0001–SO1060,
     a random product_id in PRD0001–PRD1980, and a random quantity 1–20.
     """
-    soi_path = '/Users/luongpham/tau-bench/tau_bench/envs/ecommerce/data/sales_order_items.json'
+    soi_path = 'sales_order_items.json'
     # Load existing items
     with open(soi_path, 'r') as sf:
         items = json.load(sf)
@@ -222,7 +222,7 @@ def generatePurchaseOrders(count):
     Each order has sequential POXXXX IDs, a random supplier_id in SUP001–SUP401,
     and a random order_date between 2022-01-01 and today.
     """
-    po_path = '/Users/luongpham/tau-bench/tau_bench/envs/ecommerce/data/purchase_orders.json'
+    po_path = 'purchase_orders.json'
     # Load existing purchase orders
     with open(po_path, 'r') as pf:
         purchase_orders = json.load(pf)
@@ -258,7 +258,7 @@ def generatePurchaseOrderItems(count):
     Each item has sequential POIXXXXX IDs, a random purchase_order_id in PO0001–PO0915,
     a random product_id in PRD0001–PRD1980, a random quantity 1–500, and random unit_cost 1.00–100.00.
     """
-    poi_path = '/Users/luongpham/tau-bench/tau_bench/envs/ecommerce/data/purchase_order_items.json'
+    poi_path = 'purchase_order_items.json'
     # Load existing items
     with open(poi_path, 'r') as pf:
         items = json.load(pf)
@@ -295,8 +295,8 @@ def generateShippingData(count):
     a real delivery date (offset by -1 to +1 day), a method ("Standard" or "Express"),
     a tracking number, and a status.
     """
-    shipping_path = '/Users/luongpham/tau-bench/tau_bench/envs/ecommerce/data/shipping.json'
-    sales_orders_path = '/Users/luongpham/tau-bench/tau_bench/envs/ecommerce/data/sales_orders.json'
+    shipping_path = 'shipping.json'
+    sales_orders_path = 'sales_orders.json'
     # Load existing shipping records
     try:
         with open(shipping_path, 'r') as f:
@@ -346,15 +346,14 @@ def generateShippingData(count):
     return shipping
 
 def main():
-    # generateProducts()
-    # generateSuppliers(300)
-    # generateUsers(900)
+    generateProducts(900)
+    generateSuppliers(300)
+    generateUsers(900)
     generateSalesOrders(1100)
-    # generateSalesOrderItems(1500)
-    #  generatePurchaseOrders(1000)
-    # generatePurchaseOrderItems(2000)
-    # generateShippingData(500)
+    generateSalesOrderItems(1500)
+    generatePurchaseOrders(1000)
+    generatePurchaseOrderItems(2000)
+    generateShippingData(500)
 
 if __name__ == "__main__":
     main()
-
