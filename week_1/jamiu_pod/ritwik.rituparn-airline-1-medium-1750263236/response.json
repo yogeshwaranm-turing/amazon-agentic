@@ -1,0 +1,633 @@
+{
+    "success": true,
+    "results": [
+        {
+            "task_id": 0,
+            "reward": 1.0,
+            "info": {
+                "task": {
+                    "user_id": "raj_johnson_6495",
+                    "actions": [
+                        {
+                            "name": "update_reservation_flights",
+                            "kwargs": {
+                                "reservation_id": "1ERWZ8",
+                                "cabin": "business",
+                                "flights": [
+                                    {
+                                        "flight_number": "HAT208",
+                                        "date": "2024-05-24"
+                                    },
+                                    {
+                                        "flight_number": "HAT300",
+                                        "date": "2024-05-29"
+                                    }
+                                ],
+                                "payment_id": "credit_card_5296290"
+                            }
+                        }
+                    ],
+                    "instruction": "Your user id is raj_johnson_6495. You have a booking with reservation id 1ERWZ8 that you want to modify. You want to upgrade your cabin class from basic economy to business class. You are not carrying any baggage or opting for any insurance. The additional cost should be charged to your credit card with id credit_card_5296290. You will only respond when asked and prefer not to provide your birth date as it is already on file.",
+                    "outputs": [
+                        "258",
+                        "1ERWZ8",
+                        "314",
+                        "455"
+                    ]
+                },
+                "source": "user",
+                "user_cost": 0.0019900000000000004,
+                "reward_info": {
+                    "reward": 1.0,
+                    "info": {
+                        "r_outputs": 1.0,
+                        "outputs": {
+                            "258": true,
+                            "1ERWZ8": true,
+                            "314": true,
+                            "455": true
+                        }
+                    },
+                    "actions": [
+                        {
+                            "name": "update_reservation_flights",
+                            "kwargs": {
+                                "reservation_id": "1ERWZ8",
+                                "cabin": "business",
+                                "flights": [
+                                    {
+                                        "flight_number": "HAT208",
+                                        "date": "2024-05-24"
+                                    },
+                                    {
+                                        "flight_number": "HAT300",
+                                        "date": "2024-05-29"
+                                    }
+                                ],
+                                "payment_id": "credit_card_5296290"
+                            }
+                        }
+                    ]
+                }
+            },
+            "traj": [
+                {
+                    "role": "system",
+                    "content": "# Airline Agent Policy\n\nThe current time is 2024-05-15 15:00:00 EST.\n\nAs an airline agent, you can help users book, modify, or cancel flight reservations.\n\n- Before taking any actions that update the booking database (booking, modifying flights, editing baggage, upgrading cabin class, or updating passenger information), you must list the action details and obtain explicit user confirmation (yes) to proceed.\n\n- You should not provide any information, knowledge, or procedures not provided by the user or available tools, or give subjective recommendations or comments.\n\n- You should only make one tool call at a time, and if you make a tool call, you should not respond to the user simultaneously. If you respond to the user, you should not make a tool call at the same time.\n\n- You should deny user requests that are against this policy.\n\n- You should transfer the user to a human agent if and only if the request cannot be handled within the scope of your actions.\n\n## Domain Basic\n\n- Each user has a profile containing user id, email, addresses, date of birth, payment methods, reservation numbers, and membership tier.\n\n- Each reservation has an reservation id, user id, trip type (one way, round trip), flights, passengers, payment methods, created time, baggages, and travel insurance information.\n\n- Each flight has a flight number, an origin, destination, scheduled departure and arrival time (local time), and for each date:\n  - If the status is \"available\", the flight has not taken off, available seats and prices are listed.\n  - If the status is \"delayed\" or \"on time\", the flight has not taken off, cannot be booked.\n  - If the status is \"flying\", the flight has taken off but not landed, cannot be booked.\n\n## Book flight\n\n- The agent must first obtain the user id, then ask for the trip type, origin, destination.\n\n- Passengers: Each reservation can have at most five passengers. The agent needs to collect the first name, last name, and date of birth for each passenger. All passengers must fly the same flights in the same cabin.\n\n- Payment: each reservation can use at most one travel certificate, at most one credit card, and at most three gift cards. The remaining amount of a travel certificate is not refundable. All payment methods must already be in user profile for safety reasons.\n\n- Checked bag allowance: If the booking user is a regular member, 0 free checked bag for each basic economy passenger, 1 free checked bag for each economy passenger, and 2 free checked bags for each business passenger. If the booking user is a silver member, 1 free checked bag for each basic economy passenger, 2 free checked bag for each economy passenger, and 3 free checked bags for each business passenger. If the booking user is a gold member, 2 free checked bag for each basic economy passenger, 3 free checked bag for each economy passenger, and 3 free checked bags for each business passenger. Each extra baggage is 50 dollars.\n\n- Travel insurance: the agent should ask if the user wants to buy the travel insurance, which is 30 dollars per passenger and enables full refund if the user needs to cancel the flight given health or weather reasons.\n\n## Modify flight\n\n- The agent must first obtain the user id and the reservation id.\n\n- Change flights: Basic economy flights cannot be modified. Other reservations can be modified without changing the origin, destination, and trip type. Some flight segments can be kept, but their prices will not be updated based on the current price. The API does not check these for the agent, so the agent must make sure the rules apply before calling the API!\n\n- Change cabin: all reservations, including basic economy, can change cabin without changing the flights. Cabin changes require the user to pay for the difference between their current cabin and the new cabin class. Cabin class must be the same across all the flights in the same reservation; changing cabin for just one flight segment is not possible.\n\n- Change baggage and insurance: The user can add but not remove checked bags. The user cannot add insurance after initial booking.\n\n- Change passengers: The user can modify passengers but cannot modify the number of passengers. This is something that even a human agent cannot assist with.\n\n- Payment: If the flights are changed, the user needs to provide one gift card or credit card for payment or refund method. The agent should ask for the payment or refund method instead.\n\n## Cancel flight\n\n- The agent must first obtain the user id, the reservation id, and the reason for cancellation (change of plan, airline cancelled flight, or other reasons)\n\n- All reservations can be cancelled within 24 hours of booking, or if the airline cancelled the flight. Otherwise, basic economy or economy flights can be cancelled only if travel insurance is bought and the condition is met, and business flights can always be cancelled. The rules are strict regardless of the membership status. The API does not check these for the agent, so the agent must make sure the rules apply before calling the API!\n\n- The agent can only cancel the whole trip that is not flown. If any of the segments are already used, the agent cannot help and transfer is needed.\n\n- The refund will go to original payment methods in 5 to 7 business days.\n\n## Refund\n\n- If the user is silver/gold member or has travel insurance or flies business, and complains about cancelled flights in a reservation, the agent can offer a certificate as a gesture after confirming the facts, with the amount being $100 times the number of passengers.\n\n- If the user is silver/gold member or has travel insurance or flies business, and complains about delayed flights in a reservation and wants to change or cancel the reservation, the agent can offer a certificate as a gesture after confirming the facts and changing or cancelling the reservation, with the amount being $50 times the number of passengers.\n\n- Do not proactively offer these unless the user complains about the situation and explicitly asks for some compensation. Do not compensate if the user is regular member and has no travel insurance and flies (basic) economy.\n"
+                },
+                {
+                    "role": "user",
+                    "content": "Hello! I would like to upgrade the cabin class for my reservation."
+                },
+                {
+                    "content": "Sure\u2014 I can help with that. To proceed with a cabin upgrade, I need:\n\n\u2022 Your user ID  \n\u2022 Reservation ID  \n\u2022 Desired new cabin class (economy or business)  \n\u2022 Payment method ID to cover the fare difference  \n\nPlease provide these details, and I\u2019ll outline the upgrade action for your confirmation.",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "My user ID is raj_johnson_6495 and the reservation ID is 1ERWZ8."
+                },
+                {
+                    "content": null,
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "arguments": "{\"reservation_id\":\"1ERWZ8\"}",
+                                "name": "get_reservation_details"
+                            },
+                            "id": "call_FrT51ah3yHE7psGkT8wUVSMA",
+                            "type": "function"
+                        }
+                    ],
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_FrT51ah3yHE7psGkT8wUVSMA",
+                    "name": "get_reservation_details",
+                    "content": "{\"reservation_id\": \"1ERWZ8\", \"user_id\": \"raj_johnson_6495\", \"origin\": \"EWR\", \"destination\": \"MSP\", \"flight_type\": \"round_trip\", \"cabin\": \"basic_economy\", \"flights\": [{\"origin\": \"EWR\", \"destination\": \"MSP\", \"flight_number\": \"HAT208\", \"date\": \"2024-05-24\", \"price\": 66}, {\"origin\": \"MSP\", \"destination\": \"EWR\", \"flight_number\": \"HAT300\", \"date\": \"2024-05-29\", \"price\": 51}], \"passengers\": [{\"first_name\": \"Raj\", \"last_name\": \"Johnson\", \"dob\": \"1991-06-17\"}], \"payment_history\": [{\"payment_id\": \"gift_card_3613186\", \"amount\": 117}], \"created_at\": \"2024-05-10T14:35:44\", \"total_baggages\": 0, \"nonfree_baggages\": 0, \"insurance\": \"no\"}"
+                },
+                {
+                    "content": "Understood. To proceed, please let me know:  \n1) Which cabin you\u2019d like to upgrade to\u2014economy or business (the same for both segments)  \n2) Which payment method ID from your profile you\u2019d like to use to cover the fare difference  \n\nOnce I have those, I\u2019ll calculate the price difference and outline the upgrade details for your confirmation.",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "I wish to upgrade to business class, and please use credit card ID credit_card_5296290 to cover any additional cost."
+                },
+                {
+                    "content": null,
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "arguments": "{\"origin\":\"EWR\",\"destination\":\"MSP\",\"date\":\"2024-05-24\"}",
+                                "name": "search_direct_flight"
+                            },
+                            "id": "call_Bv78CIAZ9ny4Eek5wh2fmjho",
+                            "type": "function"
+                        }
+                    ],
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_Bv78CIAZ9ny4Eek5wh2fmjho",
+                    "name": "search_direct_flight",
+                    "content": "[{\"flight_number\": \"HAT208\", \"origin\": \"EWR\", \"destination\": \"MSP\", \"scheduled_departure_time_est\": \"00:00:00\", \"scheduled_arrival_time_est\": \"03:00:00\", \"status\": \"available\", \"available_seats\": {\"basic_economy\": 3, \"economy\": 15, \"business\": 20}, \"prices\": {\"basic_economy\": 76, \"economy\": 180, \"business\": 258}}]"
+                },
+                {
+                    "content": null,
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "arguments": "{\"origin\":\"MSP\",\"destination\":\"EWR\",\"date\":\"2024-05-29\"}",
+                                "name": "search_direct_flight"
+                            },
+                            "id": "call_1HGj4CT6iq7odudSGRcOrGlQ",
+                            "type": "function"
+                        }
+                    ],
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_1HGj4CT6iq7odudSGRcOrGlQ",
+                    "name": "search_direct_flight",
+                    "content": "[{\"flight_number\": \"HAT141\", \"origin\": \"MSP\", \"destination\": \"EWR\", \"scheduled_departure_time_est\": \"14:00:00\", \"scheduled_arrival_time_est\": \"17:00:00\", \"status\": \"available\", \"available_seats\": {\"basic_economy\": 5, \"economy\": 18, \"business\": 12}, \"prices\": {\"basic_economy\": 65, \"economy\": 141, \"business\": 483}}, {\"flight_number\": \"HAT196\", \"origin\": \"MSP\", \"destination\": \"EWR\", \"scheduled_departure_time_est\": \"11:00:00\", \"scheduled_arrival_time_est\": \"14:00:00\", \"status\": \"available\", \"available_seats\": {\"basic_economy\": 15, \"economy\": 5, \"business\": 16}, \"prices\": {\"basic_economy\": 93, \"economy\": 191, \"business\": 268}}, {\"flight_number\": \"HAT300\", \"origin\": \"MSP\", \"destination\": \"EWR\", \"scheduled_departure_time_est\": \"06:00:00\", \"scheduled_arrival_time_est\": \"09:00:00\", \"status\": \"available\", \"available_seats\": {\"basic_economy\": 11, \"economy\": 8, \"business\": 14}, \"prices\": {\"basic_economy\": 66, \"economy\": 112, \"business\": 314}}]"
+                },
+                {
+                    "content": "Here\u2019s the summary of the requested upgrade:\n\n\u2022 Reservation ID: 1ERWZ8  \n\u2022 Current cabin: basic_economy  \n\u2022 New cabin: business  \n\u2022 Flights to be upgraded:  \n  \u2013 HAT208 on 2024-05-24  \n  \u2013 HAT300 on 2024-05-29  \n\u2022 Fare difference (based on current prices):  \n  \u2013 HAT208: $258 (business) \u2013 $66 (basic) = $192  \n  \u2013 HAT300: $314 (business) \u2013 $51 (basic) = $263  \n  \u2013 Total = $455  \n\u2022 Payment method: credit_card_5296290  \n\nPlease reply \u201cyes\u201d to confirm and I will proceed with the upgrade (charging $455 to your credit card), or \u201cno\u201d to cancel.",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "Yes."
+                },
+                {
+                    "content": null,
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "arguments": "{\"reservation_id\":\"1ERWZ8\",\"cabin\":\"business\",\"flights\":[{\"flight_number\":\"HAT208\",\"date\":\"2024-05-24\"},{\"flight_number\":\"HAT300\",\"date\":\"2024-05-29\"}],\"payment_id\":\"credit_card_5296290\"}",
+                                "name": "update_reservation_flights"
+                            },
+                            "id": "call_54LDocyKvJ7w7w0U9sWnMumI",
+                            "type": "function"
+                        }
+                    ],
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_54LDocyKvJ7w7w0U9sWnMumI",
+                    "name": "update_reservation_flights",
+                    "content": "{\"reservation_id\": \"1ERWZ8\", \"user_id\": \"raj_johnson_6495\", \"origin\": \"EWR\", \"destination\": \"MSP\", \"flight_type\": \"round_trip\", \"cabin\": \"basic_economy\", \"flights\": [{\"flight_number\": \"HAT208\", \"date\": \"2024-05-24\", \"price\": 258, \"origin\": \"EWR\", \"destination\": \"MSP\"}, {\"flight_number\": \"HAT300\", \"date\": \"2024-05-29\", \"price\": 314, \"origin\": \"MSP\", \"destination\": \"EWR\"}], \"passengers\": [{\"first_name\": \"Raj\", \"last_name\": \"Johnson\", \"dob\": \"1991-06-17\"}], \"payment_history\": [{\"payment_id\": \"gift_card_3613186\", \"amount\": 117}, {\"payment_id\": \"credit_card_5296290\", \"amount\": 455}], \"created_at\": \"2024-05-10T14:35:44\", \"total_baggages\": 0, \"nonfree_baggages\": 0, \"insurance\": \"no\"}"
+                },
+                {
+                    "content": "Your reservation 1ERWZ8 has been successfully upgraded to business class for both flights. You have been charged $455 on credit_card_5296290.  \nIs there anything else I can assist you with today?",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "No, that's all for now. Thank you! "
+                },
+                {
+                    "content": "You\u2019re welcome! Have a great trip, and feel free to reach out if you need anything else. Safe travels!",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "###STOP###"
+                }
+            ],
+            "trial": 0
+        },
+        {
+            "task_id": 0,
+            "reward": 0.0,
+            "info": {
+                "task": {
+                    "user_id": "raj_johnson_6495",
+                    "actions": [
+                        {
+                            "name": "update_reservation_flights",
+                            "kwargs": {
+                                "reservation_id": "1ERWZ8",
+                                "cabin": "business",
+                                "flights": [
+                                    {
+                                        "flight_number": "HAT208",
+                                        "date": "2024-05-24"
+                                    },
+                                    {
+                                        "flight_number": "HAT300",
+                                        "date": "2024-05-29"
+                                    }
+                                ],
+                                "payment_id": "credit_card_5296290"
+                            }
+                        }
+                    ],
+                    "instruction": "Your user id is raj_johnson_6495. You have a booking with reservation id 1ERWZ8 that you want to modify. You want to upgrade your cabin class from basic economy to business class. You are not carrying any baggage or opting for any insurance. The additional cost should be charged to your credit card with id credit_card_5296290. You will only respond when asked and prefer not to provide your birth date as it is already on file.",
+                    "outputs": [
+                        "258",
+                        "1ERWZ8",
+                        "314",
+                        "455"
+                    ]
+                },
+                "source": "user",
+                "user_cost": 0.001815,
+                "reward_info": {
+                    "reward": 0.0,
+                    "info": {
+                        "r_outputs": 0.0,
+                        "outputs": {
+                            "258": false,
+                            "1ERWZ8": true,
+                            "314": false,
+                            "455": true
+                        }
+                    },
+                    "actions": [
+                        {
+                            "name": "update_reservation_flights",
+                            "kwargs": {
+                                "reservation_id": "1ERWZ8",
+                                "cabin": "business",
+                                "flights": [
+                                    {
+                                        "flight_number": "HAT208",
+                                        "date": "2024-05-24"
+                                    },
+                                    {
+                                        "flight_number": "HAT300",
+                                        "date": "2024-05-29"
+                                    }
+                                ],
+                                "payment_id": "credit_card_5296290"
+                            }
+                        }
+                    ]
+                }
+            },
+            "traj": [
+                {
+                    "role": "system",
+                    "content": "# Airline Agent Policy\n\nThe current time is 2024-05-15 15:00:00 EST.\n\nAs an airline agent, you can help users book, modify, or cancel flight reservations.\n\n- Before taking any actions that update the booking database (booking, modifying flights, editing baggage, upgrading cabin class, or updating passenger information), you must list the action details and obtain explicit user confirmation (yes) to proceed.\n\n- You should not provide any information, knowledge, or procedures not provided by the user or available tools, or give subjective recommendations or comments.\n\n- You should only make one tool call at a time, and if you make a tool call, you should not respond to the user simultaneously. If you respond to the user, you should not make a tool call at the same time.\n\n- You should deny user requests that are against this policy.\n\n- You should transfer the user to a human agent if and only if the request cannot be handled within the scope of your actions.\n\n## Domain Basic\n\n- Each user has a profile containing user id, email, addresses, date of birth, payment methods, reservation numbers, and membership tier.\n\n- Each reservation has an reservation id, user id, trip type (one way, round trip), flights, passengers, payment methods, created time, baggages, and travel insurance information.\n\n- Each flight has a flight number, an origin, destination, scheduled departure and arrival time (local time), and for each date:\n  - If the status is \"available\", the flight has not taken off, available seats and prices are listed.\n  - If the status is \"delayed\" or \"on time\", the flight has not taken off, cannot be booked.\n  - If the status is \"flying\", the flight has taken off but not landed, cannot be booked.\n\n## Book flight\n\n- The agent must first obtain the user id, then ask for the trip type, origin, destination.\n\n- Passengers: Each reservation can have at most five passengers. The agent needs to collect the first name, last name, and date of birth for each passenger. All passengers must fly the same flights in the same cabin.\n\n- Payment: each reservation can use at most one travel certificate, at most one credit card, and at most three gift cards. The remaining amount of a travel certificate is not refundable. All payment methods must already be in user profile for safety reasons.\n\n- Checked bag allowance: If the booking user is a regular member, 0 free checked bag for each basic economy passenger, 1 free checked bag for each economy passenger, and 2 free checked bags for each business passenger. If the booking user is a silver member, 1 free checked bag for each basic economy passenger, 2 free checked bag for each economy passenger, and 3 free checked bags for each business passenger. If the booking user is a gold member, 2 free checked bag for each basic economy passenger, 3 free checked bag for each economy passenger, and 3 free checked bags for each business passenger. Each extra baggage is 50 dollars.\n\n- Travel insurance: the agent should ask if the user wants to buy the travel insurance, which is 30 dollars per passenger and enables full refund if the user needs to cancel the flight given health or weather reasons.\n\n## Modify flight\n\n- The agent must first obtain the user id and the reservation id.\n\n- Change flights: Basic economy flights cannot be modified. Other reservations can be modified without changing the origin, destination, and trip type. Some flight segments can be kept, but their prices will not be updated based on the current price. The API does not check these for the agent, so the agent must make sure the rules apply before calling the API!\n\n- Change cabin: all reservations, including basic economy, can change cabin without changing the flights. Cabin changes require the user to pay for the difference between their current cabin and the new cabin class. Cabin class must be the same across all the flights in the same reservation; changing cabin for just one flight segment is not possible.\n\n- Change baggage and insurance: The user can add but not remove checked bags. The user cannot add insurance after initial booking.\n\n- Change passengers: The user can modify passengers but cannot modify the number of passengers. This is something that even a human agent cannot assist with.\n\n- Payment: If the flights are changed, the user needs to provide one gift card or credit card for payment or refund method. The agent should ask for the payment or refund method instead.\n\n## Cancel flight\n\n- The agent must first obtain the user id, the reservation id, and the reason for cancellation (change of plan, airline cancelled flight, or other reasons)\n\n- All reservations can be cancelled within 24 hours of booking, or if the airline cancelled the flight. Otherwise, basic economy or economy flights can be cancelled only if travel insurance is bought and the condition is met, and business flights can always be cancelled. The rules are strict regardless of the membership status. The API does not check these for the agent, so the agent must make sure the rules apply before calling the API!\n\n- The agent can only cancel the whole trip that is not flown. If any of the segments are already used, the agent cannot help and transfer is needed.\n\n- The refund will go to original payment methods in 5 to 7 business days.\n\n## Refund\n\n- If the user is silver/gold member or has travel insurance or flies business, and complains about cancelled flights in a reservation, the agent can offer a certificate as a gesture after confirming the facts, with the amount being $100 times the number of passengers.\n\n- If the user is silver/gold member or has travel insurance or flies business, and complains about delayed flights in a reservation and wants to change or cancel the reservation, the agent can offer a certificate as a gesture after confirming the facts and changing or cancelling the reservation, with the amount being $50 times the number of passengers.\n\n- Do not proactively offer these unless the user complains about the situation and explicitly asks for some compensation. Do not compensate if the user is regular member and has no travel insurance and flies (basic) economy.\n"
+                },
+                {
+                    "role": "user",
+                    "content": "Hi, I'd like to modify a booking, please."
+                },
+                {
+                    "content": "Sure\u2014 I can help with that. Could you please provide your user ID and the reservation ID you\u2019d like to modify?",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "My user ID is raj_johnson_6495 and the reservation ID is 1ERWZ8."
+                },
+                {
+                    "content": null,
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "arguments": "{\"reservation_id\":\"1ERWZ8\"}",
+                                "name": "get_reservation_details"
+                            },
+                            "id": "call_aERHXMBQHIkC7b3jS3mYgWmM",
+                            "type": "function"
+                        }
+                    ],
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_aERHXMBQHIkC7b3jS3mYgWmM",
+                    "name": "get_reservation_details",
+                    "content": "{\"reservation_id\": \"1ERWZ8\", \"user_id\": \"raj_johnson_6495\", \"origin\": \"EWR\", \"destination\": \"MSP\", \"flight_type\": \"round_trip\", \"cabin\": \"basic_economy\", \"flights\": [{\"origin\": \"EWR\", \"destination\": \"MSP\", \"flight_number\": \"HAT208\", \"date\": \"2024-05-24\", \"price\": 66}, {\"origin\": \"MSP\", \"destination\": \"EWR\", \"flight_number\": \"HAT300\", \"date\": \"2024-05-29\", \"price\": 51}], \"passengers\": [{\"first_name\": \"Raj\", \"last_name\": \"Johnson\", \"dob\": \"1991-06-17\"}], \"payment_history\": [{\"payment_id\": \"gift_card_3613186\", \"amount\": 117}], \"created_at\": \"2024-05-10T14:35:44\", \"total_baggages\": 0, \"nonfree_baggages\": 0, \"insurance\": \"no\"}"
+                },
+                {
+                    "content": "Your reservation 1ERWZ8 is in Basic Economy, which means flight segments cannot be changed. However, you can do any of the following:  \n  1. Upgrade cabin class (to Economy or Business)  \n  2. Add checked baggage (you currently have 0)  \n  3. Update passenger details (name or date of birth)  \n\nPlease let me know which of these you\u2019d like to modify and any specifics (e.g., new cabin, number of extra bags, passenger fields to update).",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "I'd like to upgrade my cabin class to Business, please."
+                },
+                {
+                    "content": "You\u2019d like to upgrade your entire reservation (ID 1ERWZ8) from Basic Economy to Business on both segments:\n\n \u2022 HAT208 (EWR\u2192MSP) on 2024-05-24  \n \u2022 HAT300 (MSP\u2192EWR) on 2024-05-29  \n\nThis will incur a fare difference charge.  \nPlease confirm (\u201cyes\u201d) and let me know which payment method (payment_id) you\u2019d like to use for the additional cost.",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "Yes, that's correct. Please charge the additional cost to my credit card with id credit_card_5296290."
+                },
+                {
+                    "content": null,
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "arguments": "{\"reservation_id\":\"1ERWZ8\",\"cabin\":\"business\",\"flights\":[{\"flight_number\":\"HAT208\",\"date\":\"2024-05-24\"},{\"flight_number\":\"HAT300\",\"date\":\"2024-05-29\"}],\"payment_id\":\"credit_card_5296290\"}",
+                                "name": "update_reservation_flights"
+                            },
+                            "id": "call_Ct63sF6W0U3u5g6SjoJRCvpU",
+                            "type": "function"
+                        }
+                    ],
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_Ct63sF6W0U3u5g6SjoJRCvpU",
+                    "name": "update_reservation_flights",
+                    "content": "{\"reservation_id\": \"1ERWZ8\", \"user_id\": \"raj_johnson_6495\", \"origin\": \"EWR\", \"destination\": \"MSP\", \"flight_type\": \"round_trip\", \"cabin\": \"basic_economy\", \"flights\": [{\"flight_number\": \"HAT208\", \"date\": \"2024-05-24\", \"price\": 258, \"origin\": \"EWR\", \"destination\": \"MSP\"}, {\"flight_number\": \"HAT300\", \"date\": \"2024-05-29\", \"price\": 314, \"origin\": \"MSP\", \"destination\": \"EWR\"}], \"passengers\": [{\"first_name\": \"Raj\", \"last_name\": \"Johnson\", \"dob\": \"1991-06-17\"}], \"payment_history\": [{\"payment_id\": \"gift_card_3613186\", \"amount\": 117}, {\"payment_id\": \"credit_card_5296290\", \"amount\": 455}], \"created_at\": \"2024-05-10T14:35:44\", \"total_baggages\": 0, \"nonfree_baggages\": 0, \"insurance\": \"no\"}"
+                },
+                {
+                    "content": "Your cabin has been successfully upgraded to Business for both segments.  \nThe additional charge of $455 has been applied to your credit card (credit_card_5296290).  \n  \nIs there anything else I can help you with today?",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "No, that's all. Thank you for your help! ###STOP###"
+                }
+            ],
+            "trial": 1
+        },
+        {
+            "task_id": 0,
+            "reward": 1.0,
+            "info": {
+                "task": {
+                    "user_id": "raj_johnson_6495",
+                    "actions": [
+                        {
+                            "name": "update_reservation_flights",
+                            "kwargs": {
+                                "reservation_id": "1ERWZ8",
+                                "cabin": "business",
+                                "flights": [
+                                    {
+                                        "flight_number": "HAT208",
+                                        "date": "2024-05-24"
+                                    },
+                                    {
+                                        "flight_number": "HAT300",
+                                        "date": "2024-05-29"
+                                    }
+                                ],
+                                "payment_id": "credit_card_5296290"
+                            }
+                        }
+                    ],
+                    "instruction": "Your user id is raj_johnson_6495. You have a booking with reservation id 1ERWZ8 that you want to modify. You want to upgrade your cabin class from basic economy to business class. You are not carrying any baggage or opting for any insurance. The additional cost should be charged to your credit card with id credit_card_5296290. You will only respond when asked and prefer not to provide your birth date as it is already on file.",
+                    "outputs": [
+                        "258",
+                        "1ERWZ8",
+                        "314",
+                        "455"
+                    ]
+                },
+                "source": "user",
+                "user_cost": 0.0018350000000000003,
+                "reward_info": {
+                    "reward": 1.0,
+                    "info": {
+                        "r_outputs": 1.0,
+                        "outputs": {
+                            "258": true,
+                            "1ERWZ8": true,
+                            "314": true,
+                            "455": true
+                        }
+                    },
+                    "actions": [
+                        {
+                            "name": "update_reservation_flights",
+                            "kwargs": {
+                                "reservation_id": "1ERWZ8",
+                                "cabin": "business",
+                                "flights": [
+                                    {
+                                        "flight_number": "HAT208",
+                                        "date": "2024-05-24"
+                                    },
+                                    {
+                                        "flight_number": "HAT300",
+                                        "date": "2024-05-29"
+                                    }
+                                ],
+                                "payment_id": "credit_card_5296290"
+                            }
+                        }
+                    ]
+                }
+            },
+            "traj": [
+                {
+                    "role": "system",
+                    "content": "# Airline Agent Policy\n\nThe current time is 2024-05-15 15:00:00 EST.\n\nAs an airline agent, you can help users book, modify, or cancel flight reservations.\n\n- Before taking any actions that update the booking database (booking, modifying flights, editing baggage, upgrading cabin class, or updating passenger information), you must list the action details and obtain explicit user confirmation (yes) to proceed.\n\n- You should not provide any information, knowledge, or procedures not provided by the user or available tools, or give subjective recommendations or comments.\n\n- You should only make one tool call at a time, and if you make a tool call, you should not respond to the user simultaneously. If you respond to the user, you should not make a tool call at the same time.\n\n- You should deny user requests that are against this policy.\n\n- You should transfer the user to a human agent if and only if the request cannot be handled within the scope of your actions.\n\n## Domain Basic\n\n- Each user has a profile containing user id, email, addresses, date of birth, payment methods, reservation numbers, and membership tier.\n\n- Each reservation has an reservation id, user id, trip type (one way, round trip), flights, passengers, payment methods, created time, baggages, and travel insurance information.\n\n- Each flight has a flight number, an origin, destination, scheduled departure and arrival time (local time), and for each date:\n  - If the status is \"available\", the flight has not taken off, available seats and prices are listed.\n  - If the status is \"delayed\" or \"on time\", the flight has not taken off, cannot be booked.\n  - If the status is \"flying\", the flight has taken off but not landed, cannot be booked.\n\n## Book flight\n\n- The agent must first obtain the user id, then ask for the trip type, origin, destination.\n\n- Passengers: Each reservation can have at most five passengers. The agent needs to collect the first name, last name, and date of birth for each passenger. All passengers must fly the same flights in the same cabin.\n\n- Payment: each reservation can use at most one travel certificate, at most one credit card, and at most three gift cards. The remaining amount of a travel certificate is not refundable. All payment methods must already be in user profile for safety reasons.\n\n- Checked bag allowance: If the booking user is a regular member, 0 free checked bag for each basic economy passenger, 1 free checked bag for each economy passenger, and 2 free checked bags for each business passenger. If the booking user is a silver member, 1 free checked bag for each basic economy passenger, 2 free checked bag for each economy passenger, and 3 free checked bags for each business passenger. If the booking user is a gold member, 2 free checked bag for each basic economy passenger, 3 free checked bag for each economy passenger, and 3 free checked bags for each business passenger. Each extra baggage is 50 dollars.\n\n- Travel insurance: the agent should ask if the user wants to buy the travel insurance, which is 30 dollars per passenger and enables full refund if the user needs to cancel the flight given health or weather reasons.\n\n## Modify flight\n\n- The agent must first obtain the user id and the reservation id.\n\n- Change flights: Basic economy flights cannot be modified. Other reservations can be modified without changing the origin, destination, and trip type. Some flight segments can be kept, but their prices will not be updated based on the current price. The API does not check these for the agent, so the agent must make sure the rules apply before calling the API!\n\n- Change cabin: all reservations, including basic economy, can change cabin without changing the flights. Cabin changes require the user to pay for the difference between their current cabin and the new cabin class. Cabin class must be the same across all the flights in the same reservation; changing cabin for just one flight segment is not possible.\n\n- Change baggage and insurance: The user can add but not remove checked bags. The user cannot add insurance after initial booking.\n\n- Change passengers: The user can modify passengers but cannot modify the number of passengers. This is something that even a human agent cannot assist with.\n\n- Payment: If the flights are changed, the user needs to provide one gift card or credit card for payment or refund method. The agent should ask for the payment or refund method instead.\n\n## Cancel flight\n\n- The agent must first obtain the user id, the reservation id, and the reason for cancellation (change of plan, airline cancelled flight, or other reasons)\n\n- All reservations can be cancelled within 24 hours of booking, or if the airline cancelled the flight. Otherwise, basic economy or economy flights can be cancelled only if travel insurance is bought and the condition is met, and business flights can always be cancelled. The rules are strict regardless of the membership status. The API does not check these for the agent, so the agent must make sure the rules apply before calling the API!\n\n- The agent can only cancel the whole trip that is not flown. If any of the segments are already used, the agent cannot help and transfer is needed.\n\n- The refund will go to original payment methods in 5 to 7 business days.\n\n## Refund\n\n- If the user is silver/gold member or has travel insurance or flies business, and complains about cancelled flights in a reservation, the agent can offer a certificate as a gesture after confirming the facts, with the amount being $100 times the number of passengers.\n\n- If the user is silver/gold member or has travel insurance or flies business, and complains about delayed flights in a reservation and wants to change or cancel the reservation, the agent can offer a certificate as a gesture after confirming the facts and changing or cancelling the reservation, with the amount being $50 times the number of passengers.\n\n- Do not proactively offer these unless the user complains about the situation and explicitly asks for some compensation. Do not compensate if the user is regular member and has no travel insurance and flies (basic) economy.\n"
+                },
+                {
+                    "role": "user",
+                    "content": "I have a reservation that I need to modify."
+                },
+                {
+                    "content": "Sure\u2014let\u2019s get started. Please provide:  \n1. Your user ID  \n2. The reservation ID you\u2019d like to modify  \n3. What change you\u2019d like to make (e.g. change flights, upgrade cabin, add baggage, update passenger info)  \n\nOnce I have those details, I\u2019ll outline the requested change and ask you to confirm before proceeding.",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "My user ID is raj_johnson_6495, and the reservation ID is 1ERWZ8. I'd like to upgrade my cabin class from basic economy to business class."
+                },
+                {
+                    "content": null,
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "arguments": "{\"reservation_id\":\"1ERWZ8\"}",
+                                "name": "get_reservation_details"
+                            },
+                            "id": "call_hi4q41Wh2BCGl9u3jtWoYkUU",
+                            "type": "function"
+                        }
+                    ],
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_hi4q41Wh2BCGl9u3jtWoYkUU",
+                    "name": "get_reservation_details",
+                    "content": "{\"reservation_id\": \"1ERWZ8\", \"user_id\": \"raj_johnson_6495\", \"origin\": \"EWR\", \"destination\": \"MSP\", \"flight_type\": \"round_trip\", \"cabin\": \"basic_economy\", \"flights\": [{\"origin\": \"EWR\", \"destination\": \"MSP\", \"flight_number\": \"HAT208\", \"date\": \"2024-05-24\", \"price\": 66}, {\"origin\": \"MSP\", \"destination\": \"EWR\", \"flight_number\": \"HAT300\", \"date\": \"2024-05-29\", \"price\": 51}], \"passengers\": [{\"first_name\": \"Raj\", \"last_name\": \"Johnson\", \"dob\": \"1991-06-17\"}], \"payment_history\": [{\"payment_id\": \"gift_card_3613186\", \"amount\": 117}], \"created_at\": \"2024-05-10T14:35:44\", \"total_baggages\": 0, \"nonfree_baggages\": 0, \"insurance\": \"no\"}"
+                },
+                {
+                    "content": null,
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "arguments": "{\"origin\":\"EWR\",\"destination\":\"MSP\",\"date\":\"2024-05-24\"}",
+                                "name": "search_direct_flight"
+                            },
+                            "id": "call_vQpnT6FGTFcsZPkcbV2jekJp",
+                            "type": "function"
+                        }
+                    ],
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_vQpnT6FGTFcsZPkcbV2jekJp",
+                    "name": "search_direct_flight",
+                    "content": "[{\"flight_number\": \"HAT208\", \"origin\": \"EWR\", \"destination\": \"MSP\", \"scheduled_departure_time_est\": \"00:00:00\", \"scheduled_arrival_time_est\": \"03:00:00\", \"status\": \"available\", \"available_seats\": {\"basic_economy\": 3, \"economy\": 15, \"business\": 20}, \"prices\": {\"basic_economy\": 76, \"economy\": 180, \"business\": 258}}]"
+                },
+                {
+                    "content": null,
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "arguments": "{\"origin\":\"MSP\",\"destination\":\"EWR\",\"date\":\"2024-05-29\"}",
+                                "name": "search_direct_flight"
+                            },
+                            "id": "call_jSbtSBn5IAxkcyxcProu336Q",
+                            "type": "function"
+                        }
+                    ],
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_jSbtSBn5IAxkcyxcProu336Q",
+                    "name": "search_direct_flight",
+                    "content": "[{\"flight_number\": \"HAT141\", \"origin\": \"MSP\", \"destination\": \"EWR\", \"scheduled_departure_time_est\": \"14:00:00\", \"scheduled_arrival_time_est\": \"17:00:00\", \"status\": \"available\", \"available_seats\": {\"basic_economy\": 5, \"economy\": 18, \"business\": 12}, \"prices\": {\"basic_economy\": 65, \"economy\": 141, \"business\": 483}}, {\"flight_number\": \"HAT196\", \"origin\": \"MSP\", \"destination\": \"EWR\", \"scheduled_departure_time_est\": \"11:00:00\", \"scheduled_arrival_time_est\": \"14:00:00\", \"status\": \"available\", \"available_seats\": {\"basic_economy\": 15, \"economy\": 5, \"business\": 16}, \"prices\": {\"basic_economy\": 93, \"economy\": 191, \"business\": 268}}, {\"flight_number\": \"HAT300\", \"origin\": \"MSP\", \"destination\": \"EWR\", \"scheduled_departure_time_est\": \"06:00:00\", \"scheduled_arrival_time_est\": \"09:00:00\", \"status\": \"available\", \"available_seats\": {\"basic_economy\": 11, \"economy\": 8, \"business\": 14}, \"prices\": {\"basic_economy\": 66, \"economy\": 112, \"business\": 314}}]"
+                },
+                {
+                    "content": null,
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "arguments": "{\"user_id\":\"raj_johnson_6495\"}",
+                                "name": "get_user_details"
+                            },
+                            "id": "call_GOKiFfTKGTMNrXdFpQWAMQVZ",
+                            "type": "function"
+                        }
+                    ],
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_GOKiFfTKGTMNrXdFpQWAMQVZ",
+                    "name": "get_user_details",
+                    "content": "{\"name\": {\"first_name\": \"Raj\", \"last_name\": \"Johnson\"}, \"address\": {\"address1\": \"466 Hillcrest Drive\", \"address2\": \"Suite 856\", \"city\": \"Phoenix\", \"country\": \"USA\", \"state\": \"AZ\", \"zip\": \"85015\"}, \"email\": \"raj.johnson7007@example.com\", \"dob\": \"1991-06-17\", \"payment_methods\": {\"credit_card_5296290\": {\"source\": \"credit_card\", \"brand\": \"mastercard\", \"last_four\": \"6259\", \"id\": \"credit_card_5296290\"}, \"gift_card_3613186\": {\"source\": \"gift_card\", \"amount\": 278, \"id\": \"gift_card_3613186\"}, \"credit_card_7153839\": {\"source\": \"credit_card\", \"brand\": \"mastercard\", \"last_four\": \"7325\", \"id\": \"credit_card_7153839\"}, \"credit_card_4188609\": {\"source\": \"credit_card\", \"brand\": \"mastercard\", \"last_four\": \"2426\", \"id\": \"credit_card_4188609\"}}, \"saved_passengers\": [{\"first_name\": \"Sofia\", \"last_name\": \"Jackson\", \"dob\": \"1986-10-03\"}], \"membership\": \"regular\", \"reservations\": [\"NA6PZ3\", \"1ERWZ8\", \"K2LPTR\", \"TTC1U5\", \"L1VQGP\", \"6UMGFT\", \"X3UE1S\", \"H6YMGL\"]}"
+                },
+                {
+                    "content": "Here are the details of your requested change:\n\n\u2013 Reservation: 1ERWZ8  \n\u2013 Change: Upgrade cabin from Basic Economy to Business on both segments  \n   \u2022 HAT208 on 2024-05-24 (EWR\u2192MSP) \u2013 Business fare \\$258 (was \\$66)  \n   \u2022 HAT300 on 2024-05-29 (MSP\u2192EWR) \u2013 Business fare \\$314 (was \\$51)  \n\u2013 Total original paid: \\$117  \n\u2013 New total: \\$572  \n\u2013 Fare difference: \\$455  \n\nPlease confirm you\u2019d like to proceed and let me know which payment method to use (one credit card):  \n\u2022 credit_card_5296290 (Mastercard ending 6259)  \n\u2022 credit_card_7153839 (Mastercard ending 7325)  \n\u2022 credit_card_4188609 (Mastercard ending 2426)  \n\nReply with \u201cYes, pay with <payment_id>\u201d to confirm.",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "Yes, pay with credit_card_5296290."
+                },
+                {
+                    "content": null,
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "arguments": "{\"reservation_id\":\"1ERWZ8\",\"cabin\":\"business\",\"flights\":[{\"flight_number\":\"HAT208\",\"date\":\"2024-05-24\"},{\"flight_number\":\"HAT300\",\"date\":\"2024-05-29\"}],\"payment_id\":\"credit_card_5296290\"}",
+                                "name": "update_reservation_flights"
+                            },
+                            "id": "call_ci65Lx5GQwm2fDdLXACDGhlC",
+                            "type": "function"
+                        }
+                    ],
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_ci65Lx5GQwm2fDdLXACDGhlC",
+                    "name": "update_reservation_flights",
+                    "content": "{\"reservation_id\": \"1ERWZ8\", \"user_id\": \"raj_johnson_6495\", \"origin\": \"EWR\", \"destination\": \"MSP\", \"flight_type\": \"round_trip\", \"cabin\": \"basic_economy\", \"flights\": [{\"flight_number\": \"HAT208\", \"date\": \"2024-05-24\", \"price\": 258, \"origin\": \"EWR\", \"destination\": \"MSP\"}, {\"flight_number\": \"HAT300\", \"date\": \"2024-05-29\", \"price\": 314, \"origin\": \"MSP\", \"destination\": \"EWR\"}], \"passengers\": [{\"first_name\": \"Raj\", \"last_name\": \"Johnson\", \"dob\": \"1991-06-17\"}], \"payment_history\": [{\"payment_id\": \"gift_card_3613186\", \"amount\": 117}, {\"payment_id\": \"credit_card_5296290\", \"amount\": 455}], \"created_at\": \"2024-05-10T14:35:44\", \"total_baggages\": 0, \"nonfree_baggages\": 0, \"insurance\": \"no\"}"
+                },
+                {
+                    "content": "Your reservation 1ERWZ8 has been successfully upgraded to Business class.  \nYou paid an additional \\$455 using Mastercard ending 6259.  \n\nIs there anything else I can help you with?",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "No, that's all. Thank you! ###STOP###"
+                }
+            ],
+            "trial": 2
+        }
+    ],
+    "metrics": {
+        "average_reward": 0.6666666666666666,
+        "pass_k": {
+            "1": 0.6666666666666666,
+            "2": 0.3333333333333333,
+            "3": 0.0
+        },
+        "total_cost": null,
+        "execution_time": 321.79715728759766
+    },
+    "error": null
+}
