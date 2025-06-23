@@ -1,10 +1,6 @@
 import json
 from typing import Any, Dict
-from datetime import datetime, timezone
-from faker import Faker
 from tau_bench.envs.tool import Tool
-
-fake = Faker()
 
 class ReverseTransaction(Tool):
     @staticmethod
@@ -19,7 +15,7 @@ class ReverseTransaction(Tool):
             raise KeyError(f"Transaction {transaction_id} not found")
           
         txn["status"] = "reversed"
-        txn["timestamp"] = datetime.now(timezone.utc).isoformat()
+        txn["timestamp"] = "2025-01-01T00:00:00Z"
         
         refunds = data["refunds"] if "refunds" in data else {}
         
@@ -34,7 +30,7 @@ class ReverseTransaction(Tool):
           "transaction_id": transaction_id,
           "refund_method": "branch",
           "refund_channel": "branch",
-          "processed_at": datetime.now(timezone.utc).isoformat(),
+          "processed_at": "2025-01-01T00:00:00Z",
           "status": "completed",
           "original_amount": txn["amount"],
           "refund_amount": txn["amount"],
@@ -44,7 +40,7 @@ class ReverseTransaction(Tool):
           "reversal_reference": f"RL-{suffix}",
           "initiated_by": {"user_id": "CUST415020"},
           "approved_by": "CUST896615",
-          "approved_at": datetime.now(timezone.utc).isoformat(),
+          "approved_at": "2025-01-01T00:00:00Z",
           "gl_account": "ACCOUNTS_PAYABLE",
           "tax_code": "REFUND-ZY#",
           "customer_notes": "Identify able attorney quality."

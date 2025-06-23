@@ -1,7 +1,6 @@
 import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
-from datetime import datetime
 
 class TransferAsset(Tool):
     @staticmethod
@@ -34,7 +33,6 @@ class TransferAsset(Tool):
             "asset_id": asset_id,
             "from_user": from_user,
             "to_user": to_user,
-            "transferred_at": datetime.now().isoformat(),
             "notes": notes
         })
 

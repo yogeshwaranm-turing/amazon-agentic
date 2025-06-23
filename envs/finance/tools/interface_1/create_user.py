@@ -1,11 +1,7 @@
 import json
-import random
 from datetime import datetime, timezone
 from typing import Any, Dict
-from faker import Faker
 from tau_bench.envs.tool import Tool
-
-fake = Faker()
 
 class CreateUser(Tool):
     @staticmethod
@@ -22,7 +18,7 @@ class CreateUser(Tool):
         
         max_id = max([int(uid[4:]) for uid in users.keys() if uid.startswith("CUST")] + [100000])
         new_id = f"CUST{max_id + 1}"
-        now_iso = datetime.now(timezone.utc).isoformat()
+        now_iso = "2025-01-01T00:00:00Z"
         
         new_user = {
             "user_id": new_id,
@@ -35,12 +31,12 @@ class CreateUser(Tool):
             "created_at": now_iso,
             "updated_at": now_iso,
             "last_login_at": now_iso,
-            "kyc_status": random.choice(["verified","pending","rejected"]),
-            "preferred_contact_method": random.choice(["email","sms"]),
-            "marketing_opt_in": fake.boolean(chance_of_getting_true=50),
-            "time_zone": fake.timezone(),
-            "risk_score": random.randint(300,850),
-            "ssn_last4": f"{random.randint(0,9999):04d}"
+            "kyc_status": "verified",
+            "preferred_contact_method": "email",
+            "marketing_opt_in": False,
+            "time_zone": "America/New_York",
+            "risk_score": 650,
+            "ssn_last4": "1234"
         }
         
         users[new_id] = new_user

@@ -51,7 +51,7 @@ class CloseAccount(Tool):
         
         # Close the account
         account["status"] = "closed"
-        account["closed_at"] = datetime.now().isoformat() + "Z"
+        account["closed_at"] = "2025-01-01T00:00:00Z"
         account["closure_reason"] = reason or "Customer request"
         
         # Zero out balances

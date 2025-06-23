@@ -24,7 +24,7 @@ class ProcessLoanPayment(Tool):
         
         # Use current date if not provided
         if not payment_date:
-            payment_date = datetime.now().isoformat() + "Z"
+            payment_date = "2025-01-01T00:00:00Z"
         
         # Calculate interest and principal portions
         outstanding_balance = loan.get("outstanding_balance", 0)

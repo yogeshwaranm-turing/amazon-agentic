@@ -37,13 +37,11 @@ class ProcessInterestAccrual(Tool):
             last_posted = account.get("last_interest_posted")
             
             # Calculate interest (daily compounding)
+            # Calculate days since last posting (use fixed calculation for determinism)
             days_since_last_post = 30  # Default to monthly
             if last_posted:
-                try:
-                    last_date = datetime.fromisoformat(last_posted.replace("Z", ""))
-                    days_since_last_post = (datetime.now() - last_date).days
-                except:
-                    days_since_last_post = 30
+                # Use deterministic calculation instead of dynamic datetime
+                days_since_last_post = 30
             
             # Calculate compound interest
             daily_rate = annual_rate / 365
@@ -56,7 +54,7 @@ class ProcessInterestAccrual(Tool):
             account["interest_accrued"] = round(new_accrued, 2)
             account["balances"]["book"] = round(new_balance, 2)
             account["balances"]["available"] = round(new_balance, 2)
-            account["last_interest_posted"] = datetime.now().isoformat() + "Z"
+            account["last_interest_posted"] = "2025-01-01T00:00:00Z"
             account["last_interest_amount"] = round(interest_earned, 2)
             
             processed_accounts.append({
@@ -69,7 +67,7 @@ class ProcessInterestAccrual(Tool):
         return json.dumps({
             "processed_accounts": processed_accounts,
             "total_accounts": len(processed_accounts),
-            "processing_date": datetime.now().isoformat() + "Z"
+            "processing_date": "2025-01-01T00:00:00Z"
         })
 
     @staticmethod

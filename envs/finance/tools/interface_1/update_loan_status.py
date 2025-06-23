@@ -35,7 +35,7 @@ class UpdateLoanStatus(Tool):
         
         # Update loan status
         loan["status"] = new_status
-        loan["status_updated_at"] = datetime.now().isoformat() + "Z"
+        loan["status_updated_at"] = "2025-01-01T00:00:00Z"
         
         if reason:
             loan["status_reason"] = reason
@@ -44,9 +44,9 @@ class UpdateLoanStatus(Tool):
         if new_status == "paid_off":
             loan["outstanding_balance"] = 0.0
             loan["next_payment_due"] = None
-            loan["paid_off_at"] = datetime.now().isoformat() + "Z"
+            loan["paid_off_at"] = "2025-01-01T00:00:00Z"
         elif new_status == "defaulted":
-            loan["defaulted_at"] = datetime.now().isoformat() + "Z"
+            loan["defaulted_at"] = "2025-01-01T00:00:00Z"
         
         return json.dumps(loan)
 

@@ -32,26 +32,26 @@ class LinkAccountToUser(Tool):
             if user_id not in joint_users:
                 joint_users.append(user_id)
                 account["joint_users"] = joint_users
-                account["joint_added_at"] = datetime.now().isoformat() + "Z"
+                account["joint_added_at"] = "2025-01-01T00:00:00Z"
             
             result = {
                 "account_id": account_id,
                 "primary_user": current_user,
                 "joint_users": joint_users,
                 "relationship_type": "joint",
-                "linked_at": datetime.now().isoformat() + "Z"
+                "linked_at": "2025-01-01T00:00:00Z"
             }
         else:
             # Link account to user as primary
             account["user_id"] = user_id
             account["relationship_type"] = relationship_type
-            account["linked_at"] = datetime.now().isoformat() + "Z"
+            account["linked_at"] = "2025-01-01T00:00:00Z"
             
             result = {
                 "account_id": account_id,
                 "user_id": user_id,
                 "relationship_type": relationship_type,
-                "linked_at": datetime.now().isoformat() + "Z"
+                "linked_at": "2025-01-01T00:00:00Z"
             }
         
         return json.dumps(result)

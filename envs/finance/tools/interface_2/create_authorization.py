@@ -1,10 +1,7 @@
-import json, random
+import json
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
-from faker import Faker
 from tau_bench.envs.tool import Tool
-
-fake = Faker()
 
 class CreateAuthorization(Tool):
     @staticmethod
@@ -17,8 +14,8 @@ class CreateAuthorization(Tool):
     ) -> str:
         auths = data.setdefault("authorizations", {})
         new_id = f"AUTH{len(auths)+1:06d}"
-        now = datetime.now(timezone.utc)
-        expires = now + timedelta(days=7)
+        now = datetime(2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+        expires = datetime(2025, 1, 7, 0, 0, 0, tzinfo=timezone.utc)
         auth = {
             "auth_id": new_id,
             "account_id": account_id,
@@ -27,13 +24,13 @@ class CreateAuthorization(Tool):
             "authorized_at": now.isoformat() + "Z",
             "expires_at": expires.isoformat() + "Z",
             "status": "authorized",
-            "merchant": {"name": fake.company(), "mcc": f"{random.randint(1000,9999)}", "category": fake.random_element(elements=["Retail","Travel","Food","Healthcare"])},
+            "merchant": {"name": "Generic Store", "mcc": "5411", "category": "Retail"},
             "channel": channel,
-            "card": {"card_type": random.choice(["Visa","Mastercard","Amex","Discover"]), "card_last4": f"{random.randint(0,9999):04d}", "card_expiry": fake.credit_card_expire(end="+3y")},
-            "geo_location": {"lat": round(random.uniform(25.0,49.0),6), "lng": round(random.uniform(-124.0,-66.0),6), "city": fake.city(), "country": "USA"},
-            "device_id": fake.lexify(text="DEV-????-????"),
-            "approved_by": f"EMP-{random.randint(1000,9999)}",
-            "approved_at": (now + timedelta(hours=1)).isoformat() + "Z",
+            "card": {"card_type": "Visa", "card_last4": "1234", "card_expiry": "12/27"},
+            "geo_location": {"lat": 40.712800, "lng": -74.006000, "city": "New York", "country": "USA"},
+            "device_id": "DEV-ABCD-1234",
+            "approved_by": "EMP-1001",
+            "approved_at": "2025-01-01T01:00:00Z",
             "notes": None
         }
         auths[new_id] = auth

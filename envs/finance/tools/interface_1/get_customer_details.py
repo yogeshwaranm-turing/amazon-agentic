@@ -1,6 +1,6 @@
 import json
 from typing import Any, Dict
-from turing_tasks.envs.tool import Tool
+from tau_bench.envs.tool import Tool
 
 class GetCustomerDetails(Tool):
     @staticmethod

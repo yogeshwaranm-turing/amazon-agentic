@@ -1,11 +1,6 @@
 import json
 from typing import Any, Dict
-from datetime import datetime, timezone
-from faker import Faker
 from tau_bench.envs.tool import Tool
-import uuid
-
-fake = Faker()
 
 class CreateTransaction(Tool):
     @staticmethod
@@ -13,7 +8,7 @@ class CreateTransaction(Tool):
         txns = data["transactions"]
         
         new_id = f"TXN-{len(txns)+1:06d}"
-        now_iso = datetime.now(timezone.utc).isoformat()
+        now_iso = "2025-01-01T00:00:00Z"
         
         txn = {
             "transaction_id": new_id,
@@ -28,18 +23,18 @@ class CreateTransaction(Tool):
             "fee": 0.0,
             "running_balance": None,
             "geo_location": {
-              "lat": float(fake.latitude()),
-              "lng": float(fake.longitude()),
-              "city": fake.city(),
-              "country": fake.country()
+              "lat": 40.7128,
+              "lng": -74.0060,
+              "city": "New York",
+              "country": "United States"
             },
-            "reference_id": f"REF-{uuid.uuid4()}",
+            "reference_id": f"REF-{new_id}",
             "tags": [],
             "notes": None,
             "merchant": {
-              "name": fake.company(),
-              "mcc": fake.pystr(min_chars=4, max_chars=4),
-              "category": fake.word()
+              "name": "Generic Store",
+              "mcc": "5411",
+              "category": "retail"
             },
             "channel": "branch"
         }
