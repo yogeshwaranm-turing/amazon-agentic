@@ -1,7 +1,6 @@
 import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
-from datetime import datetime
 
 class CalculateNextDepreciation(Tool):
     @staticmethod
@@ -20,7 +19,7 @@ class CalculateNextDepreciation(Tool):
         method = asset.get("depreciation_method")
         rate = (1/life) if method=="straight_line" else (2/life)
         amt = bv * rate
-        ref = f"JE-{datetime.now().year}-{asset_id}"
+        ref = f"JE-2025-{asset_id}"
         result = {"amount": amt, "journal_entry_ref": ref}
         
         return json.dumps(result)

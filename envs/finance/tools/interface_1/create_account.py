@@ -1,6 +1,5 @@
 import json
 from typing import Any, Dict
-from datetime import datetime
 from tau_bench.envs.tool import Tool
 
 class CreateAccount(Tool):
@@ -30,7 +29,8 @@ class CreateAccount(Tool):
             raise ValueError(f"Minimum deposit for {account_type} account is ${min_deposits[account_type]}")
         
         # Generate account ID
-        account_id = f"ACC{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        # Generate account ID with a deterministic format
+        account_id = f"ACC{user_id[-6:]}{account_type[:3].upper()}"
         
         # Set interest rate based on account type
         interest_rate = 0.01 if account_type == "checking" else 1.5
@@ -41,7 +41,7 @@ class CreateAccount(Tool):
             "user_id": user_id,
             "account_type": account_type,
             "status": "open",
-            "opened_at": datetime.now().isoformat() + "Z",
+            "opened_at": "2025-01-01T00:00:00Z",
             "closed_at": None,
             "currency": currency,
             "balances": {

@@ -70,7 +70,7 @@ INTERFACE_5_TEST = [
     Task(
         annotator="0",
         user_id="CUST772519",
-        instruction="Your user id is CUST772519. You want to get your user details and then assign the asset SFT-LAX-8994 to another user with id CUST841069.",
+        instruction="Your user id is CUST772519. You want to get your user details using your user id, see a list of all your asset and then assign the asset SFT-LAX-8994 to another user with id CUST841069.",
         actions=[
             Action(
                 name="get_customer_details", 

@@ -1,7 +1,6 @@
 import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
-from datetime import datetime
 
 class AssignAssetToUser(Tool):
     @staticmethod
@@ -29,7 +28,7 @@ class AssignAssetToUser(Tool):
         return json.dumps({
             "asset_id": asset_id,
             "user_id": user_id,
-            "assigned_at": datetime.now().isoformat(),
+            "assigned_at": "2025-01-01T00:00:00Z",
             "notes": notes
         })
 

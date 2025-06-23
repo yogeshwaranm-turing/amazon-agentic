@@ -34,22 +34,22 @@ class UpdateAccountStatus(Tool):
         
         # Update account status
         account["status"] = new_status
-        account["status_updated_at"] = datetime.now().isoformat() + "Z"
+        account["status_updated_at"] = "2025-01-01T00:00:00Z"
         
         if reason:
             account["status_reason"] = reason
         
         # Handle specific status changes
         if new_status == "frozen":
-            account["frozen_at"] = datetime.now().isoformat() + "Z"
+            account["frozen_at"] = "2025-01-01T00:00:00Z"
             # When frozen, available balance becomes 0 but book balance remains
             account["balances"]["available"] = 0.0
         elif new_status == "open" and old_status == "frozen":
-            account["unfrozen_at"] = datetime.now().isoformat() + "Z"
+            account["unfrozen_at"] = "2025-01-01T00:00:00Z"
             # Restore available balance from book balance
             account["balances"]["available"] = account["balances"]["book"]
         elif new_status == "closed":
-            account["closed_at"] = datetime.now().isoformat() + "Z"
+            account["closed_at"] = "2025-01-01T00:00:00Z"
             # Zero out all balances
             remaining_balance = account["balances"]["available"]
             account["balances"]["closing"] = remaining_balance

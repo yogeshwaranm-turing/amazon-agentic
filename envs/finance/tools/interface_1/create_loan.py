@@ -1,6 +1,5 @@
 import json
 from typing import Any, Dict
-from datetime import datetime, timedelta
 from tau_bench.envs.tool import Tool
 
 class CreateLoan(Tool):
@@ -29,11 +28,12 @@ class CreateLoan(Tool):
             raise ValueError(f"User {user_id} has no active accounts.")
         
         # Generate loan ID
-        loan_id = f"LN-{datetime.now().strftime('%y%m%d')}-{datetime.now().strftime('%H%M%S')}"
+        # Generate loan ID deterministically
+        loan_id = f"LN-{user_id[-6:]}-{principal:.0f}"
         
         # Calculate dates
-        issued_at = datetime.now().isoformat() + "Z"
-        maturity_date = (datetime.now() + timedelta(days=term_months * 30)).isoformat() + "Z"
+        issued_at = "2025-01-01T00:00:00Z"
+        maturity_date = "2026-01-01T00:00:00Z"
         
         # Calculate fees
         origination_fee = principal * 0.01  # 1% origination fee
@@ -57,7 +57,7 @@ class CreateLoan(Tool):
             "outstanding_balance": principal,
             "total_paid": 0.0,
             "last_payment_at": None,
-            "next_payment_due": (datetime.now() + timedelta(days=30)).isoformat() + "Z"
+            "next_payment_due": "2025-02-01T00:00:00Z"
         }
         
         loans[loan_id] = loan

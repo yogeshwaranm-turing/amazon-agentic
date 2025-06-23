@@ -23,7 +23,7 @@ class ApproveDisposal(Tool):
             if disp.get("tax_treatment") == "capital_gain" and disp.get("proceeds", 0) < bv:
                 raise ValueError("Proceeds must exceed book value for capital gain.")
             disp["approved_by"] = approved_by
-            disp["approved_at"] = datetime.now().isoformat()
+            disp["approved_at"] = "2025-01-01T00:00:00Z"
             # update GL account
             disp["gl_account"] = "FIXED_ASSET_DISPOSAL" if disp.get("tax_treatment")=="capital_gain" else "FIXED_ASSET_LOSS"
             return json.dumps(disp)

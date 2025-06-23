@@ -1,5 +1,4 @@
 import json
-from datetime import datetime, timezone
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
@@ -17,7 +16,7 @@ class UpdateAssetDetails(Tool):
             raise KeyError(f"Asset {asset_id} not found")
         
         asset.update(updates)
-        asset["updated_at"] = datetime.now(timezone.utc).isoformat()
+        asset["updated_at"] = "2025-06-15T15:00:00"
         
         return json.dumps(asset)
 

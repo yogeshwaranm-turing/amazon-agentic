@@ -14,7 +14,7 @@ class ApplyPaymentToLoan(Tool):
           
         payments = data.setdefault("loan_payments", {})
         pay_id = f"LP-{len(payments)+1:06d}"
-        now = datetime.now(timezone.utc).isoformat().replace('+00:00','Z')
+        now = "2025-01-01T00:00:00Z"
         payment = {
           "payment_id": pay_id, 
           "loan_id": loan_id, 

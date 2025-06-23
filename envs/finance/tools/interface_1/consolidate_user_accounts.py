@@ -58,12 +58,12 @@ class ConsolidateUserAccounts(Tool):
                 
                 # Record consolidation details
                 account["consolidated_to"] = primary_account_id
-                account["consolidated_at"] = datetime.now().isoformat() + "Z"
+                account["consolidated_at"] = "2025-01-01T00:00:00Z"
                 account["consolidated_balance"] = available_balance
             
             # Close the account
             account["status"] = "closed"
-            account["closed_at"] = datetime.now().isoformat() + "Z"
+            account["closed_at"] = "2025-01-01T00:00:00Z"
             account["closure_reason"] = "Account consolidation"
             account["balances"]["available"] = 0.0
             account["balances"]["book"] = 0.0
@@ -79,7 +79,7 @@ class ConsolidateUserAccounts(Tool):
         # Update primary account with consolidation info
         primary_account["consolidation_history"] = primary_account.get("consolidation_history", [])
         primary_account["consolidation_history"].append({
-            "consolidated_at": datetime.now().isoformat() + "Z",
+            "consolidated_at": "2025-01-01T00:00:00Z",
             "accounts_consolidated": len(consolidated_accounts),
             "total_balance_received": total_balance_transferred,
             "consolidated_account_ids": accounts_to_consolidate
@@ -91,7 +91,7 @@ class ConsolidateUserAccounts(Tool):
             "consolidated_accounts": consolidated_accounts,
             "total_balance_transferred": total_balance_transferred,
             "new_primary_balance": primary_account["balances"]["available"],
-            "consolidation_date": datetime.now().isoformat() + "Z"
+            "consolidation_date": "2025-01-01T00:00:00Z"
         }
         
         return json.dumps(result)
