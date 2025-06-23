@@ -1,0 +1,495 @@
+{
+    "success": true,
+    "results": [
+        {
+            "task_id": 0,
+            "reward": 0.0,
+            "info": {
+                "task": {
+                    "user_id": "sophia_davis_8874",
+                    "actions": [
+                        {
+                            "name": "get_reservation_details",
+                            "kwargs": {
+                                "reservation_id": "NVLFIW"
+                            }
+                        },
+                        {
+                            "name": "update_reservation_passengers",
+                            "kwargs": {
+                                "reservation_id": "NVLFIW",
+                                "passengers": [
+                                    {
+                                        "first_name": "Annya",
+                                        "last_name": "Rossi",
+                                        "dob": "1997-05-14"
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "instruction": "Your user ID is sophia_davis_8874, and you have a reservation with the ID NVLFIW. You would like to review the booking details to confirm the name and date of birth of a passenger named Annya, which should match that of the other passenger on the reservation, except for the month\u2014Annya's should be May. A recent mobile notification made you concerned that her name may have been misspelled during the booking process. If either the name or date of birth is incorrect, you need to update Annya\u2019s details accordingly. You will remain responsive to the agent but will only share the information necessary to complete the correction.",
+                    "outputs": [
+                        "Annya",
+                        "1997-05-14"
+                    ]
+                },
+                "source": "user",
+                "user_cost": 0.0023075,
+                "reward_info": {
+                    "reward": 0.0,
+                    "info": {
+                        "r_outputs": 0.0,
+                        "outputs": {
+                            "Annya": true,
+                            "1997-05-14": false
+                        }
+                    },
+                    "actions": [
+                        {
+                            "name": "get_reservation_details",
+                            "kwargs": {
+                                "reservation_id": "NVLFIW"
+                            }
+                        },
+                        {
+                            "name": "update_reservation_passengers",
+                            "kwargs": {
+                                "reservation_id": "NVLFIW",
+                                "passengers": [
+                                    {
+                                        "first_name": "Annya",
+                                        "last_name": "Rossi",
+                                        "dob": "1997-05-14"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            "traj": [
+                {
+                    "role": "system",
+                    "content": "# Airline Agent Policy\n\nThe current time is 2024-05-15 15:00:00 EST.\n\nAs an airline agent, you can help users book, modify, or cancel flight reservations.\n\n- Before taking any actions that update the booking database (booking, modifying flights, editing baggage, upgrading cabin class, or updating passenger information), you must list the action details and obtain explicit user confirmation (yes) to proceed.\n\n- You should not provide any information, knowledge, or procedures not provided by the user or available tools, or give subjective recommendations or comments.\n\n- You should only make one tool call at a time, and if you make a tool call, you should not respond to the user simultaneously. If you respond to the user, you should not make a tool call at the same time.\n\n- You should deny user requests that are against this policy.\n\n- You should transfer the user to a human agent if and only if the request cannot be handled within the scope of your actions.\n\n## Domain Basic\n\n- Each user has a profile containing user id, email, addresses, date of birth, payment methods, reservation numbers, and membership tier.\n\n- Each reservation has an reservation id, user id, trip type (one way, round trip), flights, passengers, payment methods, created time, baggages, and travel insurance information.\n\n- Each flight has a flight number, an origin, destination, scheduled departure and arrival time (local time), and for each date:\n  - If the status is \"available\", the flight has not taken off, available seats and prices are listed.\n  - If the status is \"delayed\" or \"on time\", the flight has not taken off, cannot be booked.\n  - If the status is \"flying\", the flight has taken off but not landed, cannot be booked.\n\n## Book flight\n\n- The agent must first obtain the user id, then ask for the trip type, origin, destination.\n\n- Passengers: Each reservation can have at most five passengers. The agent needs to collect the first name, last name, and date of birth for each passenger. All passengers must fly the same flights in the same cabin.\n\n- Payment: each reservation can use at most one travel certificate, at most one credit card, and at most three gift cards. The remaining amount of a travel certificate is not refundable. All payment methods must already be in user profile for safety reasons.\n\n- Checked bag allowance: If the booking user is a regular member, 0 free checked bag for each basic economy passenger, 1 free checked bag for each economy passenger, and 2 free checked bags for each business passenger. If the booking user is a silver member, 1 free checked bag for each basic economy passenger, 2 free checked bag for each economy passenger, and 3 free checked bags for each business passenger. If the booking user is a gold member, 2 free checked bag for each basic economy passenger, 3 free checked bag for each economy passenger, and 3 free checked bags for each business passenger. Each extra baggage is 50 dollars.\n\n- Travel insurance: the agent should ask if the user wants to buy the travel insurance, which is 30 dollars per passenger and enables full refund if the user needs to cancel the flight given health or weather reasons.\n\n## Modify flight\n\n- The agent must first obtain the user id and the reservation id.\n\n- Change flights: Basic economy flights cannot be modified. Other reservations can be modified without changing the origin, destination, and trip type. Some flight segments can be kept, but their prices will not be updated based on the current price. The API does not check these for the agent, so the agent must make sure the rules apply before calling the API!\n\n- Change cabin: all reservations, including basic economy, can change cabin without changing the flights. Cabin changes require the user to pay for the difference between their current cabin and the new cabin class. Cabin class must be the same across all the flights in the same reservation; changing cabin for just one flight segment is not possible.\n\n- Change baggage and insurance: The user can add but not remove checked bags. The user cannot add insurance after initial booking.\n\n- Change passengers: The user can modify passengers but cannot modify the number of passengers. This is something that even a human agent cannot assist with.\n\n- Payment: If the flights are changed, the user needs to provide one gift card or credit card for payment or refund method. The agent should ask for the payment or refund method instead.\n\n## Cancel flight\n\n- The agent must first obtain the user id, the reservation id, and the reason for cancellation (change of plan, airline cancelled flight, or other reasons)\n\n- All reservations can be cancelled within 24 hours of booking, or if the airline cancelled the flight. Otherwise, basic economy or economy flights can be cancelled only if travel insurance is bought and the condition is met, and business flights can always be cancelled. The rules are strict regardless of the membership status. The API does not check these for the agent, so the agent must make sure the rules apply before calling the API!\n\n- The agent can only cancel the whole trip that is not flown. If any of the segments are already used, the agent cannot help and transfer is needed.\n\n- The refund will go to original payment methods in 5 to 7 business days.\n\n## Refund\n\n- If the user is silver/gold member or has travel insurance or flies business, and complains about cancelled flights in a reservation, the agent can offer a certificate as a gesture after confirming the facts, with the amount being $100 times the number of passengers.\n\n- If the user is silver/gold member or has travel insurance or flies business, and complains about delayed flights in a reservation and wants to change or cancel the reservation, the agent can offer a certificate as a gesture after confirming the facts and changing or cancelling the reservation, with the amount being $50 times the number of passengers.\n\n- Do not proactively offer these unless the user complains about the situation and explicitly asks for some compensation. Do not compensate if the user is regular member and has no travel insurance and flies (basic) economy.\n"
+                },
+                {
+                    "role": "user",
+                    "content": "Hi there! I need to review the booking details for my reservation ID NVLFIW. Can you help me with that?"
+                },
+                {
+                    "content": null,
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "arguments": "{\"reservation_id\":\"NVLFIW\"}",
+                                "name": "get_reservation_details"
+                            },
+                            "id": "call_fpHpuCSD48l4ngwEvAhodSFT",
+                            "type": "function"
+                        }
+                    ],
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_fpHpuCSD48l4ngwEvAhodSFT",
+                    "name": "get_reservation_details",
+                    "content": "{\"reservation_id\": \"NVLFIW\", \"user_id\": \"sophia_davis_8874\", \"origin\": \"JFK\", \"destination\": \"DTW\", \"flight_type\": \"round_trip\", \"cabin\": \"economy\", \"flights\": [{\"origin\": \"JFK\", \"destination\": \"DTW\", \"flight_number\": \"HAT212\", \"date\": \"2024-05-09\", \"price\": 142}, {\"origin\": \"DTW\", \"destination\": \"JFK\", \"flight_number\": \"HAT263\", \"date\": \"2024-05-21\", \"price\": 184}], \"passengers\": [{\"first_name\": \"Sophia\", \"last_name\": \"Davis\", \"dob\": \"1997-04-14\"}, {\"first_name\": \"Anya\", \"last_name\": \"Rossi\", \"dob\": \"1956-10-22\"}], \"payment_history\": [{\"payment_id\": \"gift_card_2075462\", \"amount\": 652}], \"created_at\": \"2024-05-02T01:06:17\", \"total_baggages\": 2, \"nonfree_baggages\": 0, \"insurance\": \"no\"}"
+                },
+                {
+                    "content": "Here are the details for your reservation ID **NVLFIW**:\n\n- **User ID:** sophia_davis_8874\n- **Origin:** JFK (John F. Kennedy International Airport)\n- **Destination:** DTW (Detroit Metropolitan Wayne County Airport)\n- **Flight Type:** Round Trip\n- **Cabin Class:** Economy\n\n### Flight Details:\n1. **Outbound Flight:**\n   - **Flight Number:** HAT212\n   - **Date:** 2024-05-09\n   - **Price:** $142\n\n2. **Return Flight:**\n   - **Flight Number:** HAT263\n   - **Date:** 2024-05-21\n   - **Price:** $184\n\n### Passenger Details:\n1. **Sophia Davis**\n   - Date of Birth: 1997-04-14\n\n2. **Anya Rossi**\n   - Date of Birth: 1956-10-22\n\n### Payment Information:\n- **Payment Method:** Gift Card\n- **Payment Amount:** $652\n\n### Baggage Information:\n- **Total Baggages:** 2\n- **Non-free Baggages:** 0\n\n### Insurance:\n- **Travel Insurance:** No\n\nIf you need any further assistance or wish to make changes, let me know!",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "Thanks for those details! It looks like Anya's name might be misspelled, as it should be \u2018Annya\u2019. Also, her birth month should be May. Can we update those details, please?"
+                },
+                {
+                    "content": "Let's update Anya's name to \"Annya\" and change her date of birth to reflect May. \n\nHere are the changes I will make:\n\n- **Passenger Name:** Anya Rossi -> Annya Rossi\n- **Date of Birth:** 1956-10-22 -> 1956-05-22\n\nPlease confirm if you would like to proceed with these updates (yes).",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "Yes, please proceed with those updates. Thank you!"
+                },
+                {
+                    "content": null,
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "arguments": "{\"reservation_id\":\"NVLFIW\",\"passengers\":[{\"first_name\":\"Sophia\",\"last_name\":\"Davis\",\"dob\":\"1997-04-14\"},{\"first_name\":\"Annya\",\"last_name\":\"Rossi\",\"dob\":\"1956-05-22\"}]}",
+                                "name": "update_reservation_passengers"
+                            },
+                            "id": "call_3VRxXf5Co96dIadBayLKKnEf",
+                            "type": "function"
+                        }
+                    ],
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_3VRxXf5Co96dIadBayLKKnEf",
+                    "name": "update_reservation_passengers",
+                    "content": "{\"reservation_id\": \"NVLFIW\", \"user_id\": \"sophia_davis_8874\", \"origin\": \"JFK\", \"destination\": \"DTW\", \"flight_type\": \"round_trip\", \"cabin\": \"economy\", \"flights\": [{\"origin\": \"JFK\", \"destination\": \"DTW\", \"flight_number\": \"HAT212\", \"date\": \"2024-05-09\", \"price\": 142}, {\"origin\": \"DTW\", \"destination\": \"JFK\", \"flight_number\": \"HAT263\", \"date\": \"2024-05-21\", \"price\": 184}], \"passengers\": [{\"first_name\": \"Sophia\", \"last_name\": \"Davis\", \"dob\": \"1997-04-14\"}, {\"first_name\": \"Annya\", \"last_name\": \"Rossi\", \"dob\": \"1956-05-22\"}], \"payment_history\": [{\"payment_id\": \"gift_card_2075462\", \"amount\": 652}], \"created_at\": \"2024-05-02T01:06:17\", \"total_baggages\": 2, \"nonfree_baggages\": 0, \"insurance\": \"no\"}"
+                },
+                {
+                    "content": "The updates have been successfully made to your reservation ID **NVLFIW**. Here are the updated passenger details:\n\n### Updated Passenger Details:\n1. **Sophia Davis**\n   - Date of Birth: 1997-04-14\n\n2. **Annya Rossi**\n   - Date of Birth: 1956-05-22\n\nIf you need any additional assistance or further modifications, feel free to ask!",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "Thank you for making those changes. I appreciate your help! ###STOP###"
+                }
+            ],
+            "trial": 0
+        },
+        {
+            "task_id": 0,
+            "reward": 0.0,
+            "info": {
+                "task": {
+                    "user_id": "sophia_davis_8874",
+                    "actions": [
+                        {
+                            "name": "get_reservation_details",
+                            "kwargs": {
+                                "reservation_id": "NVLFIW"
+                            }
+                        },
+                        {
+                            "name": "update_reservation_passengers",
+                            "kwargs": {
+                                "reservation_id": "NVLFIW",
+                                "passengers": [
+                                    {
+                                        "first_name": "Annya",
+                                        "last_name": "Rossi",
+                                        "dob": "1997-05-14"
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "instruction": "Your user ID is sophia_davis_8874, and you have a reservation with the ID NVLFIW. You would like to review the booking details to confirm the name and date of birth of a passenger named Annya, which should match that of the other passenger on the reservation, except for the month\u2014Annya's should be May. A recent mobile notification made you concerned that her name may have been misspelled during the booking process. If either the name or date of birth is incorrect, you need to update Annya\u2019s details accordingly. You will remain responsive to the agent but will only share the information necessary to complete the correction.",
+                    "outputs": [
+                        "Annya",
+                        "1997-05-14"
+                    ]
+                },
+                "source": "user",
+                "user_cost": 0.0024325,
+                "reward_info": {
+                    "reward": 0.0,
+                    "info": {
+                        "r_outputs": 0.0,
+                        "outputs": {
+                            "Annya": true,
+                            "1997-05-14": false
+                        }
+                    },
+                    "actions": [
+                        {
+                            "name": "get_reservation_details",
+                            "kwargs": {
+                                "reservation_id": "NVLFIW"
+                            }
+                        },
+                        {
+                            "name": "update_reservation_passengers",
+                            "kwargs": {
+                                "reservation_id": "NVLFIW",
+                                "passengers": [
+                                    {
+                                        "first_name": "Annya",
+                                        "last_name": "Rossi",
+                                        "dob": "1997-05-14"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            "traj": [
+                {
+                    "role": "system",
+                    "content": "# Airline Agent Policy\n\nThe current time is 2024-05-15 15:00:00 EST.\n\nAs an airline agent, you can help users book, modify, or cancel flight reservations.\n\n- Before taking any actions that update the booking database (booking, modifying flights, editing baggage, upgrading cabin class, or updating passenger information), you must list the action details and obtain explicit user confirmation (yes) to proceed.\n\n- You should not provide any information, knowledge, or procedures not provided by the user or available tools, or give subjective recommendations or comments.\n\n- You should only make one tool call at a time, and if you make a tool call, you should not respond to the user simultaneously. If you respond to the user, you should not make a tool call at the same time.\n\n- You should deny user requests that are against this policy.\n\n- You should transfer the user to a human agent if and only if the request cannot be handled within the scope of your actions.\n\n## Domain Basic\n\n- Each user has a profile containing user id, email, addresses, date of birth, payment methods, reservation numbers, and membership tier.\n\n- Each reservation has an reservation id, user id, trip type (one way, round trip), flights, passengers, payment methods, created time, baggages, and travel insurance information.\n\n- Each flight has a flight number, an origin, destination, scheduled departure and arrival time (local time), and for each date:\n  - If the status is \"available\", the flight has not taken off, available seats and prices are listed.\n  - If the status is \"delayed\" or \"on time\", the flight has not taken off, cannot be booked.\n  - If the status is \"flying\", the flight has taken off but not landed, cannot be booked.\n\n## Book flight\n\n- The agent must first obtain the user id, then ask for the trip type, origin, destination.\n\n- Passengers: Each reservation can have at most five passengers. The agent needs to collect the first name, last name, and date of birth for each passenger. All passengers must fly the same flights in the same cabin.\n\n- Payment: each reservation can use at most one travel certificate, at most one credit card, and at most three gift cards. The remaining amount of a travel certificate is not refundable. All payment methods must already be in user profile for safety reasons.\n\n- Checked bag allowance: If the booking user is a regular member, 0 free checked bag for each basic economy passenger, 1 free checked bag for each economy passenger, and 2 free checked bags for each business passenger. If the booking user is a silver member, 1 free checked bag for each basic economy passenger, 2 free checked bag for each economy passenger, and 3 free checked bags for each business passenger. If the booking user is a gold member, 2 free checked bag for each basic economy passenger, 3 free checked bag for each economy passenger, and 3 free checked bags for each business passenger. Each extra baggage is 50 dollars.\n\n- Travel insurance: the agent should ask if the user wants to buy the travel insurance, which is 30 dollars per passenger and enables full refund if the user needs to cancel the flight given health or weather reasons.\n\n## Modify flight\n\n- The agent must first obtain the user id and the reservation id.\n\n- Change flights: Basic economy flights cannot be modified. Other reservations can be modified without changing the origin, destination, and trip type. Some flight segments can be kept, but their prices will not be updated based on the current price. The API does not check these for the agent, so the agent must make sure the rules apply before calling the API!\n\n- Change cabin: all reservations, including basic economy, can change cabin without changing the flights. Cabin changes require the user to pay for the difference between their current cabin and the new cabin class. Cabin class must be the same across all the flights in the same reservation; changing cabin for just one flight segment is not possible.\n\n- Change baggage and insurance: The user can add but not remove checked bags. The user cannot add insurance after initial booking.\n\n- Change passengers: The user can modify passengers but cannot modify the number of passengers. This is something that even a human agent cannot assist with.\n\n- Payment: If the flights are changed, the user needs to provide one gift card or credit card for payment or refund method. The agent should ask for the payment or refund method instead.\n\n## Cancel flight\n\n- The agent must first obtain the user id, the reservation id, and the reason for cancellation (change of plan, airline cancelled flight, or other reasons)\n\n- All reservations can be cancelled within 24 hours of booking, or if the airline cancelled the flight. Otherwise, basic economy or economy flights can be cancelled only if travel insurance is bought and the condition is met, and business flights can always be cancelled. The rules are strict regardless of the membership status. The API does not check these for the agent, so the agent must make sure the rules apply before calling the API!\n\n- The agent can only cancel the whole trip that is not flown. If any of the segments are already used, the agent cannot help and transfer is needed.\n\n- The refund will go to original payment methods in 5 to 7 business days.\n\n## Refund\n\n- If the user is silver/gold member or has travel insurance or flies business, and complains about cancelled flights in a reservation, the agent can offer a certificate as a gesture after confirming the facts, with the amount being $100 times the number of passengers.\n\n- If the user is silver/gold member or has travel insurance or flies business, and complains about delayed flights in a reservation and wants to change or cancel the reservation, the agent can offer a certificate as a gesture after confirming the facts and changing or cancelling the reservation, with the amount being $50 times the number of passengers.\n\n- Do not proactively offer these unless the user complains about the situation and explicitly asks for some compensation. Do not compensate if the user is regular member and has no travel insurance and flies (basic) economy.\n"
+                },
+                {
+                    "role": "user",
+                    "content": "Hi! I need to check my reservation details specifically for a passenger named Annya as I suspect her name might be misspelled. Can you help me with this? My reservation ID is NVLFIW."
+                },
+                {
+                    "content": null,
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "arguments": "{\"reservation_id\":\"NVLFIW\"}",
+                                "name": "get_reservation_details"
+                            },
+                            "id": "call_1acAtSftI7WmrM9twTHs4Eot",
+                            "type": "function"
+                        }
+                    ],
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_1acAtSftI7WmrM9twTHs4Eot",
+                    "name": "get_reservation_details",
+                    "content": "{\"reservation_id\": \"NVLFIW\", \"user_id\": \"sophia_davis_8874\", \"origin\": \"JFK\", \"destination\": \"DTW\", \"flight_type\": \"round_trip\", \"cabin\": \"economy\", \"flights\": [{\"origin\": \"JFK\", \"destination\": \"DTW\", \"flight_number\": \"HAT212\", \"date\": \"2024-05-09\", \"price\": 142}, {\"origin\": \"DTW\", \"destination\": \"JFK\", \"flight_number\": \"HAT263\", \"date\": \"2024-05-21\", \"price\": 184}], \"passengers\": [{\"first_name\": \"Sophia\", \"last_name\": \"Davis\", \"dob\": \"1997-04-14\"}, {\"first_name\": \"Anya\", \"last_name\": \"Rossi\", \"dob\": \"1956-10-22\"}], \"payment_history\": [{\"payment_id\": \"gift_card_2075462\", \"amount\": 652}], \"created_at\": \"2024-05-02T01:06:17\", \"total_baggages\": 2, \"nonfree_baggages\": 0, \"insurance\": \"no\"}"
+                },
+                {
+                    "content": "Here are the details of your reservation (ID: NVLFIW):\n\n- **Origin:** JFK\n- **Destination:** DTW\n- **Trip Type:** Round Trip\n- **Cabin Class:** Economy\n- **Flights:**\n  1. Flight Number: HAT212\n     - Date: 2024-05-09\n     - Price: $142\n  2. Flight Number: HAT263\n     - Date: 2024-05-21\n     - Price: $184\n- **Passengers:**\n  1. **First Name:** Sophia\n     - **Last Name:** Davis\n     - **Date of Birth:** 1997-04-14\n  2. **First Name:** Anya\n     - **Last Name:** Rossi\n     - **Date of Birth:** 1956-10-22\n- **Total Baggages:** 2\n- **Non-Free Baggages:** 0\n- **Insurance:** No\n- **Payment History:** Gift Card (ID: gift_card_2075462) - Amount: $652\n- **Created At:** 2024-05-02\n\nIt appears that the correct spelling for the passenger is **Anya Rossi**. If you need to modify her name or make any changes, please let me know!",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "It looks like the spelling of Annya's name is incorrect. Could you please correct it to \"Annya\"? Also, the birth month should be updated to match mine, which is May."
+                },
+                {
+                    "content": "To confirm the changes, here are the details for the passenger modification:\n\n- **Passenger to modify:**\n  - **Current Name:** Anya Rossi\n  - **Updated Name:** Annya Rossi\n  - **Updated Date of Birth:** 1956-05-22 (assuming the day remains the same)\n\nShall I proceed with these updates? Please confirm (yes) to proceed.",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "Yes, please proceed with the updates. Thank you!"
+                },
+                {
+                    "content": null,
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "arguments": "{\"reservation_id\":\"NVLFIW\",\"passengers\":[{\"first_name\":\"Sophia\",\"last_name\":\"Davis\",\"dob\":\"1997-04-14\"},{\"first_name\":\"Annya\",\"last_name\":\"Rossi\",\"dob\":\"1956-05-22\"}]}",
+                                "name": "update_reservation_passengers"
+                            },
+                            "id": "call_4mZP6TjZdOWsVHwknXNkTKFC",
+                            "type": "function"
+                        }
+                    ],
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_4mZP6TjZdOWsVHwknXNkTKFC",
+                    "name": "update_reservation_passengers",
+                    "content": "{\"reservation_id\": \"NVLFIW\", \"user_id\": \"sophia_davis_8874\", \"origin\": \"JFK\", \"destination\": \"DTW\", \"flight_type\": \"round_trip\", \"cabin\": \"economy\", \"flights\": [{\"origin\": \"JFK\", \"destination\": \"DTW\", \"flight_number\": \"HAT212\", \"date\": \"2024-05-09\", \"price\": 142}, {\"origin\": \"DTW\", \"destination\": \"JFK\", \"flight_number\": \"HAT263\", \"date\": \"2024-05-21\", \"price\": 184}], \"passengers\": [{\"first_name\": \"Sophia\", \"last_name\": \"Davis\", \"dob\": \"1997-04-14\"}, {\"first_name\": \"Annya\", \"last_name\": \"Rossi\", \"dob\": \"1956-05-22\"}], \"payment_history\": [{\"payment_id\": \"gift_card_2075462\", \"amount\": 652}], \"created_at\": \"2024-05-02T01:06:17\", \"total_baggages\": 2, \"nonfree_baggages\": 0, \"insurance\": \"no\"}"
+                },
+                {
+                    "content": "The passenger name has been successfully updated. Here are the updated details for your reservation (ID: NVLFIW):\n\n- **Passengers:**\n  1. **First Name:** Sophia\n     - **Last Name:** Davis\n     - **Date of Birth:** 1997-04-14\n  2. **First Name:** Annya\n     - **Last Name:** Rossi\n     - **Date of Birth:** 1956-05-22\n\nIf you need any further assistance or modifications, feel free to ask!",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "Great! That looks perfect now. Thank you for your help. ###STOP###"
+                }
+            ],
+            "trial": 1
+        },
+        {
+            "task_id": 0,
+            "reward": 0.0,
+            "info": {
+                "task": {
+                    "user_id": "sophia_davis_8874",
+                    "actions": [
+                        {
+                            "name": "get_reservation_details",
+                            "kwargs": {
+                                "reservation_id": "NVLFIW"
+                            }
+                        },
+                        {
+                            "name": "update_reservation_passengers",
+                            "kwargs": {
+                                "reservation_id": "NVLFIW",
+                                "passengers": [
+                                    {
+                                        "first_name": "Annya",
+                                        "last_name": "Rossi",
+                                        "dob": "1997-05-14"
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "instruction": "Your user ID is sophia_davis_8874, and you have a reservation with the ID NVLFIW. You would like to review the booking details to confirm the name and date of birth of a passenger named Annya, which should match that of the other passenger on the reservation, except for the month\u2014Annya's should be May. A recent mobile notification made you concerned that her name may have been misspelled during the booking process. If either the name or date of birth is incorrect, you need to update Annya\u2019s details accordingly. You will remain responsive to the agent but will only share the information necessary to complete the correction.",
+                    "outputs": [
+                        "Annya",
+                        "1997-05-14"
+                    ]
+                },
+                "source": "user",
+                "user_cost": 0.0025450000000000004,
+                "reward_info": {
+                    "reward": 0.0,
+                    "info": {
+                        "r_outputs": 0.0,
+                        "outputs": {
+                            "Annya": true,
+                            "1997-05-14": false
+                        }
+                    },
+                    "actions": [
+                        {
+                            "name": "get_reservation_details",
+                            "kwargs": {
+                                "reservation_id": "NVLFIW"
+                            }
+                        },
+                        {
+                            "name": "update_reservation_passengers",
+                            "kwargs": {
+                                "reservation_id": "NVLFIW",
+                                "passengers": [
+                                    {
+                                        "first_name": "Annya",
+                                        "last_name": "Rossi",
+                                        "dob": "1997-05-14"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            "traj": [
+                {
+                    "role": "system",
+                    "content": "# Airline Agent Policy\n\nThe current time is 2024-05-15 15:00:00 EST.\n\nAs an airline agent, you can help users book, modify, or cancel flight reservations.\n\n- Before taking any actions that update the booking database (booking, modifying flights, editing baggage, upgrading cabin class, or updating passenger information), you must list the action details and obtain explicit user confirmation (yes) to proceed.\n\n- You should not provide any information, knowledge, or procedures not provided by the user or available tools, or give subjective recommendations or comments.\n\n- You should only make one tool call at a time, and if you make a tool call, you should not respond to the user simultaneously. If you respond to the user, you should not make a tool call at the same time.\n\n- You should deny user requests that are against this policy.\n\n- You should transfer the user to a human agent if and only if the request cannot be handled within the scope of your actions.\n\n## Domain Basic\n\n- Each user has a profile containing user id, email, addresses, date of birth, payment methods, reservation numbers, and membership tier.\n\n- Each reservation has an reservation id, user id, trip type (one way, round trip), flights, passengers, payment methods, created time, baggages, and travel insurance information.\n\n- Each flight has a flight number, an origin, destination, scheduled departure and arrival time (local time), and for each date:\n  - If the status is \"available\", the flight has not taken off, available seats and prices are listed.\n  - If the status is \"delayed\" or \"on time\", the flight has not taken off, cannot be booked.\n  - If the status is \"flying\", the flight has taken off but not landed, cannot be booked.\n\n## Book flight\n\n- The agent must first obtain the user id, then ask for the trip type, origin, destination.\n\n- Passengers: Each reservation can have at most five passengers. The agent needs to collect the first name, last name, and date of birth for each passenger. All passengers must fly the same flights in the same cabin.\n\n- Payment: each reservation can use at most one travel certificate, at most one credit card, and at most three gift cards. The remaining amount of a travel certificate is not refundable. All payment methods must already be in user profile for safety reasons.\n\n- Checked bag allowance: If the booking user is a regular member, 0 free checked bag for each basic economy passenger, 1 free checked bag for each economy passenger, and 2 free checked bags for each business passenger. If the booking user is a silver member, 1 free checked bag for each basic economy passenger, 2 free checked bag for each economy passenger, and 3 free checked bags for each business passenger. If the booking user is a gold member, 2 free checked bag for each basic economy passenger, 3 free checked bag for each economy passenger, and 3 free checked bags for each business passenger. Each extra baggage is 50 dollars.\n\n- Travel insurance: the agent should ask if the user wants to buy the travel insurance, which is 30 dollars per passenger and enables full refund if the user needs to cancel the flight given health or weather reasons.\n\n## Modify flight\n\n- The agent must first obtain the user id and the reservation id.\n\n- Change flights: Basic economy flights cannot be modified. Other reservations can be modified without changing the origin, destination, and trip type. Some flight segments can be kept, but their prices will not be updated based on the current price. The API does not check these for the agent, so the agent must make sure the rules apply before calling the API!\n\n- Change cabin: all reservations, including basic economy, can change cabin without changing the flights. Cabin changes require the user to pay for the difference between their current cabin and the new cabin class. Cabin class must be the same across all the flights in the same reservation; changing cabin for just one flight segment is not possible.\n\n- Change baggage and insurance: The user can add but not remove checked bags. The user cannot add insurance after initial booking.\n\n- Change passengers: The user can modify passengers but cannot modify the number of passengers. This is something that even a human agent cannot assist with.\n\n- Payment: If the flights are changed, the user needs to provide one gift card or credit card for payment or refund method. The agent should ask for the payment or refund method instead.\n\n## Cancel flight\n\n- The agent must first obtain the user id, the reservation id, and the reason for cancellation (change of plan, airline cancelled flight, or other reasons)\n\n- All reservations can be cancelled within 24 hours of booking, or if the airline cancelled the flight. Otherwise, basic economy or economy flights can be cancelled only if travel insurance is bought and the condition is met, and business flights can always be cancelled. The rules are strict regardless of the membership status. The API does not check these for the agent, so the agent must make sure the rules apply before calling the API!\n\n- The agent can only cancel the whole trip that is not flown. If any of the segments are already used, the agent cannot help and transfer is needed.\n\n- The refund will go to original payment methods in 5 to 7 business days.\n\n## Refund\n\n- If the user is silver/gold member or has travel insurance or flies business, and complains about cancelled flights in a reservation, the agent can offer a certificate as a gesture after confirming the facts, with the amount being $100 times the number of passengers.\n\n- If the user is silver/gold member or has travel insurance or flies business, and complains about delayed flights in a reservation and wants to change or cancel the reservation, the agent can offer a certificate as a gesture after confirming the facts and changing or cancelling the reservation, with the amount being $50 times the number of passengers.\n\n- Do not proactively offer these unless the user complains about the situation and explicitly asks for some compensation. Do not compensate if the user is regular member and has no travel insurance and flies (basic) economy.\n"
+                },
+                {
+                    "role": "user",
+                    "content": "Hi! I would like to review the booking details for reservation ID NVLFIW. Can you help me with that?"
+                },
+                {
+                    "content": null,
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "arguments": "{\"reservation_id\":\"NVLFIW\"}",
+                                "name": "get_reservation_details"
+                            },
+                            "id": "call_LgaxmZG3hVnxXnsWOD3jEZbk",
+                            "type": "function"
+                        }
+                    ],
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_LgaxmZG3hVnxXnsWOD3jEZbk",
+                    "name": "get_reservation_details",
+                    "content": "{\"reservation_id\": \"NVLFIW\", \"user_id\": \"sophia_davis_8874\", \"origin\": \"JFK\", \"destination\": \"DTW\", \"flight_type\": \"round_trip\", \"cabin\": \"economy\", \"flights\": [{\"origin\": \"JFK\", \"destination\": \"DTW\", \"flight_number\": \"HAT212\", \"date\": \"2024-05-09\", \"price\": 142}, {\"origin\": \"DTW\", \"destination\": \"JFK\", \"flight_number\": \"HAT263\", \"date\": \"2024-05-21\", \"price\": 184}], \"passengers\": [{\"first_name\": \"Sophia\", \"last_name\": \"Davis\", \"dob\": \"1997-04-14\"}, {\"first_name\": \"Anya\", \"last_name\": \"Rossi\", \"dob\": \"1956-10-22\"}], \"payment_history\": [{\"payment_id\": \"gift_card_2075462\", \"amount\": 652}], \"created_at\": \"2024-05-02T01:06:17\", \"total_baggages\": 2, \"nonfree_baggages\": 0, \"insurance\": \"no\"}"
+                },
+                {
+                    "content": "Here are the booking details for reservation ID **NVLFIW**:\n\n- **User ID**: sophia_davis_8874\n- **Origin**: JFK\n- **Destination**: DTW\n- **Trip Type**: Round Trip\n- **Cabin Class**: Economy\n\n### Flights:\n1. **Flight 1**: \n   - **Flight Number**: HAT212\n   - **Date**: May 9, 2024\n   - **Price**: $142\n   - **Origin**: JFK\n   - **Destination**: DTW\n\n2. **Flight 2**: \n   - **Flight Number**: HAT263\n   - **Date**: May 21, 2024\n   - **Price**: $184\n   - **Origin**: DTW\n   - **Destination**: JFK\n\n### Passengers:\n1. **Sophia Davis** (DOB: April 14, 1997)\n2. **Anya Rossi** (DOB: October 22, 1956)\n\n### Payment:\n- **Payment Method**: Gift Card\n- **Amount Used**: $652\n\n### Additional Information:\n- **Total Baggages**: 2\n- **Non-free Baggages**: 0\n- **Travel Insurance**: No\n- **Created At**: May 2, 2024\n\nIf you need any further help with this reservation, let me know!",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "It seems like Annya's name might be misspelled, and her date of birth doesn't match. I need to update Annya's details to correct her name and birth month. Can you help me with that?"
+                },
+                {
+                    "content": "I can help you with updating Anya's details. However, please note that you cannot modify the number of passengers in a reservation\u2014only the details of existing passengers.\n\nPlease provide the correct first name, last name, and the updated date of birth (in the format YYYY-MM-DD) for Anya so I can proceed with the update.",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "Her first name should be \"Annya,\" with two \"N\"s. Her date of birth should match the year and day but should be May instead of October: 1956-05-22."
+                },
+                {
+                    "content": "To confirm, here are the changes for Anya's details:\n\n- **First Name**: Annya\n- **Last Name**: Rossi\n- **Date of Birth**: May 22, 1956 (1956-05-22)\n\nPlease confirm that I can proceed with updating these details for reservation ID NVLFIW.",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "Yes, that looks perfect. Please go ahead with those changes."
+                },
+                {
+                    "content": null,
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "arguments": "{\"reservation_id\":\"NVLFIW\",\"passengers\":[{\"first_name\":\"Sophia\",\"last_name\":\"Davis\",\"dob\":\"1997-04-14\"},{\"first_name\":\"Annya\",\"last_name\":\"Rossi\",\"dob\":\"1956-05-22\"}]}",
+                                "name": "update_reservation_passengers"
+                            },
+                            "id": "call_DfL8jYYKBCTYt9e6RbKjK9IL",
+                            "type": "function"
+                        }
+                    ],
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_DfL8jYYKBCTYt9e6RbKjK9IL",
+                    "name": "update_reservation_passengers",
+                    "content": "{\"reservation_id\": \"NVLFIW\", \"user_id\": \"sophia_davis_8874\", \"origin\": \"JFK\", \"destination\": \"DTW\", \"flight_type\": \"round_trip\", \"cabin\": \"economy\", \"flights\": [{\"origin\": \"JFK\", \"destination\": \"DTW\", \"flight_number\": \"HAT212\", \"date\": \"2024-05-09\", \"price\": 142}, {\"origin\": \"DTW\", \"destination\": \"JFK\", \"flight_number\": \"HAT263\", \"date\": \"2024-05-21\", \"price\": 184}], \"passengers\": [{\"first_name\": \"Sophia\", \"last_name\": \"Davis\", \"dob\": \"1997-04-14\"}, {\"first_name\": \"Annya\", \"last_name\": \"Rossi\", \"dob\": \"1956-05-22\"}], \"payment_history\": [{\"payment_id\": \"gift_card_2075462\", \"amount\": 652}], \"created_at\": \"2024-05-02T01:06:17\", \"total_baggages\": 2, \"nonfree_baggages\": 0, \"insurance\": \"no\"}"
+                },
+                {
+                    "content": "Anya's details have been successfully updated in the reservation. Here are the confirmed passenger details:\n\n### Updated Passengers:\n1. **Sophia Davis** (DOB: April 14, 1997)\n2. **Annya Rossi** (DOB: May 22, 1956)\n\nIf you need further assistance or have any other requests, feel free to let me know!",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "###STOP###"
+                }
+            ],
+            "trial": 2
+        }
+    ],
+    "metrics": {
+        "average_reward": 0.0,
+        "pass_k": {
+            "1": 0.0,
+            "2": 0.0,
+            "3": 0.0
+        },
+        "total_cost": null,
+        "execution_time": 58.69687080383301
+    },
+    "error": null
+}
