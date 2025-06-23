@@ -22,6 +22,8 @@ def load_data() -> dict[str, Any]:
         sales_orders_data = json.load(f)
     with open(os.path.join(FOLDER_PATH, "sales_order_items.json")) as f:
         sales_order_items_data = json.load(f)
+    with open(os.path.join(FOLDER_PATH, "shipping.json")) as f:
+        shipping = json.load(f)
     return {
         "suppliers": suppliers_data,
         "products": products_data,
@@ -30,4 +32,5 @@ def load_data() -> dict[str, Any]:
         "users": users_data,
         "sales_orders": sales_orders_data,
         "sales_order_items": sales_order_items_data,
+        "shipping": shipping
     }

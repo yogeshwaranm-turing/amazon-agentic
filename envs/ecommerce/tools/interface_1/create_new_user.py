@@ -2,6 +2,7 @@ import json
 import re
 from tau_bench.envs.tool import Tool
 
+
 class CreateNewUser(Tool):
     @staticmethod
     def invoke(
