@@ -18,7 +18,7 @@ class CreateWithdrawal(Tool):
         
         existing = [int(t.replace("TXN-", "").split('-')[-1]) for t in txs.keys()]
         new_tx = max(existing, default=0) + 1
-        tx_id = f"TXN-{datetime.now().strftime('%Y%m%d')}-{new_tx}"
+        tx_id = f"TXN-{account_id[-6:]}-{amount:.0f}"
         
         tx = {
             "transaction_id": tx_id,

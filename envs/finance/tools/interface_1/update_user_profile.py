@@ -33,7 +33,52 @@ class UpdateUserProfile(Tool):
               "type": "object",
               "properties": {
                 "user_id": { "type": "string" },
-                "updates": { "type": "object", "additionalProperties": "true" }
+                "updates": { 
+                  "type": "object",
+                  "properties": {
+                    "first_name": {
+                      "type": "string"
+                    },
+                    "last_name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string",
+                      "format": "email"
+                    },
+                    "date_of_birth": {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    "phone_number": {
+                      "type": "string"
+                    },
+                    "address": {
+                      "type": "object",
+                      "properties": {
+                        "street": {
+                          "type": "string"
+                        },
+                        "city": {
+                          "type": "string"
+                        },
+                        "state": {
+                          "type": "string"
+                        },
+                        "postal_code": {
+                          "type": "string"
+                        },
+                        "country": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "timezone": {
+                      "type": "string",
+                      "description": "User's timezone, e.g., 'America/New_York'."
+                    },
+                  }
+                }
               },
               "required": ["user_id", "updates"]
             }
