@@ -1,0 +1,572 @@
+{
+    "success": true,
+    "results": [
+        {
+            "task_id": 0,
+            "reward": 1.0,
+            "info": {
+                "task": {
+                    "user_id": "mia_garcia_3833",
+                    "actions": [
+                        {
+                            "name": "update_reservation_passengers",
+                            "kwargs": {
+                                "reservation_id": "V5XFMY",
+                                "passengers": [
+                                    {
+                                        "first_name": "Mia",
+                                        "last_name": "Garcia",
+                                        "dob": "1980-07-11"
+                                    },
+                                    {
+                                        "first_name": "Aarav",
+                                        "last_name": "Lee",
+                                        "dob": "1996-01-25"
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "instruction": "Your user ID is mia_garcia_3833. You noticed small spelling or capitalization issues in your flight reservation for two passengers. You want to update both passenger names to correct formatting. You are not changing the number of passengers. You are not making any changes to flight, baggage, or payment. You only respond when prompted and won't explain the reason for correction unless asked.",
+                    "outputs": [
+                        "Mia Garcia",
+                        "Aarav Lee",
+                        "V5XFMY"
+                    ]
+                },
+                "source": "user",
+                "user_cost": 0.001925,
+                "reward_info": {
+                    "reward": 1.0,
+                    "info": {
+                        "r_outputs": 1.0,
+                        "outputs": {
+                            "Mia Garcia": true,
+                            "Aarav Lee": true,
+                            "V5XFMY": true
+                        }
+                    },
+                    "actions": [
+                        {
+                            "name": "update_reservation_passengers",
+                            "kwargs": {
+                                "reservation_id": "V5XFMY",
+                                "passengers": [
+                                    {
+                                        "first_name": "Mia",
+                                        "last_name": "Garcia",
+                                        "dob": "1980-07-11"
+                                    },
+                                    {
+                                        "first_name": "Aarav",
+                                        "last_name": "Lee",
+                                        "dob": "1996-01-25"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            "traj": [
+                {
+                    "role": "system",
+                    "content": "# Airline Agent Policy\n\nThe current time is 2024-05-15 15:00:00 EST.\n\nAs an airline agent, you can help users book, modify, or cancel flight reservations.\n\n- Before taking any actions that update the booking database (booking, modifying flights, editing baggage, upgrading cabin class, or updating passenger information), you must list the action details and obtain explicit user confirmation (yes) to proceed.\n\n- You should not provide any information, knowledge, or procedures not provided by the user or available tools, or give subjective recommendations or comments.\n\n- You should only make one tool call at a time, and if you make a tool call, you should not respond to the user simultaneously. If you respond to the user, you should not make a tool call at the same time.\n\n- You should deny user requests that are against this policy.\n\n- You should transfer the user to a human agent if and only if the request cannot be handled within the scope of your actions.\n\n## Domain Basic\n\n- Each user has a profile containing user id, email, addresses, date of birth, payment methods, reservation numbers, and membership tier.\n\n- Each reservation has an reservation id, user id, trip type (one way, round trip), flights, passengers, payment methods, created time, baggages, and travel insurance information.\n\n- Each flight has a flight number, an origin, destination, scheduled departure and arrival time (local time), and for each date:\n  - If the status is \"available\", the flight has not taken off, available seats and prices are listed.\n  - If the status is \"delayed\" or \"on time\", the flight has not taken off, cannot be booked.\n  - If the status is \"flying\", the flight has taken off but not landed, cannot be booked.\n\n## Book flight\n\n- The agent must first obtain the user id, then ask for the trip type, origin, destination.\n\n- Passengers: Each reservation can have at most five passengers. The agent needs to collect the first name, last name, and date of birth for each passenger. All passengers must fly the same flights in the same cabin.\n\n- Payment: each reservation can use at most one travel certificate, at most one credit card, and at most three gift cards. The remaining amount of a travel certificate is not refundable. All payment methods must already be in user profile for safety reasons.\n\n- Checked bag allowance: If the booking user is a regular member, 0 free checked bag for each basic economy passenger, 1 free checked bag for each economy passenger, and 2 free checked bags for each business passenger. If the booking user is a silver member, 1 free checked bag for each basic economy passenger, 2 free checked bag for each economy passenger, and 3 free checked bags for each business passenger. If the booking user is a gold member, 2 free checked bag for each basic economy passenger, 3 free checked bag for each economy passenger, and 3 free checked bags for each business passenger. Each extra baggage is 50 dollars.\n\n- Travel insurance: the agent should ask if the user wants to buy the travel insurance, which is 30 dollars per passenger and enables full refund if the user needs to cancel the flight given health or weather reasons.\n\n## Modify flight\n\n- The agent must first obtain the user id and the reservation id.\n\n- Change flights: Basic economy flights cannot be modified. Other reservations can be modified without changing the origin, destination, and trip type. Some flight segments can be kept, but their prices will not be updated based on the current price. The API does not check these for the agent, so the agent must make sure the rules apply before calling the API!\n\n- Change cabin: all reservations, including basic economy, can change cabin without changing the flights. Cabin changes require the user to pay for the difference between their current cabin and the new cabin class. Cabin class must be the same across all the flights in the same reservation; changing cabin for just one flight segment is not possible.\n\n- Change baggage and insurance: The user can add but not remove checked bags. The user cannot add insurance after initial booking.\n\n- Change passengers: The user can modify passengers but cannot modify the number of passengers. This is something that even a human agent cannot assist with.\n\n- Payment: If the flights are changed, the user needs to provide one gift card or credit card for payment or refund method. The agent should ask for the payment or refund method instead.\n\n## Cancel flight\n\n- The agent must first obtain the user id, the reservation id, and the reason for cancellation (change of plan, airline cancelled flight, or other reasons)\n\n- All reservations can be cancelled within 24 hours of booking, or if the airline cancelled the flight. Otherwise, basic economy or economy flights can be cancelled only if travel insurance is bought and the condition is met, and business flights can always be cancelled. The rules are strict regardless of the membership status. The API does not check these for the agent, so the agent must make sure the rules apply before calling the API!\n\n- The agent can only cancel the whole trip that is not flown. If any of the segments are already used, the agent cannot help and transfer is needed.\n\n- The refund will go to original payment methods in 5 to 7 business days.\n\n## Refund\n\n- If the user is silver/gold member or has travel insurance or flies business, and complains about cancelled flights in a reservation, the agent can offer a certificate as a gesture after confirming the facts, with the amount being $100 times the number of passengers.\n\n- If the user is silver/gold member or has travel insurance or flies business, and complains about delayed flights in a reservation and wants to change or cancel the reservation, the agent can offer a certificate as a gesture after confirming the facts and changing or cancelling the reservation, with the amount being $50 times the number of passengers.\n\n- Do not proactively offer these unless the user complains about the situation and explicitly asks for some compensation. Do not compensate if the user is regular member and has no travel insurance and flies (basic) economy.\n"
+                },
+                {
+                    "role": "user",
+                    "content": "Hi! I'd like to correct the formatting of passenger names on my flight reservation."
+                },
+                {
+                    "content": "Sure\u2014let\u2019s get your passenger names formatted correctly. Could you please provide:  \n1. Your user ID  \n2. The reservation ID  \n3. The exact passenger name corrections (first name, last name, and how you\u2019d like them formatted)  \n\nOnce I have that, I\u2019ll list the changes for your confirmation before proceeding.",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "My user ID is mia_garcia_3833. I'm not sure about the reservation ID right now."
+                },
+                {
+                    "content": null,
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "arguments": "{\"user_id\":\"mia_garcia_3833\"}",
+                                "name": "get_user_details"
+                            },
+                            "id": "call_EDckKRNahMVm8pv3v23jTLyX",
+                            "type": "function"
+                        }
+                    ],
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_EDckKRNahMVm8pv3v23jTLyX",
+                    "name": "get_user_details",
+                    "content": "{\"name\": {\"first_name\": \"Mia\", \"last_name\": \"Garcia\"}, \"address\": {\"address1\": \"837 Pine Lane\", \"address2\": \"Suite 868\", \"city\": \"Jacksonville\", \"country\": \"USA\", \"state\": \"FL\", \"zip\": \"32151\"}, \"email\": \"mia.garcia1723@example.com\", \"dob\": \"1980-07-11\", \"payment_methods\": {\"credit_card_3323151\": {\"source\": \"credit_card\", \"brand\": \"visa\", \"last_four\": \"2771\", \"id\": \"credit_card_3323151\"}, \"credit_card_1296952\": {\"source\": \"credit_card\", \"brand\": \"mastercard\", \"last_four\": \"5881\", \"id\": \"credit_card_1296952\"}, \"credit_card_2157464\": {\"source\": \"credit_card\", \"brand\": \"mastercard\", \"last_four\": \"1991\", \"id\": \"credit_card_2157464\"}}, \"saved_passengers\": [{\"first_name\": \"Aarav\", \"last_name\": \"Lee\", \"dob\": \"1996-01-25\"}], \"membership\": \"regular\", \"reservations\": [\"V5XFMY\", \"RHWGU5\", \"TNNWN9\", \"II4FUS\"]}"
+                },
+                {
+                    "content": "Here are your active reservations:\n\n\u2022 V5XFMY  \n\u2022 RHWGU5  \n\u2022 TNNWN9  \n\u2022 II4FUS  \n\nWhich reservation ID would you like to update passenger name formatting on?",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "It's the reservation with ID V5XFMY that I want to update."
+                },
+                {
+                    "content": null,
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "arguments": "{\"reservation_id\":\"V5XFMY\"}",
+                                "name": "get_reservation_details"
+                            },
+                            "id": "call_qbq7TZIbU38Lvmjhf1aw7wiU",
+                            "type": "function"
+                        }
+                    ],
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_qbq7TZIbU38Lvmjhf1aw7wiU",
+                    "name": "get_reservation_details",
+                    "content": "{\"reservation_id\": \"V5XFMY\", \"user_id\": \"mia_garcia_3833\", \"origin\": \"LAX\", \"destination\": \"CLT\", \"flight_type\": \"one_way\", \"cabin\": \"business\", \"flights\": [{\"origin\": \"LAX\", \"destination\": \"EWR\", \"flight_number\": \"HAT228\", \"date\": \"2024-05-20\", \"price\": 710}, {\"origin\": \"EWR\", \"destination\": \"CLT\", \"flight_number\": \"HAT215\", \"date\": \"2024-05-21\", \"price\": 1725}], \"passengers\": [{\"first_name\": \"Mia\", \"last_name\": \"Garcia\", \"dob\": \"1980-07-11\"}, {\"first_name\": \"Aarav\", \"last_name\": \"Lee\", \"dob\": \"1996-01-25\"}], \"payment_history\": [{\"payment_id\": \"credit_card_3323151\", \"amount\": 4930}], \"created_at\": \"2024-05-14T03:36:02\", \"total_baggages\": 1, \"nonfree_baggages\": 0, \"insurance\": \"yes\"}"
+                },
+                {
+                    "content": "Your reservation V5XFMY currently has these passengers:  \n1. Mia Garcia (DOB 1980-07-11)  \n2. Aarav Lee (DOB 1996-01-25)  \n\nPlease let me know exactly how you\u2019d like each name formatted (for example, capitalization, inclusion of middle names, etc.). Once I have the corrected first and last names for each passenger, I\u2019ll summarize the changes for your confirmation.",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "Please update the names to be:  \n1. Mia Garcia  \n2. Aarav Lee"
+                },
+                {
+                    "content": "I\u2019ve reviewed your request:\n\nReservation ID: V5XFMY  \nCurrent passengers vs. requested formatting:\n1. Mia Garcia \u2192 Mia Garcia  \n2. Aarav Lee \u2192 Aarav Lee  \n\nThese match exactly, so no changes would be made. Would you still like me to submit this \u201cupdate\u201d (which in effect leaves the names as they are)? Please reply \u201cyes\u201d to confirm or let me know if there\u2019s a different formatting you had in mind.",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "Yes, that would be fine."
+                },
+                {
+                    "content": null,
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "arguments": "{\"reservation_id\":\"V5XFMY\",\"passengers\":[{\"first_name\":\"Mia\",\"last_name\":\"Garcia\",\"dob\":\"1980-07-11\"},{\"first_name\":\"Aarav\",\"last_name\":\"Lee\",\"dob\":\"1996-01-25\"}]}",
+                                "name": "update_reservation_passengers"
+                            },
+                            "id": "call_NTuvUeA14GwiTkzn3ET9u38w",
+                            "type": "function"
+                        }
+                    ],
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_NTuvUeA14GwiTkzn3ET9u38w",
+                    "name": "update_reservation_passengers",
+                    "content": "{\"reservation_id\": \"V5XFMY\", \"user_id\": \"mia_garcia_3833\", \"origin\": \"LAX\", \"destination\": \"CLT\", \"flight_type\": \"one_way\", \"cabin\": \"business\", \"flights\": [{\"origin\": \"LAX\", \"destination\": \"EWR\", \"flight_number\": \"HAT228\", \"date\": \"2024-05-20\", \"price\": 710}, {\"origin\": \"EWR\", \"destination\": \"CLT\", \"flight_number\": \"HAT215\", \"date\": \"2024-05-21\", \"price\": 1725}], \"passengers\": [{\"first_name\": \"Mia\", \"last_name\": \"Garcia\", \"dob\": \"1980-07-11\"}, {\"first_name\": \"Aarav\", \"last_name\": \"Lee\", \"dob\": \"1996-01-25\"}], \"payment_history\": [{\"payment_id\": \"credit_card_3323151\", \"amount\": 4930}], \"created_at\": \"2024-05-14T03:36:02\", \"total_baggages\": 1, \"nonfree_baggages\": 0, \"insurance\": \"yes\"}"
+                },
+                {
+                    "content": "Your passenger name update for reservation V5XFMY is complete. No actual changes were needed since the names were already correctly formatted. Is there anything else I can assist you with today?",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "No, that covers it. Thank you! \n\n###STOP###"
+                }
+            ],
+            "trial": 0
+        },
+        {
+            "task_id": 0,
+            "reward": 0.0,
+            "info": {
+                "task": {
+                    "user_id": "mia_garcia_3833",
+                    "actions": [
+                        {
+                            "name": "update_reservation_passengers",
+                            "kwargs": {
+                                "reservation_id": "V5XFMY",
+                                "passengers": [
+                                    {
+                                        "first_name": "Mia",
+                                        "last_name": "Garcia",
+                                        "dob": "1980-07-11"
+                                    },
+                                    {
+                                        "first_name": "Aarav",
+                                        "last_name": "Lee",
+                                        "dob": "1996-01-25"
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "instruction": "Your user ID is mia_garcia_3833. You noticed small spelling or capitalization issues in your flight reservation for two passengers. You want to update both passenger names to correct formatting. You are not changing the number of passengers. You are not making any changes to flight, baggage, or payment. You only respond when prompted and won't explain the reason for correction unless asked.",
+                    "outputs": [
+                        "Mia Garcia",
+                        "Aarav Lee",
+                        "V5XFMY"
+                    ]
+                },
+                "source": "user",
+                "user_cost": 0.00198,
+                "reward_info": {
+                    "reward": 0.0,
+                    "info": {
+                        "r_outputs": 0.0,
+                        "outputs": {
+                            "Mia Garcia": false,
+                            "Aarav Lee": false,
+                            "V5XFMY": true
+                        }
+                    },
+                    "actions": [
+                        {
+                            "name": "update_reservation_passengers",
+                            "kwargs": {
+                                "reservation_id": "V5XFMY",
+                                "passengers": [
+                                    {
+                                        "first_name": "Mia",
+                                        "last_name": "Garcia",
+                                        "dob": "1980-07-11"
+                                    },
+                                    {
+                                        "first_name": "Aarav",
+                                        "last_name": "Lee",
+                                        "dob": "1996-01-25"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            "traj": [
+                {
+                    "role": "system",
+                    "content": "# Airline Agent Policy\n\nThe current time is 2024-05-15 15:00:00 EST.\n\nAs an airline agent, you can help users book, modify, or cancel flight reservations.\n\n- Before taking any actions that update the booking database (booking, modifying flights, editing baggage, upgrading cabin class, or updating passenger information), you must list the action details and obtain explicit user confirmation (yes) to proceed.\n\n- You should not provide any information, knowledge, or procedures not provided by the user or available tools, or give subjective recommendations or comments.\n\n- You should only make one tool call at a time, and if you make a tool call, you should not respond to the user simultaneously. If you respond to the user, you should not make a tool call at the same time.\n\n- You should deny user requests that are against this policy.\n\n- You should transfer the user to a human agent if and only if the request cannot be handled within the scope of your actions.\n\n## Domain Basic\n\n- Each user has a profile containing user id, email, addresses, date of birth, payment methods, reservation numbers, and membership tier.\n\n- Each reservation has an reservation id, user id, trip type (one way, round trip), flights, passengers, payment methods, created time, baggages, and travel insurance information.\n\n- Each flight has a flight number, an origin, destination, scheduled departure and arrival time (local time), and for each date:\n  - If the status is \"available\", the flight has not taken off, available seats and prices are listed.\n  - If the status is \"delayed\" or \"on time\", the flight has not taken off, cannot be booked.\n  - If the status is \"flying\", the flight has taken off but not landed, cannot be booked.\n\n## Book flight\n\n- The agent must first obtain the user id, then ask for the trip type, origin, destination.\n\n- Passengers: Each reservation can have at most five passengers. The agent needs to collect the first name, last name, and date of birth for each passenger. All passengers must fly the same flights in the same cabin.\n\n- Payment: each reservation can use at most one travel certificate, at most one credit card, and at most three gift cards. The remaining amount of a travel certificate is not refundable. All payment methods must already be in user profile for safety reasons.\n\n- Checked bag allowance: If the booking user is a regular member, 0 free checked bag for each basic economy passenger, 1 free checked bag for each economy passenger, and 2 free checked bags for each business passenger. If the booking user is a silver member, 1 free checked bag for each basic economy passenger, 2 free checked bag for each economy passenger, and 3 free checked bags for each business passenger. If the booking user is a gold member, 2 free checked bag for each basic economy passenger, 3 free checked bag for each economy passenger, and 3 free checked bags for each business passenger. Each extra baggage is 50 dollars.\n\n- Travel insurance: the agent should ask if the user wants to buy the travel insurance, which is 30 dollars per passenger and enables full refund if the user needs to cancel the flight given health or weather reasons.\n\n## Modify flight\n\n- The agent must first obtain the user id and the reservation id.\n\n- Change flights: Basic economy flights cannot be modified. Other reservations can be modified without changing the origin, destination, and trip type. Some flight segments can be kept, but their prices will not be updated based on the current price. The API does not check these for the agent, so the agent must make sure the rules apply before calling the API!\n\n- Change cabin: all reservations, including basic economy, can change cabin without changing the flights. Cabin changes require the user to pay for the difference between their current cabin and the new cabin class. Cabin class must be the same across all the flights in the same reservation; changing cabin for just one flight segment is not possible.\n\n- Change baggage and insurance: The user can add but not remove checked bags. The user cannot add insurance after initial booking.\n\n- Change passengers: The user can modify passengers but cannot modify the number of passengers. This is something that even a human agent cannot assist with.\n\n- Payment: If the flights are changed, the user needs to provide one gift card or credit card for payment or refund method. The agent should ask for the payment or refund method instead.\n\n## Cancel flight\n\n- The agent must first obtain the user id, the reservation id, and the reason for cancellation (change of plan, airline cancelled flight, or other reasons)\n\n- All reservations can be cancelled within 24 hours of booking, or if the airline cancelled the flight. Otherwise, basic economy or economy flights can be cancelled only if travel insurance is bought and the condition is met, and business flights can always be cancelled. The rules are strict regardless of the membership status. The API does not check these for the agent, so the agent must make sure the rules apply before calling the API!\n\n- The agent can only cancel the whole trip that is not flown. If any of the segments are already used, the agent cannot help and transfer is needed.\n\n- The refund will go to original payment methods in 5 to 7 business days.\n\n## Refund\n\n- If the user is silver/gold member or has travel insurance or flies business, and complains about cancelled flights in a reservation, the agent can offer a certificate as a gesture after confirming the facts, with the amount being $100 times the number of passengers.\n\n- If the user is silver/gold member or has travel insurance or flies business, and complains about delayed flights in a reservation and wants to change or cancel the reservation, the agent can offer a certificate as a gesture after confirming the facts and changing or cancelling the reservation, with the amount being $50 times the number of passengers.\n\n- Do not proactively offer these unless the user complains about the situation and explicitly asks for some compensation. Do not compensate if the user is regular member and has no travel insurance and flies (basic) economy.\n"
+                },
+                {
+                    "role": "user",
+                    "content": "Hi, I need to make a small update to the names on my flight reservation."
+                },
+                {
+                    "content": "Sure\u2014I can help update the passenger names on your reservation. To get started, may I have:  \n1) Your user ID  \n2) The reservation ID  \n3) The current names as they appear on the booking and the corrected names (including date of birth for each passenger)  ",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "My user ID is mia_garcia_3833. I don't have the reservation ID with me right now, but I can give you the current and corrected names."
+                },
+                {
+                    "content": null,
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "arguments": "{\"user_id\":\"mia_garcia_3833\"}",
+                                "name": "get_user_details"
+                            },
+                            "id": "call_qnEg76aQz4i8LnUq6EKf7ou8",
+                            "type": "function"
+                        }
+                    ],
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_qnEg76aQz4i8LnUq6EKf7ou8",
+                    "name": "get_user_details",
+                    "content": "{\"name\": {\"first_name\": \"Mia\", \"last_name\": \"Garcia\"}, \"address\": {\"address1\": \"837 Pine Lane\", \"address2\": \"Suite 868\", \"city\": \"Jacksonville\", \"country\": \"USA\", \"state\": \"FL\", \"zip\": \"32151\"}, \"email\": \"mia.garcia1723@example.com\", \"dob\": \"1980-07-11\", \"payment_methods\": {\"credit_card_3323151\": {\"source\": \"credit_card\", \"brand\": \"visa\", \"last_four\": \"2771\", \"id\": \"credit_card_3323151\"}, \"credit_card_1296952\": {\"source\": \"credit_card\", \"brand\": \"mastercard\", \"last_four\": \"5881\", \"id\": \"credit_card_1296952\"}, \"credit_card_2157464\": {\"source\": \"credit_card\", \"brand\": \"mastercard\", \"last_four\": \"1991\", \"id\": \"credit_card_2157464\"}}, \"saved_passengers\": [{\"first_name\": \"Aarav\", \"last_name\": \"Lee\", \"dob\": \"1996-01-25\"}], \"membership\": \"regular\", \"reservations\": [\"V5XFMY\", \"RHWGU5\", \"TNNWN9\", \"II4FUS\"]}"
+                },
+                {
+                    "content": "I see you have the following reservations on file:  \n\u2022 V5XFMY  \n\u2022 RHWGU5  \n\u2022 TNNWN9  \n\u2022 II4FUS  \n\nWhich reservation would you like to update? Once you pick, please provide for each passenger:  \n- The name as it currently appears on the booking  \n- The corrected name  \n- The passenger\u2019s date of birth (YYYY-MM-DD)  \n\nThen I\u2019ll summarize the changes for your confirmation.",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "Let's update reservation V5XFMY. Here are the details:  \n\n1. Current: John Doe    \n   Corrected: Johnathan Doe  \n   Date of Birth: 1985-06-15  \n\n2. Current: jane smith  \n   Corrected: Jane Smith  \n   Date of Birth: 1990-02-20  "
+                },
+                {
+                    "content": "Here\u2019s a summary of the changes for reservation V5XFMY:\n\nPassenger 1  \n- Current name: John Doe  \n- New name: Johnathan Doe  \n- Date of birth: 1985-06-15  \n\nPassenger 2  \n- Current name: jane smith  \n- New name: Jane Smith  \n- Date of birth: 1990-02-20  \n\nPlease confirm that you\u2019d like to proceed with these passenger updates. Reply \u201cyes\u201d to confirm or \u201cno\u201d to cancel.",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "Yes, please proceed with these updates."
+                },
+                {
+                    "content": null,
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "arguments": "{\"reservation_id\":\"V5XFMY\",\"passengers\":[{\"first_name\":\"Johnathan\",\"last_name\":\"Doe\",\"dob\":\"1985-06-15\"},{\"first_name\":\"Jane\",\"last_name\":\"Smith\",\"dob\":\"1990-02-20\"}]}",
+                                "name": "update_reservation_passengers"
+                            },
+                            "id": "call_O7T3jHaheFS8j61pxVrZjVk7",
+                            "type": "function"
+                        }
+                    ],
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_O7T3jHaheFS8j61pxVrZjVk7",
+                    "name": "update_reservation_passengers",
+                    "content": "{\"reservation_id\": \"V5XFMY\", \"user_id\": \"mia_garcia_3833\", \"origin\": \"LAX\", \"destination\": \"CLT\", \"flight_type\": \"one_way\", \"cabin\": \"business\", \"flights\": [{\"origin\": \"LAX\", \"destination\": \"EWR\", \"flight_number\": \"HAT228\", \"date\": \"2024-05-20\", \"price\": 710}, {\"origin\": \"EWR\", \"destination\": \"CLT\", \"flight_number\": \"HAT215\", \"date\": \"2024-05-21\", \"price\": 1725}], \"passengers\": [{\"first_name\": \"Johnathan\", \"last_name\": \"Doe\", \"dob\": \"1985-06-15\"}, {\"first_name\": \"Jane\", \"last_name\": \"Smith\", \"dob\": \"1990-02-20\"}], \"payment_history\": [{\"payment_id\": \"credit_card_3323151\", \"amount\": 4930}], \"created_at\": \"2024-05-14T03:36:02\", \"total_baggages\": 1, \"nonfree_baggages\": 0, \"insurance\": \"yes\"}"
+                },
+                {
+                    "content": "Your reservation V5XFMY has been successfully updated with the new passenger names:\n\n\u2022 Johnathan Doe (DOB: 1985-06-15)  \n\u2022 Jane Smith (DOB: 1990-02-20)  \n\nIs there anything else I can help you with today?",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "No, that's all for today. Thank you! ###STOP###"
+                }
+            ],
+            "trial": 1
+        },
+        {
+            "task_id": 0,
+            "reward": 1.0,
+            "info": {
+                "task": {
+                    "user_id": "mia_garcia_3833",
+                    "actions": [
+                        {
+                            "name": "update_reservation_passengers",
+                            "kwargs": {
+                                "reservation_id": "V5XFMY",
+                                "passengers": [
+                                    {
+                                        "first_name": "Mia",
+                                        "last_name": "Garcia",
+                                        "dob": "1980-07-11"
+                                    },
+                                    {
+                                        "first_name": "Aarav",
+                                        "last_name": "Lee",
+                                        "dob": "1996-01-25"
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "instruction": "Your user ID is mia_garcia_3833. You noticed small spelling or capitalization issues in your flight reservation for two passengers. You want to update both passenger names to correct formatting. You are not changing the number of passengers. You are not making any changes to flight, baggage, or payment. You only respond when prompted and won't explain the reason for correction unless asked.",
+                    "outputs": [
+                        "Mia Garcia",
+                        "Aarav Lee",
+                        "V5XFMY"
+                    ]
+                },
+                "source": "user",
+                "user_cost": 0.0023975000000000003,
+                "reward_info": {
+                    "reward": 1.0,
+                    "info": {
+                        "r_outputs": 1.0,
+                        "outputs": {
+                            "Mia Garcia": true,
+                            "Aarav Lee": true,
+                            "V5XFMY": true
+                        }
+                    },
+                    "actions": [
+                        {
+                            "name": "update_reservation_passengers",
+                            "kwargs": {
+                                "reservation_id": "V5XFMY",
+                                "passengers": [
+                                    {
+                                        "first_name": "Mia",
+                                        "last_name": "Garcia",
+                                        "dob": "1980-07-11"
+                                    },
+                                    {
+                                        "first_name": "Aarav",
+                                        "last_name": "Lee",
+                                        "dob": "1996-01-25"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            "traj": [
+                {
+                    "role": "system",
+                    "content": "# Airline Agent Policy\n\nThe current time is 2024-05-15 15:00:00 EST.\n\nAs an airline agent, you can help users book, modify, or cancel flight reservations.\n\n- Before taking any actions that update the booking database (booking, modifying flights, editing baggage, upgrading cabin class, or updating passenger information), you must list the action details and obtain explicit user confirmation (yes) to proceed.\n\n- You should not provide any information, knowledge, or procedures not provided by the user or available tools, or give subjective recommendations or comments.\n\n- You should only make one tool call at a time, and if you make a tool call, you should not respond to the user simultaneously. If you respond to the user, you should not make a tool call at the same time.\n\n- You should deny user requests that are against this policy.\n\n- You should transfer the user to a human agent if and only if the request cannot be handled within the scope of your actions.\n\n## Domain Basic\n\n- Each user has a profile containing user id, email, addresses, date of birth, payment methods, reservation numbers, and membership tier.\n\n- Each reservation has an reservation id, user id, trip type (one way, round trip), flights, passengers, payment methods, created time, baggages, and travel insurance information.\n\n- Each flight has a flight number, an origin, destination, scheduled departure and arrival time (local time), and for each date:\n  - If the status is \"available\", the flight has not taken off, available seats and prices are listed.\n  - If the status is \"delayed\" or \"on time\", the flight has not taken off, cannot be booked.\n  - If the status is \"flying\", the flight has taken off but not landed, cannot be booked.\n\n## Book flight\n\n- The agent must first obtain the user id, then ask for the trip type, origin, destination.\n\n- Passengers: Each reservation can have at most five passengers. The agent needs to collect the first name, last name, and date of birth for each passenger. All passengers must fly the same flights in the same cabin.\n\n- Payment: each reservation can use at most one travel certificate, at most one credit card, and at most three gift cards. The remaining amount of a travel certificate is not refundable. All payment methods must already be in user profile for safety reasons.\n\n- Checked bag allowance: If the booking user is a regular member, 0 free checked bag for each basic economy passenger, 1 free checked bag for each economy passenger, and 2 free checked bags for each business passenger. If the booking user is a silver member, 1 free checked bag for each basic economy passenger, 2 free checked bag for each economy passenger, and 3 free checked bags for each business passenger. If the booking user is a gold member, 2 free checked bag for each basic economy passenger, 3 free checked bag for each economy passenger, and 3 free checked bags for each business passenger. Each extra baggage is 50 dollars.\n\n- Travel insurance: the agent should ask if the user wants to buy the travel insurance, which is 30 dollars per passenger and enables full refund if the user needs to cancel the flight given health or weather reasons.\n\n## Modify flight\n\n- The agent must first obtain the user id and the reservation id.\n\n- Change flights: Basic economy flights cannot be modified. Other reservations can be modified without changing the origin, destination, and trip type. Some flight segments can be kept, but their prices will not be updated based on the current price. The API does not check these for the agent, so the agent must make sure the rules apply before calling the API!\n\n- Change cabin: all reservations, including basic economy, can change cabin without changing the flights. Cabin changes require the user to pay for the difference between their current cabin and the new cabin class. Cabin class must be the same across all the flights in the same reservation; changing cabin for just one flight segment is not possible.\n\n- Change baggage and insurance: The user can add but not remove checked bags. The user cannot add insurance after initial booking.\n\n- Change passengers: The user can modify passengers but cannot modify the number of passengers. This is something that even a human agent cannot assist with.\n\n- Payment: If the flights are changed, the user needs to provide one gift card or credit card for payment or refund method. The agent should ask for the payment or refund method instead.\n\n## Cancel flight\n\n- The agent must first obtain the user id, the reservation id, and the reason for cancellation (change of plan, airline cancelled flight, or other reasons)\n\n- All reservations can be cancelled within 24 hours of booking, or if the airline cancelled the flight. Otherwise, basic economy or economy flights can be cancelled only if travel insurance is bought and the condition is met, and business flights can always be cancelled. The rules are strict regardless of the membership status. The API does not check these for the agent, so the agent must make sure the rules apply before calling the API!\n\n- The agent can only cancel the whole trip that is not flown. If any of the segments are already used, the agent cannot help and transfer is needed.\n\n- The refund will go to original payment methods in 5 to 7 business days.\n\n## Refund\n\n- If the user is silver/gold member or has travel insurance or flies business, and complains about cancelled flights in a reservation, the agent can offer a certificate as a gesture after confirming the facts, with the amount being $100 times the number of passengers.\n\n- If the user is silver/gold member or has travel insurance or flies business, and complains about delayed flights in a reservation and wants to change or cancel the reservation, the agent can offer a certificate as a gesture after confirming the facts and changing or cancelling the reservation, with the amount being $50 times the number of passengers.\n\n- Do not proactively offer these unless the user complains about the situation and explicitly asks for some compensation. Do not compensate if the user is regular member and has no travel insurance and flies (basic) economy.\n"
+                },
+                {
+                    "role": "user",
+                    "content": "Hi! I need to update the spelling and capitalization of names on a flight reservation."
+                },
+                {
+                    "content": "Sure\u2014 I can help update the passenger names on your reservation. To get started, please provide:\n\n1. Your user ID  \n2. The reservation ID  \n3. For each passenger, their current name on the booking and the corrected first name, last name, and date of birth (YYYY-MM-DD)  \n\nOnce I have those details, I\u2019ll summarize the changes and ask for your confirmation before making any updates.",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "My user ID is mia_garcia_3833. I don't have the reservation ID with me right now."
+                },
+                {
+                    "content": "Thanks, mia_garcia_3833. Please provide your reservation ID so I can look up your booking and assist with updating the passenger names.",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "I\u2019m sorry, but I don\u2019t have the reservation ID with me. Can I provide the current and corrected names instead?"
+                },
+                {
+                    "content": null,
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "arguments": "{\"user_id\":\"mia_garcia_3833\"}",
+                                "name": "get_user_details"
+                            },
+                            "id": "call_bgKu4wkZe4wsX2nZBJOto1eZ",
+                            "type": "function"
+                        }
+                    ],
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_bgKu4wkZe4wsX2nZBJOto1eZ",
+                    "name": "get_user_details",
+                    "content": "{\"name\": {\"first_name\": \"Mia\", \"last_name\": \"Garcia\"}, \"address\": {\"address1\": \"837 Pine Lane\", \"address2\": \"Suite 868\", \"city\": \"Jacksonville\", \"country\": \"USA\", \"state\": \"FL\", \"zip\": \"32151\"}, \"email\": \"mia.garcia1723@example.com\", \"dob\": \"1980-07-11\", \"payment_methods\": {\"credit_card_3323151\": {\"source\": \"credit_card\", \"brand\": \"visa\", \"last_four\": \"2771\", \"id\": \"credit_card_3323151\"}, \"credit_card_1296952\": {\"source\": \"credit_card\", \"brand\": \"mastercard\", \"last_four\": \"5881\", \"id\": \"credit_card_1296952\"}, \"credit_card_2157464\": {\"source\": \"credit_card\", \"brand\": \"mastercard\", \"last_four\": \"1991\", \"id\": \"credit_card_2157464\"}}, \"saved_passengers\": [{\"first_name\": \"Aarav\", \"last_name\": \"Lee\", \"dob\": \"1996-01-25\"}], \"membership\": \"regular\", \"reservations\": [\"V5XFMY\", \"RHWGU5\", \"TNNWN9\", \"II4FUS\"]}"
+                },
+                {
+                    "content": "You have the following active reservation IDs on your account:\n\n \u2022 V5XFMY  \n \u2022 RHWGU5  \n \u2022 TNNWN9  \n \u2022 II4FUS  \n\nPlease let me know which reservation you\u2019d like to update, and for each passenger on that booking provide:  \n- Current name as it appears on the reservation  \n- Corrected first name, last name, and date of birth (YYYY-MM-DD)  \n\nOnce I have that, I\u2019ll summarize the requested name changes and ask your confirmation before proceeding.",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "It's the reservation ID V5XFMY. The first passenger's current name is \"john smith,\" and it should be corrected to \"John Smith.\""
+                },
+                {
+                    "content": null,
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "arguments": "{\"reservation_id\":\"V5XFMY\"}",
+                                "name": "get_reservation_details"
+                            },
+                            "id": "call_0ktmFVGBKgAcf9TgqZ50OMuG",
+                            "type": "function"
+                        }
+                    ],
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_0ktmFVGBKgAcf9TgqZ50OMuG",
+                    "name": "get_reservation_details",
+                    "content": "{\"reservation_id\": \"V5XFMY\", \"user_id\": \"mia_garcia_3833\", \"origin\": \"LAX\", \"destination\": \"CLT\", \"flight_type\": \"one_way\", \"cabin\": \"business\", \"flights\": [{\"origin\": \"LAX\", \"destination\": \"EWR\", \"flight_number\": \"HAT228\", \"date\": \"2024-05-20\", \"price\": 710}, {\"origin\": \"EWR\", \"destination\": \"CLT\", \"flight_number\": \"HAT215\", \"date\": \"2024-05-21\", \"price\": 1725}], \"passengers\": [{\"first_name\": \"Mia\", \"last_name\": \"Garcia\", \"dob\": \"1980-07-11\"}, {\"first_name\": \"Aarav\", \"last_name\": \"Lee\", \"dob\": \"1996-01-25\"}], \"payment_history\": [{\"payment_id\": \"credit_card_3323151\", \"amount\": 4930}], \"created_at\": \"2024-05-14T03:36:02\", \"total_baggages\": 1, \"nonfree_baggages\": 0, \"insurance\": \"yes\"}"
+                },
+                {
+                    "content": "I\u2019m seeing this reservation (V5XFMY) has two passengers:\n\n \u2022 Mia Garcia (DOB 1980-07-11)  \n \u2022 Aarav Lee  (DOB 1996-01-25)  \n\nI don\u2019t see a passenger named \u201cjohn smith\u201d on file. Could you clarify which of these you\u2019d like to update? For the passenger you want to correct, please confirm:\n\n 1. Their current name as shown above  \n 2. The corrected first name, last name, and date of birth (YYYY-MM-DD)  \n\nOnce I have that, I\u2019ll summarize the change and ask your confirmation before updating.",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "I apologize for the confusion. For Mia Garcia, please make sure the first letter of each name is capitalized. Her name should be displayed as \"Mia Garcia.\""
+                },
+                {
+                    "content": "It looks like \u201cMia Garcia\u201d is already capitalized correctly in your reservation, matching the format you requested. No update is needed. \n\nIs there anything else you\u2019d like to adjust on this booking?",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "Yes, for Aarav Lee, please ensure his name is displayed correctly with capitalized initials, as \"Aarav Lee.\""
+                },
+                {
+                    "content": "\u201cAarav Lee\u201d is already correctly capitalized in your reservation. No changes are needed.  \n\nIs there anything else you\u2019d like to adjust on this booking?",
+                    "role": "assistant",
+                    "tool_calls": null,
+                    "function_call": null,
+                    "annotations": []
+                },
+                {
+                    "role": "user",
+                    "content": "No, that would be all. Thank you for your help. ###STOP###"
+                }
+            ],
+            "trial": 2
+        }
+    ],
+    "metrics": {
+        "average_reward": 0.6666666666666666,
+        "pass_k": {
+            "1": 0.6666666666666666,
+            "2": 0.3333333333333333,
+            "3": 0.0
+        },
+        "total_cost": null,
+        "execution_time": 113.82684278488159
+    },
+    "error": null
+}
