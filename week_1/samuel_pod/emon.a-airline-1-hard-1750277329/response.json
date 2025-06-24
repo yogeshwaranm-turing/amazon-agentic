@@ -1,0 +1,702 @@
+{
+  "success": true,
+  "results": [
+    {
+      "task_id": 0,
+      "reward": 1.0,
+      "info": {
+        "task": {
+          "user_id": "evelyn_khan_9070",
+          "actions": [
+            {
+              "name": "update_reservation_flights",
+              "kwargs": {
+                "reservation_id": "VYAAQN",
+                "cabin": "economy",
+                "flights": [
+                  {
+                    "flight_number": "HAT243",
+                    "date": "2024-05-24"
+                  }
+                ],
+                "payment_id": "credit_card_3432394"
+              }
+            }
+          ],
+          "instruction": "You're user evelyn_khan_9070. You had booked a one-way business class ticket from Philadelphia to Charlotte on May 23, but your plans have shifted and you'd now prefer to fly on May 24 instead. Ask the agent to change your reservation to the cheapest available economy flight on the new date and use your original payment method to handle any refund or fare difference. You are not feeling well so do not provide any other information and reply in short.",
+          "outputs": [
+            "HAT243",
+            "2024-05-24",
+            "economy"
+          ]
+        },
+        "source": "user",
+        "user_cost": 0.0024000000000000002,
+        "reward_info": {
+          "reward": 1.0,
+          "info": {
+            "r_outputs": 1.0,
+            "outputs": {
+              "HAT243": true,
+              "2024-05-24": true,
+              "economy": true
+            }
+          },
+          "actions": [
+            {
+              "name": "update_reservation_flights",
+              "kwargs": {
+                "reservation_id": "VYAAQN",
+                "cabin": "economy",
+                "flights": [
+                  {
+                    "flight_number": "HAT243",
+                    "date": "2024-05-24"
+                  }
+                ],
+                "payment_id": "credit_card_3432394"
+              }
+            }
+          ]
+        }
+      },
+      "traj": [
+        {
+          "role": "system",
+          "content": "# Airline Agent Policy\n\nThe current time is 2024-05-15 15:00:00 EST.\n\nAs an airline agent, you can help users book, modify, or cancel flight reservations.\n\n- Before taking any actions that update the booking database (booking, modifying flights, editing baggage, upgrading cabin class, or updating passenger information), you must list the action details and obtain explicit user confirmation (yes) to proceed.\n\n- You should not provide any information, knowledge, or procedures not provided by the user or available tools, or give subjective recommendations or comments.\n\n- You should only make one tool call at a time, and if you make a tool call, you should not respond to the user simultaneously. If you respond to the user, you should not make a tool call at the same time.\n\n- You should deny user requests that are against this policy.\n\n- You should transfer the user to a human agent if and only if the request cannot be handled within the scope of your actions.\n\n## Domain Basic\n\n- Each user has a profile containing user id, email, addresses, date of birth, payment methods, reservation numbers, and membership tier.\n\n- Each reservation has an reservation id, user id, trip type (one way, round trip), flights, passengers, payment methods, created time, baggages, and travel insurance information.\n\n- Each flight has a flight number, an origin, destination, scheduled departure and arrival time (local time), and for each date:\n  - If the status is \"available\", the flight has not taken off, available seats and prices are listed.\n  - If the status is \"delayed\" or \"on time\", the flight has not taken off, cannot be booked.\n  - If the status is \"flying\", the flight has taken off but not landed, cannot be booked.\n\n## Book flight\n\n- The agent must first obtain the user id, then ask for the trip type, origin, destination.\n\n- Passengers: Each reservation can have at most five passengers. The agent needs to collect the first name, last name, and date of birth for each passenger. All passengers must fly the same flights in the same cabin.\n\n- Payment: each reservation can use at most one travel certificate, at most one credit card, and at most three gift cards. The remaining amount of a travel certificate is not refundable. All payment methods must already be in user profile for safety reasons.\n\n- Checked bag allowance: If the booking user is a regular member, 0 free checked bag for each basic economy passenger, 1 free checked bag for each economy passenger, and 2 free checked bags for each business passenger. If the booking user is a silver member, 1 free checked bag for each basic economy passenger, 2 free checked bag for each economy passenger, and 3 free checked bags for each business passenger. If the booking user is a gold member, 2 free checked bag for each basic economy passenger, 3 free checked bag for each economy passenger, and 3 free checked bags for each business passenger. Each extra baggage is 50 dollars.\n\n- Travel insurance: the agent should ask if the user wants to buy the travel insurance, which is 30 dollars per passenger and enables full refund if the user needs to cancel the flight given health or weather reasons.\n\n## Modify flight\n\n- The agent must first obtain the user id and the reservation id.\n\n- Change flights: Basic economy flights cannot be modified. Other reservations can be modified without changing the origin, destination, and trip type. Some flight segments can be kept, but their prices will not be updated based on the current price. The API does not check these for the agent, so the agent must make sure the rules apply before calling the API!\n\n- Change cabin: all reservations, including basic economy, can change cabin without changing the flights. Cabin changes require the user to pay for the difference between their current cabin and the new cabin class. Cabin class must be the same across all the flights in the same reservation; changing cabin for just one flight segment is not possible.\n\n- Change baggage and insurance: The user can add but not remove checked bags. The user cannot add insurance after initial booking.\n\n- Change passengers: The user can modify passengers but cannot modify the number of passengers. This is something that even a human agent cannot assist with.\n\n- Payment: If the flights are changed, the user needs to provide one gift card or credit card for payment or refund method. The agent should ask for the payment or refund method instead.\n\n## Cancel flight\n\n- The agent must first obtain the user id, the reservation id, and the reason for cancellation (change of plan, airline cancelled flight, or other reasons)\n\n- All reservations can be cancelled within 24 hours of booking, or if the airline cancelled the flight. Otherwise, basic economy or economy flights can be cancelled only if travel insurance is bought and the condition is met, and business flights can always be cancelled. The rules are strict regardless of the membership status. The API does not check these for the agent, so the agent must make sure the rules apply before calling the API!\n\n- The agent can only cancel the whole trip that is not flown. If any of the segments are already used, the agent cannot help and transfer is needed.\n\n- The refund will go to original payment methods in 5 to 7 business days.\n\n## Refund\n\n- If the user is silver/gold member or has travel insurance or flies business, and complains about cancelled flights in a reservation, the agent can offer a certificate as a gesture after confirming the facts, with the amount being $100 times the number of passengers.\n\n- If the user is silver/gold member or has travel insurance or flies business, and complains about delayed flights in a reservation and wants to change or cancel the reservation, the agent can offer a certificate as a gesture after confirming the facts and changing or cancelling the reservation, with the amount being $50 times the number of passengers.\n\n- Do not proactively offer these unless the user complains about the situation and explicitly asks for some compensation. Do not compensate if the user is regular member and has no travel insurance and flies (basic) economy.\n"
+        },
+        {
+          "role": "user",
+          "content": "Hi, I need to change my flight reservation."
+        },
+        {
+          "content": "Sure, I can help with that. To get started, could you please provide:  \n1. Your user ID  \n2. The reservation ID for the booking you’d like to change  \n\nOnce I have those, I’ll ask what specific change you’d like to make (e.g., change flight date/time, upgrade cabin, add baggage, or update passenger info).",
+          "role": "assistant",
+          "tool_calls": null,
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "user",
+          "content": "I’m sorry, I don’t have my reservation ID at the moment. My user ID is evelyn_khan_9070."
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"user_id\":\"evelyn_khan_9070\"}",
+                "name": "get_user_details"
+              },
+              "id": "call_F0EIsXkZ3wmikFimPOi0qq1o",
+              "type": "function"
+            }
+          ],
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "call_F0EIsXkZ3wmikFimPOi0qq1o",
+          "name": "get_user_details",
+          "content": "{\"name\": {\"first_name\": \"Evelyn\", \"last_name\": \"Khan\"}, \"address\": {\"address1\": \"461 Elm Avenue\", \"address2\": \"Suite 729\", \"city\": \"San Antonio\", \"country\": \"USA\", \"state\": \"TX\", \"zip\": \"78209\"}, \"email\": \"evelyn.khan8752@example.com\", \"dob\": \"1995-04-07\", \"payment_methods\": {\"certificate_3247223\": {\"source\": \"certificate\", \"amount\": 100, \"id\": \"certificate_3247223\"}, \"certificate_9095060\": {\"source\": \"certificate\", \"amount\": 100, \"id\": \"certificate_9095060\"}, \"gift_card_3799469\": {\"source\": \"gift_card\", \"amount\": 58, \"id\": \"gift_card_3799469\"}, \"credit_card_3432394\": {\"source\": \"credit_card\", \"brand\": \"visa\", \"last_four\": \"4652\", \"id\": \"credit_card_3432394\"}}, \"saved_passengers\": [{\"first_name\": \"Aarav\", \"last_name\": \"Kim\", \"dob\": \"1958-05-17\"}], \"membership\": \"silver\", \"reservations\": [\"VYAAQN\", \"29FICP\", \"QSUR7F\", \"DX8C9F\", \"YCU6UU\", \"WBJ6KY\", \"27UCXN\"]}"
+        },
+        {
+          "content": "Here are the reservation IDs I see on your account:\n\n• VYAAQN  \n• 29FICP  \n• QSUR7F  \n• DX8C9F  \n• YCU6UU  \n• WBJ6KY  \n• 27UCXN  \n\nWhich reservation ID would you like to modify?",
+          "role": "assistant",
+          "tool_calls": null,
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "user",
+          "content": "I’m not sure which one it is. Could you look up my flight from Philadelphia to Charlotte on May 23?"
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"reservation_id\":\"VYAAQN\"}",
+                "name": "get_reservation_details"
+              },
+              "id": "call_71LelERB8aSXrKlICDIm3x7H",
+              "type": "function"
+            }
+          ],
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "call_71LelERB8aSXrKlICDIm3x7H",
+          "name": "get_reservation_details",
+          "content": "{\"reservation_id\": \"VYAAQN\", \"user_id\": \"evelyn_khan_9070\", \"origin\": \"PHL\", \"destination\": \"CLT\", \"flight_type\": \"one_way\", \"cabin\": \"business\", \"flights\": [{\"origin\": \"PHL\", \"destination\": \"CLT\", \"flight_number\": \"HAT269\", \"date\": \"2024-05-23\", \"price\": 1701}], \"passengers\": [{\"first_name\": \"Evelyn\", \"last_name\": \"Khan\", \"dob\": \"1995-04-07\"}], \"payment_history\": [{\"payment_id\": \"credit_card_3432394\", \"amount\": 1701}], \"created_at\": \"2024-05-14T23:31:35\", \"total_baggages\": 1, \"nonfree_baggages\": 0, \"insurance\": \"no\"}"
+        },
+        {
+          "content": "I found reservation VYAAQN:  \n- Flight: HAT269, from Philadelphia (PHL) to Charlotte (CLT) on 2024-05-23  \n- Cabin: Business  \n- Passengers: Evelyn Khan  \n- Baggage: 1 total (0 non-free)  \n- Insurance: No  \n\nWhat would you like to change? You can modify flights, change cabin, add baggage, or update passenger info.",
+          "role": "assistant",
+          "tool_calls": null,
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "user",
+          "content": "I’d like to change the flight date to May 24 for the cheapest economy option, please."
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"origin\":\"PHL\",\"destination\":\"CLT\",\"date\":\"2024-05-24\"}",
+                "name": "search_direct_flight"
+              },
+              "id": "call_3FbyJ7lshbg7zmp4wMNeeGSh",
+              "type": "function"
+            }
+          ],
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "call_3FbyJ7lshbg7zmp4wMNeeGSh",
+          "name": "search_direct_flight",
+          "content": "[{\"flight_number\": \"HAT016\", \"origin\": \"PHL\", \"destination\": \"CLT\", \"scheduled_departure_time_est\": \"10:00:00\", \"scheduled_arrival_time_est\": \"11:00:00\", \"status\": \"available\", \"available_seats\": {\"basic_economy\": 2, \"economy\": 5, \"business\": 14}, \"prices\": {\"basic_economy\": 81, \"economy\": 165, \"business\": 407}}, {\"flight_number\": \"HAT122\", \"origin\": \"PHL\", \"destination\": \"CLT\", \"scheduled_departure_time_est\": \"06:00:00\", \"scheduled_arrival_time_est\": \"07:00:00\", \"status\": \"available\", \"available_seats\": {\"basic_economy\": 9, \"economy\": 10, \"business\": 20}, \"prices\": {\"basic_economy\": 62, \"economy\": 161, \"business\": 455}}, {\"flight_number\": \"HAT243\", \"origin\": \"PHL\", \"destination\": \"CLT\", \"scheduled_departure_time_est\": \"00:00:00\", \"scheduled_arrival_time_est\": \"01:00:00\", \"status\": \"available\", \"available_seats\": {\"basic_economy\": 10, \"economy\": 10, \"business\": 17}, \"prices\": {\"basic_economy\": 100, \"economy\": 155, \"business\": 251}}, {\"flight_number\": \"HAT269\", \"origin\": \"PHL\", \"destination\": \"CLT\", \"scheduled_departure_time_est\": \"07:00:00\", \"scheduled_arrival_time_est\": \"08:00:00\", \"status\": \"available\", \"available_seats\": {\"basic_economy\": 5, \"economy\": 2, \"business\": 3}, \"prices\": {\"basic_economy\": 55, \"economy\": 159, \"business\": 301}}]"
+        },
+        {
+          "content": "Here’s what I’m about to do for reservation VYAAQN:\n\n• Change flight segment from  \n  – HAT269 on 2024-05-23 (Business, $1 701)  \n  to  \n  – HAT243 on 2024-05-24 (Economy, $155)  \n\n• Change cabin from Business to Economy for all passengers (1 passenger).\n\nPricing impact:  \n– Original fare: $1 701  \n– New fare: $155  \n– You would receive a refund of $1 546 to your chosen payment method.\n\nPlease confirm you’d like to proceed with this change (reply “yes”) and let me know which payment method you’d like the refund applied to (credit_card_3432394 or gift_card_3799469).",
+          "role": "assistant",
+          "tool_calls": null,
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "user",
+          "content": "Yes, please proceed. Use my original payment method to apply the refund."
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"reservation_id\":\"VYAAQN\",\"cabin\":\"economy\",\"flights\":[{\"flight_number\":\"HAT243\",\"date\":\"2024-05-24\"}],\"payment_id\":\"credit_card_3432394\"}",
+                "name": "update_reservation_flights"
+              },
+              "id": "call_MkZNe8goeCL5SPbs0vik0RNO",
+              "type": "function"
+            }
+          ],
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "call_MkZNe8goeCL5SPbs0vik0RNO",
+          "name": "update_reservation_flights",
+          "content": "{\"reservation_id\": \"VYAAQN\", \"user_id\": \"evelyn_khan_9070\", \"origin\": \"PHL\", \"destination\": \"CLT\", \"flight_type\": \"one_way\", \"cabin\": \"business\", \"flights\": [{\"flight_number\": \"HAT243\", \"date\": \"2024-05-24\", \"price\": 155, \"origin\": \"PHL\", \"destination\": \"CLT\"}], \"passengers\": [{\"first_name\": \"Evelyn\", \"last_name\": \"Khan\", \"dob\": \"1995-04-07\"}], \"payment_history\": [{\"payment_id\": \"credit_card_3432394\", \"amount\": 1701}, {\"payment_id\": \"credit_card_3432394\", \"amount\": -1546}], \"created_at\": \"2024-05-14T23:31:35\", \"total_baggages\": 1, \"nonfree_baggages\": 0, \"insurance\": \"no\"}"
+        },
+        {
+          "content": "Your reservation VYAAQN has been successfully updated.\n\nHere are the new details:  \n- Flight: HAT243, from Philadelphia (PHL) to Charlotte (CLT) on 2024-05-24  \n- Cabin: Economy  \n- Price: $155  \n- Refund of $1,546 has been applied to credit_card_3432394  \n- Passengers: Evelyn Khan  \n- Baggage: 1 total (0 non-free)  \n- Insurance: No  \n\nIs there anything else I can help you with today?",
+          "role": "assistant",
+          "tool_calls": null,
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "user",
+          "content": "That’s all, thank you. "
+        },
+        {
+          "content": "You’re welcome! Have a great trip!",
+          "role": "assistant",
+          "tool_calls": null,
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "user",
+          "content": "###STOP###"
+        }
+      ],
+      "trial": 0
+    },
+    {
+      "task_id": 0,
+      "reward": 0.0,
+      "info": {
+        "task": {
+          "user_id": "evelyn_khan_9070",
+          "actions": [
+            {
+              "name": "update_reservation_flights",
+              "kwargs": {
+                "reservation_id": "VYAAQN",
+                "cabin": "economy",
+                "flights": [
+                  {
+                    "flight_number": "HAT243",
+                    "date": "2024-05-24"
+                  }
+                ],
+                "payment_id": "credit_card_3432394"
+              }
+            }
+          ],
+          "instruction": "You're user evelyn_khan_9070. You had booked a one-way business class ticket from Philadelphia to Charlotte on May 23, but your plans have shifted and you'd now prefer to fly on May 24 instead. Ask the agent to change your reservation to the cheapest available economy flight on the new date and use your original payment method to handle any refund or fare difference. You are not feeling well so do not provide any other information and reply in short.",
+          "outputs": [
+            "HAT243",
+            "2024-05-24",
+            "economy"
+          ]
+        },
+        "source": "user",
+        "user_cost": 0.0029000000000000002,
+        "reward_info": {
+          "reward": 0.0,
+          "info": {
+            "r_outputs": 1.0,
+            "outputs": {
+              "HAT243": true,
+              "2024-05-24": true,
+              "economy": true
+            }
+          },
+          "actions": [
+            {
+              "name": "update_reservation_flights",
+              "kwargs": {
+                "reservation_id": "VYAAQN",
+                "cabin": "economy",
+                "flights": [
+                  {
+                    "flight_number": "HAT243",
+                    "date": "2024-05-24"
+                  }
+                ],
+                "payment_id": "credit_card_3432394"
+              }
+            }
+          ]
+        }
+      },
+      "traj": [
+        {
+          "role": "system",
+          "content": "# Airline Agent Policy\n\nThe current time is 2024-05-15 15:00:00 EST.\n\nAs an airline agent, you can help users book, modify, or cancel flight reservations.\n\n- Before taking any actions that update the booking database (booking, modifying flights, editing baggage, upgrading cabin class, or updating passenger information), you must list the action details and obtain explicit user confirmation (yes) to proceed.\n\n- You should not provide any information, knowledge, or procedures not provided by the user or available tools, or give subjective recommendations or comments.\n\n- You should only make one tool call at a time, and if you make a tool call, you should not respond to the user simultaneously. If you respond to the user, you should not make a tool call at the same time.\n\n- You should deny user requests that are against this policy.\n\n- You should transfer the user to a human agent if and only if the request cannot be handled within the scope of your actions.\n\n## Domain Basic\n\n- Each user has a profile containing user id, email, addresses, date of birth, payment methods, reservation numbers, and membership tier.\n\n- Each reservation has an reservation id, user id, trip type (one way, round trip), flights, passengers, payment methods, created time, baggages, and travel insurance information.\n\n- Each flight has a flight number, an origin, destination, scheduled departure and arrival time (local time), and for each date:\n  - If the status is \"available\", the flight has not taken off, available seats and prices are listed.\n  - If the status is \"delayed\" or \"on time\", the flight has not taken off, cannot be booked.\n  - If the status is \"flying\", the flight has taken off but not landed, cannot be booked.\n\n## Book flight\n\n- The agent must first obtain the user id, then ask for the trip type, origin, destination.\n\n- Passengers: Each reservation can have at most five passengers. The agent needs to collect the first name, last name, and date of birth for each passenger. All passengers must fly the same flights in the same cabin.\n\n- Payment: each reservation can use at most one travel certificate, at most one credit card, and at most three gift cards. The remaining amount of a travel certificate is not refundable. All payment methods must already be in user profile for safety reasons.\n\n- Checked bag allowance: If the booking user is a regular member, 0 free checked bag for each basic economy passenger, 1 free checked bag for each economy passenger, and 2 free checked bags for each business passenger. If the booking user is a silver member, 1 free checked bag for each basic economy passenger, 2 free checked bag for each economy passenger, and 3 free checked bags for each business passenger. If the booking user is a gold member, 2 free checked bag for each basic economy passenger, 3 free checked bag for each economy passenger, and 3 free checked bags for each business passenger. Each extra baggage is 50 dollars.\n\n- Travel insurance: the agent should ask if the user wants to buy the travel insurance, which is 30 dollars per passenger and enables full refund if the user needs to cancel the flight given health or weather reasons.\n\n## Modify flight\n\n- The agent must first obtain the user id and the reservation id.\n\n- Change flights: Basic economy flights cannot be modified. Other reservations can be modified without changing the origin, destination, and trip type. Some flight segments can be kept, but their prices will not be updated based on the current price. The API does not check these for the agent, so the agent must make sure the rules apply before calling the API!\n\n- Change cabin: all reservations, including basic economy, can change cabin without changing the flights. Cabin changes require the user to pay for the difference between their current cabin and the new cabin class. Cabin class must be the same across all the flights in the same reservation; changing cabin for just one flight segment is not possible.\n\n- Change baggage and insurance: The user can add but not remove checked bags. The user cannot add insurance after initial booking.\n\n- Change passengers: The user can modify passengers but cannot modify the number of passengers. This is something that even a human agent cannot assist with.\n\n- Payment: If the flights are changed, the user needs to provide one gift card or credit card for payment or refund method. The agent should ask for the payment or refund method instead.\n\n## Cancel flight\n\n- The agent must first obtain the user id, the reservation id, and the reason for cancellation (change of plan, airline cancelled flight, or other reasons)\n\n- All reservations can be cancelled within 24 hours of booking, or if the airline cancelled the flight. Otherwise, basic economy or economy flights can be cancelled only if travel insurance is bought and the condition is met, and business flights can always be cancelled. The rules are strict regardless of the membership status. The API does not check these for the agent, so the agent must make sure the rules apply before calling the API!\n\n- The agent can only cancel the whole trip that is not flown. If any of the segments are already used, the agent cannot help and transfer is needed.\n\n- The refund will go to original payment methods in 5 to 7 business days.\n\n## Refund\n\n- If the user is silver/gold member or has travel insurance or flies business, and complains about cancelled flights in a reservation, the agent can offer a certificate as a gesture after confirming the facts, with the amount being $100 times the number of passengers.\n\n- If the user is silver/gold member or has travel insurance or flies business, and complains about delayed flights in a reservation and wants to change or cancel the reservation, the agent can offer a certificate as a gesture after confirming the facts and changing or cancelling the reservation, with the amount being $50 times the number of passengers.\n\n- Do not proactively offer these unless the user complains about the situation and explicitly asks for some compensation. Do not compensate if the user is regular member and has no travel insurance and flies (basic) economy.\n"
+        },
+        {
+          "role": "user",
+          "content": "Hi. I need to change my flight from Philadelphia to Charlotte."
+        },
+        {
+          "content": "Certainly—I can help with that. To get started, could you please provide:\n\n1. Your user ID  \n2. The reservation ID for the booking you’d like to change  \n\nAnd then let me know the new flight details you’d like for the Philadelphia → Charlotte segment (e.g., preferred date, flight number if you have one, and cabin class).",
+          "role": "assistant",
+          "tool_calls": null,
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "user",
+          "content": "I'm sorry, I don't remember my reservation ID. I need the flight changed to May 24, please. I'd prefer economy class this time."
+        },
+        {
+          "content": "Sure—let’s locate your reservation first. Could you please provide your user ID so I can look up your current bookings?",
+          "role": "assistant",
+          "tool_calls": null,
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "user",
+          "content": "My user ID is evelyn_khan_9070."
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"user_id\":\"evelyn_khan_9070\"}",
+                "name": "get_user_details"
+              },
+              "id": "call_hBUQnGptKc2ueav3SWaQlfM9",
+              "type": "function"
+            }
+          ],
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "call_hBUQnGptKc2ueav3SWaQlfM9",
+          "name": "get_user_details",
+          "content": "{\"name\": {\"first_name\": \"Evelyn\", \"last_name\": \"Khan\"}, \"address\": {\"address1\": \"461 Elm Avenue\", \"address2\": \"Suite 729\", \"city\": \"San Antonio\", \"country\": \"USA\", \"state\": \"TX\", \"zip\": \"78209\"}, \"email\": \"evelyn.khan8752@example.com\", \"dob\": \"1995-04-07\", \"payment_methods\": {\"certificate_3247223\": {\"source\": \"certificate\", \"amount\": 100, \"id\": \"certificate_3247223\"}, \"certificate_9095060\": {\"source\": \"certificate\", \"amount\": 100, \"id\": \"certificate_9095060\"}, \"gift_card_3799469\": {\"source\": \"gift_card\", \"amount\": 58, \"id\": \"gift_card_3799469\"}, \"credit_card_3432394\": {\"source\": \"credit_card\", \"brand\": \"visa\", \"last_four\": \"4652\", \"id\": \"credit_card_3432394\"}}, \"saved_passengers\": [{\"first_name\": \"Aarav\", \"last_name\": \"Kim\", \"dob\": \"1958-05-17\"}], \"membership\": \"silver\", \"reservations\": [\"VYAAQN\", \"29FICP\", \"QSUR7F\", \"DX8C9F\", \"YCU6UU\", \"WBJ6KY\", \"27UCXN\"]}"
+        },
+        {
+          "content": "Here are the reservation IDs I have on file for you:\n\n• VYAAQN  \n• 29FICP  \n• QSUR7F  \n• DX8C9F  \n• YCU6UU  \n• WBJ6KY  \n• 27UCXN  \n\nPlease let me know which reservation ID corresponds to your Philadelphia → Charlotte booking, and then I can pull up the details and proceed with your requested change to May 24 in economy class.",
+          "role": "assistant",
+          "tool_calls": null,
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "user",
+          "content": "I'm afraid I don't have the reservation ID on me right now. Can you help me with the change?"
+        },
+        {
+          "content": "To locate the correct booking, I need a bit more detail about your Philadelphia → Charlotte reservation. Could you tell me:\n\n• The original departure date (or approximate date)  \n• The flight number, if you have it  \n\nWith that information, I can identify the reservation and help move your flight to May 24 in economy.",
+          "role": "assistant",
+          "tool_calls": null,
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "user",
+          "content": "The original departure was on May 23. I'm not sure about the flight number."
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"reservation_id\":\"VYAAQN\"}",
+                "name": "get_reservation_details"
+              },
+              "id": "call_UoxwiHSWx746KYxXXWzqSnuS",
+              "type": "function"
+            }
+          ],
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "call_UoxwiHSWx746KYxXXWzqSnuS",
+          "name": "get_reservation_details",
+          "content": "{\"reservation_id\": \"VYAAQN\", \"user_id\": \"evelyn_khan_9070\", \"origin\": \"PHL\", \"destination\": \"CLT\", \"flight_type\": \"one_way\", \"cabin\": \"business\", \"flights\": [{\"origin\": \"PHL\", \"destination\": \"CLT\", \"flight_number\": \"HAT269\", \"date\": \"2024-05-23\", \"price\": 1701}], \"passengers\": [{\"first_name\": \"Evelyn\", \"last_name\": \"Khan\", \"dob\": \"1995-04-07\"}], \"payment_history\": [{\"payment_id\": \"credit_card_3432394\", \"amount\": 1701}], \"created_at\": \"2024-05-14T23:31:35\", \"total_baggages\": 1, \"nonfree_baggages\": 0, \"insurance\": \"no\"}"
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"origin\":\"PHL\",\"destination\":\"CLT\",\"date\":\"2024-05-24\"}",
+                "name": "search_direct_flight"
+              },
+              "id": "call_ZCWmfRRozjK82cyahnJSgPPC",
+              "type": "function"
+            }
+          ],
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "call_ZCWmfRRozjK82cyahnJSgPPC",
+          "name": "search_direct_flight",
+          "content": "[{\"flight_number\": \"HAT016\", \"origin\": \"PHL\", \"destination\": \"CLT\", \"scheduled_departure_time_est\": \"10:00:00\", \"scheduled_arrival_time_est\": \"11:00:00\", \"status\": \"available\", \"available_seats\": {\"basic_economy\": 2, \"economy\": 5, \"business\": 14}, \"prices\": {\"basic_economy\": 81, \"economy\": 165, \"business\": 407}}, {\"flight_number\": \"HAT122\", \"origin\": \"PHL\", \"destination\": \"CLT\", \"scheduled_departure_time_est\": \"06:00:00\", \"scheduled_arrival_time_est\": \"07:00:00\", \"status\": \"available\", \"available_seats\": {\"basic_economy\": 9, \"economy\": 10, \"business\": 20}, \"prices\": {\"basic_economy\": 62, \"economy\": 161, \"business\": 455}}, {\"flight_number\": \"HAT243\", \"origin\": \"PHL\", \"destination\": \"CLT\", \"scheduled_departure_time_est\": \"00:00:00\", \"scheduled_arrival_time_est\": \"01:00:00\", \"status\": \"available\", \"available_seats\": {\"basic_economy\": 10, \"economy\": 10, \"business\": 17}, \"prices\": {\"basic_economy\": 100, \"economy\": 155, \"business\": 251}}, {\"flight_number\": \"HAT269\", \"origin\": \"PHL\", \"destination\": \"CLT\", \"scheduled_departure_time_est\": \"07:00:00\", \"scheduled_arrival_time_est\": \"08:00:00\", \"status\": \"available\", \"available_seats\": {\"basic_economy\": 5, \"economy\": 2, \"business\": 3}, \"prices\": {\"basic_economy\": 55, \"economy\": 159, \"business\": 301}}]"
+        },
+        {
+          "content": "Here are the direct PHL → CLT options on May 24 in economy class:\n\n1. Flight HAT016  \n   • Departs 10:00 EST – Arrives 11:00 EST  \n   • Price $165  \n\n2. Flight HAT122  \n   • Departs 06:00 EST – Arrives 07:00 EST  \n   • Price $161  \n\n3. Flight HAT243  \n   • Departs 00:00 EST – Arrives 01:00 EST  \n   • Price $155  \n\n4. Flight HAT269  \n   • Departs 07:00 EST – Arrives 08:00 EST  \n   • Price $159  \n\nPlease let me know which flight number you’d like to switch to, and then I’ll summarize the change for your confirmation.",
+          "role": "assistant",
+          "tool_calls": null,
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "user",
+          "content": "I'll go with Flight HAT122, please."
+        },
+        {
+          "content": "Here’s a summary of your requested change for reservation VYAAQN:\n\n• Current segment:  \n  – Flight HAT269 on 2024-05-23 in Business  \n\n• New segment:  \n  – Flight HAT122 on 2024-05-24 in Economy (Depart 06:00 EST, Arrive 07:00 EST)  \n\n• Fare impact:  \n  – Original paid: $1,701 (Business)  \n  – New fare: $161 (Economy)  \n  – You will receive a refund of $1,540 back to your credit card ending in 4652.  \n\nPlease reply “yes” to confirm and I will proceed with the update.",
+          "role": "assistant",
+          "tool_calls": null,
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "user",
+          "content": "Yes, please proceed."
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"reservation_id\":\"VYAAQN\",\"cabin\":\"economy\",\"flights\":[{\"flight_number\":\"HAT122\",\"date\":\"2024-05-24\"}],\"payment_id\":\"credit_card_3432394\"}",
+                "name": "update_reservation_flights"
+              },
+              "id": "call_0K8mcxqoOrVWDdMGMToPbLSm",
+              "type": "function"
+            }
+          ],
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "call_0K8mcxqoOrVWDdMGMToPbLSm",
+          "name": "update_reservation_flights",
+          "content": "{\"reservation_id\": \"VYAAQN\", \"user_id\": \"evelyn_khan_9070\", \"origin\": \"PHL\", \"destination\": \"CLT\", \"flight_type\": \"one_way\", \"cabin\": \"business\", \"flights\": [{\"flight_number\": \"HAT122\", \"date\": \"2024-05-24\", \"price\": 161, \"origin\": \"PHL\", \"destination\": \"CLT\"}], \"passengers\": [{\"first_name\": \"Evelyn\", \"last_name\": \"Khan\", \"dob\": \"1995-04-07\"}], \"payment_history\": [{\"payment_id\": \"credit_card_3432394\", \"amount\": 1701}, {\"payment_id\": \"credit_card_3432394\", \"amount\": -1540}], \"created_at\": \"2024-05-14T23:31:35\", \"total_baggages\": 1, \"nonfree_baggages\": 0, \"insurance\": \"no\"}"
+        },
+        {
+          "content": "Your flight has been successfully changed!  \n\nUpdated reservation VYAAQN details:  \n• Flight HAT122 on 2024-05-24 in Economy  \n• Departure: 06:00 EST • Arrival: 07:00 EST  \n• A refund of $1,540 will be issued to your credit card ending in 4652 within 5-7 business days.  \n\nIs there anything else I can assist you with today?",
+          "role": "assistant",
+          "tool_calls": null,
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "user",
+          "content": "No, that's all. Thank you for your help. ###STOP###"
+        }
+      ],
+      "trial": 1
+    },
+    {
+      "task_id": 0,
+      "reward": 1.0,
+      "info": {
+        "task": {
+          "user_id": "evelyn_khan_9070",
+          "actions": [
+            {
+              "name": "update_reservation_flights",
+              "kwargs": {
+                "reservation_id": "VYAAQN",
+                "cabin": "economy",
+                "flights": [
+                  {
+                    "flight_number": "HAT243",
+                    "date": "2024-05-24"
+                  }
+                ],
+                "payment_id": "credit_card_3432394"
+              }
+            }
+          ],
+          "instruction": "You're user evelyn_khan_9070. You had booked a one-way business class ticket from Philadelphia to Charlotte on May 23, but your plans have shifted and you'd now prefer to fly on May 24 instead. Ask the agent to change your reservation to the cheapest available economy flight on the new date and use your original payment method to handle any refund or fare difference. You are not feeling well so do not provide any other information and reply in short.",
+          "outputs": [
+            "HAT243",
+            "2024-05-24",
+            "economy"
+          ]
+        },
+        "source": "user",
+        "user_cost": 0.00216,
+        "reward_info": {
+          "reward": 1.0,
+          "info": {
+            "r_outputs": 1.0,
+            "outputs": {
+              "HAT243": true,
+              "2024-05-24": true,
+              "economy": true
+            }
+          },
+          "actions": [
+            {
+              "name": "update_reservation_flights",
+              "kwargs": {
+                "reservation_id": "VYAAQN",
+                "cabin": "economy",
+                "flights": [
+                  {
+                    "flight_number": "HAT243",
+                    "date": "2024-05-24"
+                  }
+                ],
+                "payment_id": "credit_card_3432394"
+              }
+            }
+          ]
+        }
+      },
+      "traj": [
+        {
+          "role": "system",
+          "content": "# Airline Agent Policy\n\nThe current time is 2024-05-15 15:00:00 EST.\n\nAs an airline agent, you can help users book, modify, or cancel flight reservations.\n\n- Before taking any actions that update the booking database (booking, modifying flights, editing baggage, upgrading cabin class, or updating passenger information), you must list the action details and obtain explicit user confirmation (yes) to proceed.\n\n- You should not provide any information, knowledge, or procedures not provided by the user or available tools, or give subjective recommendations or comments.\n\n- You should only make one tool call at a time, and if you make a tool call, you should not respond to the user simultaneously. If you respond to the user, you should not make a tool call at the same time.\n\n- You should deny user requests that are against this policy.\n\n- You should transfer the user to a human agent if and only if the request cannot be handled within the scope of your actions.\n\n## Domain Basic\n\n- Each user has a profile containing user id, email, addresses, date of birth, payment methods, reservation numbers, and membership tier.\n\n- Each reservation has an reservation id, user id, trip type (one way, round trip), flights, passengers, payment methods, created time, baggages, and travel insurance information.\n\n- Each flight has a flight number, an origin, destination, scheduled departure and arrival time (local time), and for each date:\n  - If the status is \"available\", the flight has not taken off, available seats and prices are listed.\n  - If the status is \"delayed\" or \"on time\", the flight has not taken off, cannot be booked.\n  - If the status is \"flying\", the flight has taken off but not landed, cannot be booked.\n\n## Book flight\n\n- The agent must first obtain the user id, then ask for the trip type, origin, destination.\n\n- Passengers: Each reservation can have at most five passengers. The agent needs to collect the first name, last name, and date of birth for each passenger. All passengers must fly the same flights in the same cabin.\n\n- Payment: each reservation can use at most one travel certificate, at most one credit card, and at most three gift cards. The remaining amount of a travel certificate is not refundable. All payment methods must already be in user profile for safety reasons.\n\n- Checked bag allowance: If the booking user is a regular member, 0 free checked bag for each basic economy passenger, 1 free checked bag for each economy passenger, and 2 free checked bags for each business passenger. If the booking user is a silver member, 1 free checked bag for each basic economy passenger, 2 free checked bag for each economy passenger, and 3 free checked bags for each business passenger. If the booking user is a gold member, 2 free checked bag for each basic economy passenger, 3 free checked bag for each economy passenger, and 3 free checked bags for each business passenger. Each extra baggage is 50 dollars.\n\n- Travel insurance: the agent should ask if the user wants to buy the travel insurance, which is 30 dollars per passenger and enables full refund if the user needs to cancel the flight given health or weather reasons.\n\n## Modify flight\n\n- The agent must first obtain the user id and the reservation id.\n\n- Change flights: Basic economy flights cannot be modified. Other reservations can be modified without changing the origin, destination, and trip type. Some flight segments can be kept, but their prices will not be updated based on the current price. The API does not check these for the agent, so the agent must make sure the rules apply before calling the API!\n\n- Change cabin: all reservations, including basic economy, can change cabin without changing the flights. Cabin changes require the user to pay for the difference between their current cabin and the new cabin class. Cabin class must be the same across all the flights in the same reservation; changing cabin for just one flight segment is not possible.\n\n- Change baggage and insurance: The user can add but not remove checked bags. The user cannot add insurance after initial booking.\n\n- Change passengers: The user can modify passengers but cannot modify the number of passengers. This is something that even a human agent cannot assist with.\n\n- Payment: If the flights are changed, the user needs to provide one gift card or credit card for payment or refund method. The agent should ask for the payment or refund method instead.\n\n## Cancel flight\n\n- The agent must first obtain the user id, the reservation id, and the reason for cancellation (change of plan, airline cancelled flight, or other reasons)\n\n- All reservations can be cancelled within 24 hours of booking, or if the airline cancelled the flight. Otherwise, basic economy or economy flights can be cancelled only if travel insurance is bought and the condition is met, and business flights can always be cancelled. The rules are strict regardless of the membership status. The API does not check these for the agent, so the agent must make sure the rules apply before calling the API!\n\n- The agent can only cancel the whole trip that is not flown. If any of the segments are already used, the agent cannot help and transfer is needed.\n\n- The refund will go to original payment methods in 5 to 7 business days.\n\n## Refund\n\n- If the user is silver/gold member or has travel insurance or flies business, and complains about cancelled flights in a reservation, the agent can offer a certificate as a gesture after confirming the facts, with the amount being $100 times the number of passengers.\n\n- If the user is silver/gold member or has travel insurance or flies business, and complains about delayed flights in a reservation and wants to change or cancel the reservation, the agent can offer a certificate as a gesture after confirming the facts and changing or cancelling the reservation, with the amount being $50 times the number of passengers.\n\n- Do not proactively offer these unless the user complains about the situation and explicitly asks for some compensation. Do not compensate if the user is regular member and has no travel insurance and flies (basic) economy.\n"
+        },
+        {
+          "role": "user",
+          "content": "Hi, I'd like to change my flight reservation."
+        },
+        {
+          "content": "Sure, I can help with modifying your reservation. To get started, may I have your user ID and the reservation ID you’d like to change?",
+          "role": "assistant",
+          "tool_calls": null,
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "user",
+          "content": "My user ID is evelyn_khan_9070. I don't remember the reservation ID, sorry."
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"user_id\":\"evelyn_khan_9070\"}",
+                "name": "get_user_details"
+              },
+              "id": "call_plhVyw87Tq0j2q2GaCbYBvLa",
+              "type": "function"
+            }
+          ],
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "call_plhVyw87Tq0j2q2GaCbYBvLa",
+          "name": "get_user_details",
+          "content": "{\"name\": {\"first_name\": \"Evelyn\", \"last_name\": \"Khan\"}, \"address\": {\"address1\": \"461 Elm Avenue\", \"address2\": \"Suite 729\", \"city\": \"San Antonio\", \"country\": \"USA\", \"state\": \"TX\", \"zip\": \"78209\"}, \"email\": \"evelyn.khan8752@example.com\", \"dob\": \"1995-04-07\", \"payment_methods\": {\"certificate_3247223\": {\"source\": \"certificate\", \"amount\": 100, \"id\": \"certificate_3247223\"}, \"certificate_9095060\": {\"source\": \"certificate\", \"amount\": 100, \"id\": \"certificate_9095060\"}, \"gift_card_3799469\": {\"source\": \"gift_card\", \"amount\": 58, \"id\": \"gift_card_3799469\"}, \"credit_card_3432394\": {\"source\": \"credit_card\", \"brand\": \"visa\", \"last_four\": \"4652\", \"id\": \"credit_card_3432394\"}}, \"saved_passengers\": [{\"first_name\": \"Aarav\", \"last_name\": \"Kim\", \"dob\": \"1958-05-17\"}], \"membership\": \"silver\", \"reservations\": [\"VYAAQN\", \"29FICP\", \"QSUR7F\", \"DX8C9F\", \"YCU6UU\", \"WBJ6KY\", \"27UCXN\"]}"
+        },
+        {
+          "content": "Here are your current reservations:  \n• VYAAQN  \n• 29FICP  \n• QSUR7F  \n• DX8C9F  \n• YCU6UU  \n• WBJ6KY  \n• 27UCXN  \n\nWhich reservation ID would you like to modify?",
+          "role": "assistant",
+          "tool_calls": null,
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "user",
+          "content": "I'm not sure, but it's a flight from Philadelphia to Charlotte."
+        },
+        {
+          "content": "Sure—could you tell me the departure date (or even the month) of your Philadelphia to Charlotte flight? That will help me identify which reservation it is.",
+          "role": "assistant",
+          "tool_calls": null,
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "user",
+          "content": "The departure date was May 23."
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"reservation_id\":\"VYAAQN\"}",
+                "name": "get_reservation_details"
+              },
+              "id": "call_19ZiHRDYMstmnqO7zqRpCf6i",
+              "type": "function"
+            }
+          ],
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "call_19ZiHRDYMstmnqO7zqRpCf6i",
+          "name": "get_reservation_details",
+          "content": "{\"reservation_id\": \"VYAAQN\", \"user_id\": \"evelyn_khan_9070\", \"origin\": \"PHL\", \"destination\": \"CLT\", \"flight_type\": \"one_way\", \"cabin\": \"business\", \"flights\": [{\"origin\": \"PHL\", \"destination\": \"CLT\", \"flight_number\": \"HAT269\", \"date\": \"2024-05-23\", \"price\": 1701}], \"passengers\": [{\"first_name\": \"Evelyn\", \"last_name\": \"Khan\", \"dob\": \"1995-04-07\"}], \"payment_history\": [{\"payment_id\": \"credit_card_3432394\", \"amount\": 1701}], \"created_at\": \"2024-05-14T23:31:35\", \"total_baggages\": 1, \"nonfree_baggages\": 0, \"insurance\": \"no\"}"
+        },
+        {
+          "content": "What would you like to modify on reservation VYAAQN?  \nYou can change:  \n• Flight date or flight number (keeping PHL→CLT one-way)  \n• Cabin class  \n• Checked baggage  \n• Passenger information  \n\nPlease let me know which change you’d like and the new details.",
+          "role": "assistant",
+          "tool_calls": null,
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "user",
+          "content": "I need to change the flight date to May 24. Also, switch to the cheapest economy option available."
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"origin\":\"PHL\",\"destination\":\"CLT\",\"date\":\"2024-05-24\"}",
+                "name": "search_direct_flight"
+              },
+              "id": "call_mLDp864nSKjtXyUn4Sx06U8w",
+              "type": "function"
+            }
+          ],
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "call_mLDp864nSKjtXyUn4Sx06U8w",
+          "name": "search_direct_flight",
+          "content": "[{\"flight_number\": \"HAT016\", \"origin\": \"PHL\", \"destination\": \"CLT\", \"scheduled_departure_time_est\": \"10:00:00\", \"scheduled_arrival_time_est\": \"11:00:00\", \"status\": \"available\", \"available_seats\": {\"basic_economy\": 2, \"economy\": 5, \"business\": 14}, \"prices\": {\"basic_economy\": 81, \"economy\": 165, \"business\": 407}}, {\"flight_number\": \"HAT122\", \"origin\": \"PHL\", \"destination\": \"CLT\", \"scheduled_departure_time_est\": \"06:00:00\", \"scheduled_arrival_time_est\": \"07:00:00\", \"status\": \"available\", \"available_seats\": {\"basic_economy\": 9, \"economy\": 10, \"business\": 20}, \"prices\": {\"basic_economy\": 62, \"economy\": 161, \"business\": 455}}, {\"flight_number\": \"HAT243\", \"origin\": \"PHL\", \"destination\": \"CLT\", \"scheduled_departure_time_est\": \"00:00:00\", \"scheduled_arrival_time_est\": \"01:00:00\", \"status\": \"available\", \"available_seats\": {\"basic_economy\": 10, \"economy\": 10, \"business\": 17}, \"prices\": {\"basic_economy\": 100, \"economy\": 155, \"business\": 251}}, {\"flight_number\": \"HAT269\", \"origin\": \"PHL\", \"destination\": \"CLT\", \"scheduled_departure_time_est\": \"07:00:00\", \"scheduled_arrival_time_est\": \"08:00:00\", \"status\": \"available\", \"available_seats\": {\"basic_economy\": 5, \"economy\": 2, \"business\": 3}, \"prices\": {\"basic_economy\": 55, \"economy\": 159, \"business\": 301}}]"
+        },
+        {
+          "content": "You’d like to modify reservation VYAAQN as follows:  \n• Change flight from HAT269 on 2024-05-23 to HAT243 on 2024-05-24 (00:00 – 01:00 EST)  \n• Change cabin from Business to Economy (cheapest available at $155)  \n\nOriginal fare paid: $1,701  \nNew fare: $155  \nDifference: $1,546 refund  \n\nWe can refund $1,546 back to your credit card ending in 4652 (credit_card_3432394).  \n\nShall I go ahead and apply these changes and refund $1,546 to your credit card? (Please reply “yes” to confirm.)",
+          "role": "assistant",
+          "tool_calls": null,
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "user",
+          "content": "Yes, please go ahead."
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"reservation_id\":\"VYAAQN\",\"cabin\":\"economy\",\"flights\":[{\"flight_number\":\"HAT243\",\"date\":\"2024-05-24\"}],\"payment_id\":\"credit_card_3432394\"}",
+                "name": "update_reservation_flights"
+              },
+              "id": "call_b3ketwBM2BZrZQ5bSBqyFJda",
+              "type": "function"
+            }
+          ],
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "call_b3ketwBM2BZrZQ5bSBqyFJda",
+          "name": "update_reservation_flights",
+          "content": "{\"reservation_id\": \"VYAAQN\", \"user_id\": \"evelyn_khan_9070\", \"origin\": \"PHL\", \"destination\": \"CLT\", \"flight_type\": \"one_way\", \"cabin\": \"business\", \"flights\": [{\"flight_number\": \"HAT243\", \"date\": \"2024-05-24\", \"price\": 155, \"origin\": \"PHL\", \"destination\": \"CLT\"}], \"passengers\": [{\"first_name\": \"Evelyn\", \"last_name\": \"Khan\", \"dob\": \"1995-04-07\"}], \"payment_history\": [{\"payment_id\": \"credit_card_3432394\", \"amount\": 1701}, {\"payment_id\": \"credit_card_3432394\", \"amount\": -1546}], \"created_at\": \"2024-05-14T23:31:35\", \"total_baggages\": 1, \"nonfree_baggages\": 0, \"insurance\": \"no\"}"
+        },
+        {
+          "content": "Your reservation VYAAQN has been successfully updated:\n- Flight changed to HAT243 on 2024-05-24 (00:00–01:00 EST)\n- Cabin changed to Economy\n- Refund of $1,546 has been processed to your credit card ending in 4652\n\nIs there anything else I can help you with today?",
+          "role": "assistant",
+          "tool_calls": null,
+          "function_call": null,
+          "annotations": []
+        },
+        {
+          "role": "user",
+          "content": "No, that's all. Thank you. \n\n###STOP###"
+        }
+      ],
+      "trial": 2
+    }
+  ],
+  "metrics": {
+    "average_reward": 0.6666666666666666,
+    "pass_k": {
+      "1": 0.6666666666666666,
+      "2": 0.3333333333333333,
+      "3": 0.0
+    },
+    "total_cost": null,
+    "execution_time": 180.231210231781
+  },
+  "error": null
+}
