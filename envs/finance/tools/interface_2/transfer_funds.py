@@ -21,16 +21,22 @@ class TransferFunds(Tool):
         # Find current balance of from_account
         from_balance = next(
             (tx["running_balance"] for tx in reversed(txs.values()) 
-                if tx["account_id"] == from_account_id), 
+                if tx["account_id"] == from_account_id and tx.get("running_balance") is not None), 
             0.0
         )
         
         # Find current balance of to_account
         to_balance = next(
             (tx["running_balance"] for tx in reversed(txs.values()) 
-                if tx["account_id"] == to_account_id), 
+                if tx["account_id"] == to_account_id and tx.get("running_balance") is not None), 
             0.0
         )
+        
+        # Ensure balances are not None
+        if from_balance is None:
+            from_balance = 0.0
+        if to_balance is None:
+            to_balance = 0.0
         
         debit_id = f"TXN-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{next_id}"
         credit_id = f"TXN-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{next_id+1}"
