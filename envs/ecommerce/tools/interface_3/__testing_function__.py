@@ -83,11 +83,16 @@ def test_cancel_purchase_order_status():
 def test_get_purchase_order_information_by_id():
     # Load purchase_orders from JSON file
     purchase_orders_path = os.path.join(BASE_DATA_DIR, "purchase_orders.json")
+    purchase_order_items_path = os.path.join(BASE_DATA_DIR, "purchase_order_items.json")
     with open(purchase_orders_path, "r") as f:
         purchase_orders = json.load(f)
+
+    with open(purchase_order_items_path, "r") as f:
+        purchase_order_items = json.load(f)
     
     data = {
-        "purchase_orders": purchase_orders
+        "purchase_orders": purchase_orders,
+        "purchase_order_items": purchase_order_items
     }
     
     purchase_order_id = "PO0001"  # update id as needed for testing
@@ -142,9 +147,9 @@ def test_modify_unit_cost_of_purchase_order_item():
         "purchase_order_items": purchase_order_items
     }
     purchase_order_id = "PO0001"  # update as needed based on test data
-    quantity = 5               # ensure this quantity exists in one of the items for PO0001
-    new_unit_cost = 20.50      # new unit cost value for testing
-    result = ModifyUnitCostOfPurchaseOrderItem.invoke(data, purchase_order_id, quantity, new_unit_cost)
+    product_id = "PRD0001"       # fixed: using product_id instead of quantity
+    new_unit_cost = 20.50        # new unit cost value for testing
+    result = ModifyUnitCostOfPurchaseOrderItem.invoke(data, purchase_order_id, product_id, new_unit_cost)
     print("Modify Unit Cost of Purchase Order Item Result:", result)
 
 def test_remove_purchase_order_item():
