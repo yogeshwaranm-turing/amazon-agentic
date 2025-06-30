@@ -5,10 +5,8 @@ from .interface_3 import ALL_TOOLS_INTERFACE_3
 from .interface_4 import ALL_TOOLS_INTERFACE_4
 from .interface_5 import ALL_TOOLS_INTERFACE_5
 from .think import Think
-from .transfer_to_human_agents import TransferToHumanAgents
 
 
 ALL_TOOLS = [
-    Think,
-    TransferToHumanAgents,
+    Think
 ]
