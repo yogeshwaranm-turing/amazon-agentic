@@ -1,13 +1,12 @@
 import json
 from typing import Any, Dict
+from datetime import datetime, timezone
 from tau_bench.envs.tool import Tool
-
 
 class CreateUser(Tool):
     @staticmethod
     def invoke(
         data: Dict[str, Any],
-        user_id: str,
         first_name: str,
         last_name: str,
         email: str,
@@ -17,34 +16,42 @@ class CreateUser(Tool):
     ) -> str:
         users = data.setdefault("users", {})
 
-        if user_id in users:
-            raise ValueError(f"User ID '{user_id}' already exists.")
-
         # Check for unique email
-        for u in users.values():
-            if u["email"].lower() == email.lower():
+        for user in users.values():
+            if user["email"].lower() == email.lower():
                 raise ValueError(f"Email '{email}' is already in use.")
 
-        # Validate role enum
-        allowed_roles = ["admin", "hr_manager", "payroll", "compliance", "employee", "contractor", "manager"]
-        if role not in allowed_roles:
-            raise ValueError(f"Role '{role}' is not valid. Must be one of: {allowed_roles}")
+        # Validate role
+        valid_roles = ["admin", "hr_manager", "payroll", "compliance", "employee", "contractor", "manager"]
+        if role not in valid_roles:
+            raise ValueError(f"Invalid role '{role}'. Must be one of {valid_roles}")
 
-        user_record = {
-            "user_id": user_id,
+        # Generate user ID
+        def generate_user_id(first_name, last_name):
+            base = f"{first_name.lower()}_{last_name.lower()}"
+            suffix = 1000
+            while f"{base}_{suffix}" in users:
+                suffix += 1
+            return f"{base}_{suffix}"
+
+        user_id = generate_user_id(first_name, last_name)
+        now = datetime.now(timezone.utc).isoformat()
+
+        new_user = {
             "first_name": first_name,
             "last_name": last_name,
             "email": email,
             "role": role,
             "timezone": timezone,
             "locale": locale,
-            "status": "active",
-            "created_at": "2025-06-30T09:25:07.649880Z",
-            "updated_at": "2025-06-30T09:25:07.649880Z"
+            "status": "pending",
+            "password_hash": "",  # Leave empty for now
+            "created_at": now,
+            "updated_at": now
         }
 
-        users[user_id] = user_record
-        return json.dumps(user_record)
+        users[user_id] = new_user
+        return json.dumps({**new_user, "user_id": user_id})
 
     @staticmethod
     def get_info() -> Dict[str, Any]:
@@ -52,41 +59,18 @@ class CreateUser(Tool):
             "type": "function",
             "function": {
                 "name": "create_user",
-                "description": "Create a new platform user with validations for email uniqueness and role enforcement.",
+                "description": "Create a new user with auto-generated ID and default fields.",
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "user_id": {
-                            "type": "string",
-                            "description": "A unique identifier for the user, globally scoped."
-                        },
-                        "first_name": {
-                            "type": "string",
-                            "description": "The user's first name."
-                        },
-                        "last_name": {
-                            "type": "string",
-                            "description": "The user's last name."
-                        },
-                        "email": {
-                            "type": "string",
-                            "description": "The user's primary email address, must be unique across the platform."
-                        },
-                        "role": {
-                            "type": "string",
-                            "enum": ["admin", "hr_manager", "payroll", "compliance", "employee", "contractor", "manager"],
-                            "description": "The user's role in the system, which governs access and capabilities."
-                        },
-                        "timezone": {
-                            "type": "string",
-                            "description": "Timezone ID (e.g. 'Asia/Kolkata', 'UTC') used for localizing actions and deadlines."
-                        },
-                        "locale": {
-                            "type": "string",
-                            "description": "User's preferred language/region setting (e.g. 'en-US', 'fr-FR')."
-                        }
+                        "first_name": {"type": "string"},
+                        "last_name": {"type": "string"},
+                        "email": {"type": "string", "format": "email"},
+                        "role": {"type": "string"},
+                        "timezone": {"type": "string"},
+                        "locale": {"type": "string"}
                     },
-                    "required": ["user_id", "first_name", "last_name", "email", "role", "timezone", "locale"]
+                    "required": ["first_name", "last_name", "email", "role", "timezone", "locale"]
                 }
             }
         }

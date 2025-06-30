@@ -1,37 +1,41 @@
 import json
 from typing import Any, Dict
+from datetime import datetime, timezone
 from tau_bench.envs.tool import Tool
-
 
 class CreatePosition(Tool):
     @staticmethod
     def invoke(
         data: Dict[str, Any],
-        position_id: str,
         title: str,
         department: str,
         location: str,
         employment_type: str
     ) -> str:
-        hr_positions = data.setdefault("hr_positions", {})
-        if position_id in hr_positions:
-            raise ValueError(f"Position ID '{position_id}' already exists.")
+        positions = data.setdefault("hr_positions", {})
 
         if employment_type not in ["full_time", "part_time", "contract", "intern"]:
             raise ValueError("employment_type must be one of: full_time, part_time, contract, intern")
 
-        position = {
-            "position_id": position_id,
+        # Generate position ID like pos_10000_XX
+        base = "pos_10000_"
+        suffix = 0
+        while f"{base}{suffix}" in positions:
+            suffix += 1
+        position_id = f"{base}{suffix}"
+
+        now = datetime.now(timezone.utc).isoformat()
+        new_position = {
             "title": title,
             "department": department,
             "location": location,
             "employment_type": employment_type,
-            "created_at": "2025-06-30T09:25:07.666181Z",
-            "updated_at": "2025-06-30T09:25:07.666181Z"
+            "created_at": now,
+            "updated_at": now
         }
 
-        hr_positions[position_id] = position
-        return json.dumps(position)
+        positions[position_id] = new_position
+        return json.dumps({**new_position, "position_id": position_id})
 
     @staticmethod
     def get_info() -> Dict[str, Any]:
@@ -43,17 +47,25 @@ class CreatePosition(Tool):
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "position_id": {"type": "string", "description": "Unique ID for the position."},
-                        "title": {"type": "string", "description": "Title of the position."},
-                        "department": {"type": "string", "description": "Name of the department."},
-                        "location": {"type": "string", "description": "Primary location of the job."},
+                        "title": {
+                            "type": "string",
+                            "description": "Title of the position."
+                        },
+                        "department": {
+                            "type": "string",
+                            "description": "Name of the department."
+                        },
+                        "location": {
+                            "type": "string",
+                            "description": "Primary location of the job."
+                        },
                         "employment_type": {
                             "type": "string",
                             "enum": ["full_time", "part_time", "contract", "intern"],
                             "description": "Type of employment."
                         }
                     },
-                    "required": ["position_id", "title", "department", "location", "employment_type"]
+                    "required": ["title", "department", "location", "employment_type"]
                 }
             }
         }
