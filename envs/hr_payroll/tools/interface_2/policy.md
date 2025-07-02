@@ -42,7 +42,7 @@ This policy governs contract management, payroll execution, reimbursement approv
 
 - Team-level time summaries should include per-day aggregates and should support summarization across multiple workers in the same response.
 
-- All timestamps should follow ISO 8601 format. If a static date is needed, it should default to `2025-07-01`.
+- All dates should follow ISO 8601 format. If a static date is needed, it should default to `2025-07-01`.
 
 ---
 

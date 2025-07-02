@@ -48,7 +48,7 @@ This policy is responsible for managing key operational activities such as invoi
 
 - Submitted dates—such as contract starts—and financial values—like bonuses—must be validated for realism and policy compliance. The system should enforce that all monetary amounts are positive and within expected limits.
 
-- All timestamps should follow ISO 8601 format. If a static date is needed, it should default to `2025-07-01`.
+- All dates should follow ISO 8601 format. If a static date is needed, it should default to `2025-07-01`.
 
 ---
 

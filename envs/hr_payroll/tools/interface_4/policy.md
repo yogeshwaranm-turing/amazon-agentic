@@ -40,7 +40,7 @@ This policy governs the processes of onboarding and managing users, organization
 
 - The system should validate all ID references against existing database relationships. No orphaned or mismatched references should be allowed.
 
-- All timestamps should follow ISO 8601 format. If a static date is needed, it should default to `2025-07-01`.
+- All dates should follow ISO 8601 format. If a static date is needed, it should default to `2025-07-01`.
 
 - When registering a new organization, address information must be stored using the standardized JSON format—even if only partially completed.
 

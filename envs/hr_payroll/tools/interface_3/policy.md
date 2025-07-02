@@ -44,7 +44,7 @@ This policy governs operations related to invoices, contracts, reimbursements, p
 
 - Summaries for payroll or contracts should be categorized for readability and ease of analysis.
 
-- All timestamps should follow ISO 8601 format. If a static date is needed, it should default to `2025-07-01`.
+- All dates should follow ISO 8601 format. If a static date is needed, it should default to `2025-07-01`.
 
 ---
 

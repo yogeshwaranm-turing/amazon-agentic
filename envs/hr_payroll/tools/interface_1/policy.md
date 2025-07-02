@@ -42,7 +42,7 @@ For any action involving monetary amounts—such as updating card limits or reim
 
 - The system should avoid over-fetching data. Summaries, such as those for payroll totals or time aggregates, should return only the most relevant fields.
 
-- All timestamps should follow ISO 8601 format. If a static date is needed, it should default to `2025-07-01`.
+- All dates should follow ISO 8601 format. If a static date is needed, it should default to `2025-07-01`.
 
 ---
 
