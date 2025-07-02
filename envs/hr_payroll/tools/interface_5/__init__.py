@@ -1,28 +1,34 @@
-from .assign_department_manager import AssignDepartmentManager
-from .assign_position_to_worker import AssignPositionToWorker
-from .assign_worker_to_org import AssignWorkerToOrg
-from .calculate_amortization import CalculateAmortization
-from .check_financial_provider_status import CheckFinancialProviderStatus
-from .check_for_linked_payments import CheckForLinkedPayments
-from .get_bank_account_details import GetBankAccountDetails
-from .list_organizations import ListOrganizations
-from .list_positions import ListPositions
-from .list_users import ListUsers
-from .list_users_by_role import ListUsersByRole
-from .list_workers_by_org import ListWorkersByOrg
+from .list_workers_with_virtual_cards import ListWorkersWithVirtualCards
+from .retrieve_invoice_summary import RetrieveInvoiceSummary
+from .get_reimbursement_totals_by_worker import GetReimbursementTotalsByWorker
+from .fetch_time_entries_by_period import FetchTimeEntriesByPeriod
+from .list_documents_by_user import ListDocumentsByUser
+from .create_contract_for_worker import CreateContractForWorker
+from .update_virtual_card_status import UpdateVirtualCardStatus
+from .add_worker_to_team import AddWorkerToTeam
+from .submit_invoice_payment import SubmitInvoicePayment
+from .update_reimbursement_status import UpdateReimbursementStatus
+from .assign_role_to_user import AssignRoleToUser
+from .remove_worker_from_org import RemoveWorkerFromOrg
+from .log_bonus_payroll_item import LogBonusPayrollItem
+from .freeze_worker_access import FreezeWorkerAccess
+from .enable_virtual_card_for_payment import EnableVirtualCardForPayment
 
 
 ALL_TOOLS_INTERFACE_5 = [
-    AssignDepartmentManager,
-    AssignPositionToWorker,
-    AssignWorkerToOrg,
-    CalculateAmortization,
-    CheckFinancialProviderStatus,
-    CheckForLinkedPayments,
-    GetBankAccountDetails,
-    ListOrganizations,
-    ListPositions,
-    ListUsers,
-    ListUsersByRole,
-    ListWorkersByOrg,
+    "ListWorkersWithVirtualCards",
+    "RetrieveInvoiceSummary",
+    "GetReimbursementTotalsByWorker",
+    "FetchTimeEntriesByPeriod",
+    "ListDocumentsByUser",
+    "CreateContractForWorker",
+    "UpdateVirtualCardStatus",
+    "AddWorkerToTeam",
+    "SubmitInvoicePayment",
+    "UpdateReimbursementStatus",
+    "AssignRoleToUser",
+    "RemoveWorkerFromOrg",
+    "LogBonusPayrollItem",
+    "FreezeWorkerAccess",
+    "EnableVirtualCardForPayment"
 ]

@@ -1,16 +1,18 @@
-import json
-from typing import Any, Dict, List
-from tau_bench.envs.tool import Tool
 
+import json
+from typing import Any, Dict
+from tau_bench.envs.tool import Tool
 
 class ListWorkersByOrg(Tool):
     @staticmethod
-    def invoke(data: Dict[str, Any], organization_id: str) -> str:
+    def invoke(data: Dict[str, Any], org_id: str) -> str:
         workers = data.get("workers", {})
-        result: List[Dict[str, Any]] = [
-            worker for worker in workers.values() if worker.get("organization_id") == organization_id
+        filtered = [
+            {**w, "worker_id": wid}
+            for wid, w in workers.items()
+            if w.get("organization_id") == org_id
         ]
-        return json.dumps(result)
+        return json.dumps(filtered)
 
     @staticmethod
     def get_info() -> Dict[str, Any]:
@@ -18,16 +20,16 @@ class ListWorkersByOrg(Tool):
             "type": "function",
             "function": {
                 "name": "list_workers_by_org",
-                "description": "List all workers associated with a specific organization.",
+                "description": "Lists workers belonging to a specific organization",
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "organization_id": {
+                        "org_id": {
                             "type": "string",
-                            "description": "Organization ID to fetch workers for."
+                            "description": "The organization ID whose workers are being queried"
                         }
                     },
-                    "required": ["organization_id"]
+                    "required": ["org_id"]
                 }
             }
         }

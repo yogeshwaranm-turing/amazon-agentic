@@ -1,28 +1,34 @@
-from .assign_department_manager import AssignDepartmentManager
-from .assign_device import AssignDevice
-from .assign_position_to_worker import AssignPositionToWorker
-from .assign_worker_to_org import AssignWorkerToOrg
-from .create_followup_ticket import CreateFollowupTicket
-from .deactivate_user import DeactivateUser
-from .decommission_device import DecommissionDevice
-from .list_organizations import ListOrganizations
-from .list_positions import ListPositions
-from .list_users import ListUsers
-from .list_users_by_role import ListUsersByRole
 from .list_workers_by_org import ListWorkersByOrg
+from .get_user_locale_and_timezone import GetUserLocaleAndTimezone
+from .fetch_active_contracts_by_worker import FetchActiveContractsByWorker
+from .get_payroll_summary_by_user import GetPayrollSummaryByUser
+from .list_virtual_cards_by_org import ListVirtualCardsByOrg
+from .get_reimbursement_status import GetReimbursementStatus
+from .fetch_time_entries_by_project import FetchTimeEntriesByProject
+from .create_user_account import CreateUserAccount
+from .register_new_organization import RegisterNewOrganization
+from .initiate_worker_onboarding import InitiateWorkerOnboarding
+from .update_contract_pay_terms import UpdateContractPayTerms
+from .submit_payroll_item_adjustment import SubmitPayrollItemAdjustment
+from .add_virtual_card_note import AddVirtualCardNote
+from .reject_reimbursement_request import RejectReimbursementRequest
+from .disable_user_account import DisableUserAccount
 
 
 ALL_TOOLS_INTERFACE_4 = [
-    AssignDepartmentManager,
-    AssignDevice,
-    AssignPositionToWorker,
-    AssignWorkerToOrg,
-    CreateFollowupTicket,
-    DeactivateUser,
-    DecommissionDevice,
-    ListOrganizations,
-    ListPositions,
-    ListUsers,
-    ListUsersByRole,
     ListWorkersByOrg,
+    GetUserLocaleAndTimezone,
+    FetchActiveContractsByWorker,
+    GetPayrollSummaryByUser,
+    ListVirtualCardsByOrg,
+    GetReimbursementStatus,
+    FetchTimeEntriesByProject,
+    CreateUserAccount,
+    RegisterNewOrganization,
+    InitiateWorkerOnboarding,
+    UpdateContractPayTerms,
+    SubmitPayrollItemAdjustment,
+    AddVirtualCardNote,
+    RejectReimbursementRequest,
+    DisableUserAccount,
 ]

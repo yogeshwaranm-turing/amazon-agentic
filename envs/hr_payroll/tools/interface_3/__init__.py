@@ -1,28 +1,26 @@
-from .add_to_payroll_run import AddToPayrollRun
-from .approve_time_entry import ApproveTimeEntry
-from .assign_department_manager import AssignDepartmentManager
-from .assign_position_to_worker import AssignPositionToWorker
-from .assign_worker_to_org import AssignWorkerToOrg
-from .generate_audit_log import GenerateAuditLog
-from .get_time_entries import GetTimeEntries
-from .list_organizations import ListOrganizations
-from .list_positions import ListPositions
-from .list_users import ListUsers
-from .list_users_by_role import ListUsersByRole
-from .list_workers_by_org import ListWorkersByOrg
+from .list_active_workers import ListActiveWorkers
+from .get_worker_contract_summary import GetWorkerContractSummary
+from .fetch_team_assignment import FetchTeamAssignment
+from .get_invoice_status_by_org import GetInvoiceStatusByOrg
+from .retrieve_payroll_breakdown import RetrievePayrollBreakdown
+from .update_worker_bank_info import UpdateWorkerBankInfo
+from .create_new_invoice import CreateNewInvoice
+from .process_reimbursement_request import ProcessReimbursementRequest
+from .issue_virtual_card_to_worker import IssueVirtualCardToWorker
+from .mark_invoice_as_paid import MarkInvoiceAsPaid
+from .terminate_worker_contract import TerminateWorkerContract
 
 
 ALL_TOOLS_INTERFACE_3 = [
-    AddToPayrollRun,
-    ApproveTimeEntry,
-    AssignDepartmentManager,
-    AssignPositionToWorker,
-    AssignWorkerToOrg,
-    GenerateAuditLog,
-    GetTimeEntries,
-    ListOrganizations,
-    ListPositions,
-    ListUsers,
-    ListUsersByRole,
-    ListWorkersByOrg,
+    ListActiveWorkers,
+    GetWorkerContractSummary,
+    FetchTeamAssignment,
+    GetInvoiceStatusByOrg,
+    RetrievePayrollBreakdown,
+    UpdateWorkerBankInfo,
+    CreateNewInvoice,
+    ProcessReimbursementRequest,
+    IssueVirtualCardToWorker,
+    MarkInvoiceAsPaid,
+    TerminateWorkerContract,
 ]

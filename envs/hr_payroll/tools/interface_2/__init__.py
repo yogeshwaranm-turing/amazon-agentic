@@ -1,30 +1,26 @@
-from .assign_department_manager import AssignDepartmentManager
-from .assign_position_to_worker import AssignPositionToWorker
-from .check_department_integrity import CheckDepartmentIntegrity
-from .create_compliance_action import CreateComplianceAction
-from .create_contract import CreateContract
-from .generate_heatmap_document import GenerateHeatmapDocument
-from .get_compliance_status import GetComplianceStatus
-from .get_worker_active_contract import GetWorkerActiveContract
-from .list_organizations import ListOrganizations
-from .list_positions import ListPositions
-from .list_users import ListUsers
-from .list_users_by_role import ListUsersByRole
-from .list_workers_by_org import ListWorkersByOrg
+from .get_pending_reimbursements import GetPendingReimbursements
+from .fetch_time_summary_by_team import FetchTimeSummaryByTeam
+from .retrieve_worker_contracts_with_organization import RetrieveWorkerContractsWithOrganization
+from .get_payroll_run_details import GetPayrollRunDetails
+from .check_user_virtual_cards import CheckUserVirtualCards
+from .block_suspicious_payment import BlockSuspiciousPayment
+from .extend_contract_period import ExtendContractPeriod
+from .approve_overtime_entry import ApproveOvertimeEntry
+from .create_new_contract import CreateNewContract
+from .update_document_status import UpdateDocumentStatus
+from .block_virtual_card import BlockVirtualCard
 
 
 ALL_TOOLS_INTERFACE_2 = [
-    AssignDepartmentManager,
-    AssignPositionToWorker,
-    CheckDepartmentIntegrity,
-    CreateComplianceAction,
-    CreateContract,
-    GenerateHeatmapDocument,
-    GetComplianceStatus,
-    GetWorkerActiveContract,
-    ListOrganizations,
-    ListPositions,
-    ListUsers,
-    ListUsersByRole,
-    ListWorkersByOrg,
+    GetPendingReimbursements,
+    FetchTimeSummaryByTeam,
+    RetrieveWorkerContractsWithOrganization,
+    GetPayrollRunDetails,
+    CheckUserVirtualCards,
+    BlockSuspiciousPayment,
+    ExtendContractPeriod,
+    ApproveOvertimeEntry,
+    CreateNewContract,
+    UpdateDocumentStatus,
+    BlockVirtualCard,
 ]
