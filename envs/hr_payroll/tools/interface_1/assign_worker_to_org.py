@@ -16,7 +16,7 @@ class AssignWorkerToOrg(Tool):
             raise ValueError(f"Organization '{new_organization_id}' not found.")
 
         workers[worker_id]["organization_id"] = new_organization_id
-        workers[worker_id]["updated_at"] = "2025-06-30T09:25:07.660396Z"
+        workers[worker_id]["updated_at"] = "2025-07-01T09:25:07.660396Z"
 
         return json.dumps(workers[worker_id])
 

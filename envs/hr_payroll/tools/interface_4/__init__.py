@@ -10,7 +10,7 @@ from .register_new_organization import RegisterNewOrganization
 from .initiate_worker_onboarding import InitiateWorkerOnboarding
 from .update_contract_pay_terms import UpdateContractPayTerms
 from .submit_payroll_item_adjustment import SubmitPayrollItemAdjustment
-from .add_virtual_card_note import AddVirtualCardNote
+from .get_financial_provider_details import GetFinancialProviderDetails
 from .reject_reimbursement_request import RejectReimbursementRequest
 from .disable_user_account import DisableUserAccount
 
@@ -28,7 +28,7 @@ ALL_TOOLS_INTERFACE_4 = [
     InitiateWorkerOnboarding,
     UpdateContractPayTerms,
     SubmitPayrollItemAdjustment,
-    AddVirtualCardNote,
+    GetFinancialProviderDetails,
     RejectReimbursementRequest,
     DisableUserAccount,
 ]

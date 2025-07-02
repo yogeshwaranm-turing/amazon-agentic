@@ -1,42 +1,61 @@
 # Interface 4 Policy: User, Contract, Payroll, and Organization Onboarding
 
-Current Date is 2025-07-01.
-
-### Scope
-This interface facilitates the creation and management of user accounts, contracts, payroll components, reimbursements, and onboarding workflows. It also enables adjustments to virtual card notes and payment terms.
+Current Date: July 1, 2025
 
 ---
 
-## General Rules
-- All entities must exist and be valid before performing any action (users, contracts, organizations, reimbursements).
-- Onboarding and linking of users to workers must be performed only if both the user and organization are active.
-- Payroll items must always reference a valid contract, and bonus or deductions should be clearly annotated with a reason.
-- Currency and rate type changes on contracts must align with the existing structure and policy of the organization.
-- When an organization is created, timezone and region must be validated and formatted correctly.
+### Overview
+
+This interface governs the processes of onboarding and managing users, organizations, contracts, payroll components, reimbursements, and virtual card adjustments. It ensures that every onboarding step, contract update, or payroll change is carried out in line with policy, validated relationships, and system integrity. Actions performed through this interface must always operate on complete and verified records.
 
 ---
 
-## Conditional Logic
-- If a reimbursement is already marked as paid, rejecting it should not be allowed. If attempted, the action must be blocked and a suitable reason communicated to the requester.
-- When adjusting payroll, only confirmed contracts should be eligible for new entries.
-- If a user is already linked to a worker, re-onboarding should not be allowed unless the worker status is terminated or inactive.
-- If a virtual card is revoked or expired, financial note addition should be disabled to preserve audit integrity.
-- Any updates to contracts must not affect already paid payroll records — historical payments must be preserved as-is.
+### General Rules
+
+- The system must ensure that all referenced entities—such as users, contracts, organizations, and reimbursements—exist and are valid before allowing any action.
+
+- A user should only be onboarded and linked to a worker if both the user and the organization are marked as active. The system must enforce this validation.
+
+- Payroll items must always be tied to a valid contract. If bonuses or deductions are added, the system should require a reason to be recorded.
+
+- Any changes to currency or rate type on a contract must align with the financial policies and structures defined by the organization. The system must prevent unauthorized or incompatible updates.
+
+- When an organization is created, the timezone and region fields must be correctly formatted and validated. Invalid values should block the creation.
 
 ---
 
-## Best Practices
-- All IDs must be validated against existing database relationships to avoid orphaned records.
-- Always use ISO 8601 for timestamps. Use static date `2025-07-01` where no dynamic timestamp is available.
-- When registering a new organization, store address information in the standardized JSON format even if partially filled.
-- Return complete record details upon creation or update of any contract, organization, user, or reimbursement.
-- Clearly describe all input parameters in the `get_info()` method for full transparency of input types and expectations.
+### Key Behaviors and Conditions
+
+- If a reimbursement is already marked as paid, the system must not allow it to be rejected afterward. Any attempt to do so should be blocked and accompanied by a clear reason message.
+
+- Only contracts that are confirmed should be eligible for new payroll entries. The system should reject adjustments made to contracts that are still in draft or unconfirmed status.
+
+- A user who is already linked to a worker should not be re-onboarded unless that worker’s status is either terminated or inactive. The system must enforce this linkage rule.
+
+- When contracts are updated, the system must ensure that previously paid payroll records remain untouched. No contract change should affect historical payroll data.
 
 ---
 
-## Limitations & Restrictions
-- Contracts already marked as terminated or ended cannot be updated or adjusted.
-- Workers under suspended or pending status must not be linked during onboarding.
-- Organizations with duplicate names or conflicting regions must not be created.
-- Reimbursements marked as approved or paid cannot be rejected or reprocessed.
-- Disabling a user should not be allowed if they are the only admin of an organization.
+### Best Practices
+
+- The system should validate all ID references against existing database relationships. No orphaned or mismatched references should be allowed.
+
+- All timestamps should follow ISO 8601 format. If a static date is needed, it should default to `2025-07-01`.
+
+- When registering a new organization, address information must be stored using the standardized JSON format—even if only partially completed.
+
+- Upon creation or update of any user, contract, reimbursement, or organization, the system should return a fully detailed record in the response, including all relevant fields and identifiers.
+
+---
+
+### What the System Should Not Allow
+
+- Contracts that have been marked as terminated or ended must not be modified or updated further.
+
+- Workers who are in a suspended or pending state should not be allowed to proceed through the onboarding workflow.
+
+- The system must prevent the creation of organizations that have duplicate names or conflicting region entries.
+
+- Reimbursements that are already marked as approved or paid should not be rejected or reprocessed.
+
+- A user must not be disabled if they are the sole admin of an organization. The system should block such actions to preserve administrative access.

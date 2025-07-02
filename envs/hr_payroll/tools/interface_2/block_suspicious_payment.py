@@ -14,8 +14,8 @@ class BlockSuspiciousPayment(Tool):
         if payment.get("status") == "failed":
             raise ValueError("Payment already marked as failed and cannot be reprocessed")
 
-        payment["status"] = "failed"
-        return json.dumps({"payment_id": payment_id, "status": "failed"})
+        payment["status"] = "blocked"
+        return json.dumps({"payment_id": payment_id, "status": "blocked"})
 
     @staticmethod
     def get_info() -> Dict[str, Any]:

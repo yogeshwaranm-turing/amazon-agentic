@@ -1,41 +1,61 @@
 # Interface 3 Policy: Contracts, Invoices, Reimbursements, and Payroll Access
 
-Current Date is 2025-07-01.
-
-### Scope
-This interface is responsible for managing and querying invoice statuses, payroll breakdowns, worker contracts, reimbursements, and virtual cards at an operational level.
+Current Date: July 1, 2025
 
 ---
 
-## General Rules
-- All operations must verify valid references to existing records including workers, contracts, invoices, and payments before proceeding.
-- New invoices and reimbursements must not be created for terminated or suspended workers.
-- Virtual cards may only be issued to active workers, and each card must link to a valid financial provider and user.
-- All money-related changes must verify currency compatibility and fall within organizational financial policies.
+### Overview
+
+This interface governs operations related to invoices, contracts, reimbursements, payroll summaries, and virtual card assignment. It handles both data management and query access at an operational level. All actions must respect record status, organizational policy, and system-defined relationships to ensure consistency and compliance across financial workflows.
 
 ---
 
-## Conditional Logic
-- Active workers must have both an active employment status and at least one ongoing contract with a status of active or signed.
-- Contracts that are marked as ended or terminated should not be available for new invoice generation or editing.
-- A reimbursement can only be processed if the worker is active and has an assigned user and organization.
-- Payments used to mark invoices as paid must exist in the system and reference the invoice accurately; mismatched links should block the operation.
-- Team assignment results must return a list, even if a worker has no team, to ensure consistent API behavior.
+### General Rules
+
+- Every operation must validate that it references existing, valid records—such as workers, contracts, invoices, or payments—before execution. The system should not allow actions on missing or invalid entities.
+
+- The system should not allow new invoices or reimbursements to be created for workers who are marked as terminated or suspended.
+
+- Virtual cards should only be issued to workers who are currently active. Each card must be associated with a valid financial provider and linked user account.
+
+- Any update that involves currency—such as invoicing, reimbursements, or payments—must verify that the currencies are compatible and align with organizational financial policies.
 
 ---
 
-## Best Practices
-- When creating new records like invoices, cards, or reimbursements, ensure complete detail is returned in the response.
-- Provide clearly written messages if a request is blocked due to state mismatches (e.g. trying to pay a cancelled invoice).
-- When summarizing payroll or contracts, break down items categorically for better readability.
-- Use consistent ISO 8601 timestamps and apply `2025-07-01` as a static date where needed.
-- Ensure each API describes input fields with purpose and constraints in `get_info()` for better interface understanding.
+### Key Behaviors and Conditions
+
+- A worker should be considered active only if their employment status is active and they have at least one ongoing contract with a status of active or signed. The system should enforce both conditions.
+
+- Contracts that have been marked as ended or terminated must not be available for invoice generation or editing. The system should block any such attempts.
+
+- The system should only allow a reimbursement to be processed if the worker is active and correctly linked to both a user and an organization.
+
+- When marking an invoice as paid, the system must ensure the referenced payment record exists and correctly links to that invoice. If the linkage is invalid, the operation should be blocked.
+
+- When fetching team assignments, the system should always return a list—even if the worker has no associated team—to ensure consistent API responses.
 
 ---
 
-## Limitations & Restrictions
-- Workers without any active contract should not appear in the list of active workers.
-- Virtual cards cannot be reissued if a card already exists and is active for the same user.
-- Invoices that are marked as paid or cancelled must not be modified again or re-paid.
-- Contracts marked as ended or terminated cannot be extended or reactivated.
-- Bank info updates must not overwrite currency unless explicitly required by policy or user instruction.
+### Best Practices to Follow
+
+- When creating new records such as invoices, virtual cards, or reimbursements, the system should return a fully populated response, including all relevant details and generated IDs.
+
+- If a request is rejected due to a mismatch in state—like trying to pay a cancelled invoice—the system should return a clear, readable message explaining the reason.
+
+- Summaries for payroll or contracts should be categorized for readability and ease of analysis.
+
+- All timestamps should follow ISO 8601 format. If a static date is needed, it should default to `2025-07-01`.
+
+---
+
+### What the System Should Not Allow
+
+- Workers who do not have any active contracts must not appear in the list of active workers.
+
+- If a virtual card is already active for a user, the system should not allow another card to be issued for the same user.
+
+- Invoices that are marked as paid or cancelled should not be modified again. The system must block any further edits or attempts to re-pay these invoices.
+
+- Contracts that are ended or terminated should not be reactivated or extended under any condition.
+
+- When updating bank account information, the system must not overwrite the currency unless explicitly directed to do so by policy or the user.
