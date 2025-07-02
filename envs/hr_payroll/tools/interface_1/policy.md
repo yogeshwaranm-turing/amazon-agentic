@@ -1,4 +1,4 @@
-# Policy: Invoices, Reimbursements, Roles, and Worker Access Control
+# Policy: User, Worker, Time, and Reimbursement Management
 
 **Effective Date: July 1, 2025**
 
@@ -6,58 +6,54 @@
 
 ### Overview
 
-This policy governs how organizations and administrators manage invoices, reimbursements, user roles, time entries, and worker access control. It also supports workflows related to team assignments, bonus logging, virtual card operations, and secure worker offboarding. All operations must respect organizational boundaries and user permissions.
+This policy is responsible for managing day-to-day organizational workflows involving users, workers, time tracking, reimbursements, and virtual cards. Every operation should happen within the boundaries of a known and authenticated organization or user context. The system should not allow any action that is unscoped or improperly linked.
 
 ---
 
-### General Operational Rules
+### General Rules
 
-- The system must validate the presence and correctness of referenced entities—including workers, users, teams, cards, invoices, and reimbursements—before performing any operation.
+Every worker must be associated with both a valid user account and an organization. The system should not allow actions on workers who are not properly linked. Whenever the system fetches, creates, or updates a record—whether it is a user, time log, or reimbursement—it must ensure the structure strictly follows the defined schema.
 
-- Contracts, payroll items, and reimbursements must be associated with active, valid relationships between users, workers, and organizations.
-
-- All financial transactions must fall within the contractual and temporal limits defined for those relationships. The system should enforce these boundaries to maintain financial control.
+For any action involving monetary amounts—such as updating card limits or reimbursing expenses—the system must validate that the values are within expected bounds and formatted in valid currency before proceeding.
 
 ---
 
-### Conditional Logic and Behavior
+### Key Behaviors and Conditions
 
-- If a user attempts to assign a worker to a team outside the same organization, the system must block the operation and return a clear explanation.
+- If a worker does not have any reimbursements submitted or recorded, the system should return an empty list rather than a null value or error.
 
-- When marking an invoice as paid, the system must ensure both the invoice and the payment exist, and that the payment properly references the invoice. If not, the operation must be rejected.
+- The system should allow updates to virtual card limits only when the card status is active. It should not permit such updates if the card is revoked, blocked, or expired. A clear explanation must be returned.
 
-- Reimbursements in ‘paid’ status must not be modified or updated. These records are considered final and should be treated as immutable.
+- Time entries should only be allowed for workers who are marked as active. The system should reject any logging attempt made for suspended or terminated workers and return an informative message.
 
-- Workers who have active contracts or are linked to payroll entries must not be removed from the system. Any removal or deactivation attempt should be denied until those connections are resolved.
+- Once a reimbursement is marked as paid, the system must treat it as immutable. It should not allow any further editing or reprocessing through any method.
 
-- Virtual cards that are already marked as revoked or expired must not be reactivated unless their status explicitly permits re-enablement.
-
-- If a worker’s access is frozen, their user account must be transitioned to ‘suspended’ status, and any active virtual cards associated with them must be blocked.
+- The system should not permit suspended workers to be assigned or reassigned to departments or organizations, regardless of the user's role attempting the action.
 
 ---
 
-### Best Practices and Recommendations
+### Best Practices to Follow
 
-- Field-level validations should provide specific, user-readable messages explaining why an operation was denied—for example: “Worker not found,” “Card already revoked,” or “Cannot remove worker with active payroll.”
+- Error messages should be user-friendly and abstracted. For instance, instead of returning a technical error, the system should say, “This worker is no longer eligible for assignment.”
 
-- Virtual card status transitions should be strictly enforced. Only cards in ‘blocked’ or ‘expired’ status may be re-enabled. Cards marked as ‘revoked’ are permanent and must remain unchanged.
+- When a new entity is created—such as a user profile or time entry—the system should return the complete object along with its newly generated ID.
 
-- When creating contracts or logging bonuses, these actions must reference the worker’s current active contract and organization. The system should prevent any duplication or cross-linking errors.
+- The system must check roles before performing sensitive actions. Only users with roles like HR manager or admin should be allowed to deactivate users or assign workers.
 
-- Document and reimbursement queries should return sorted and filtered results focused on active records and recent entries to enhance clarity and relevance.
+- The system should avoid over-fetching data. Summaries, such as those for payroll totals or time aggregates, should return only the most relevant fields.
 
-- Submitted values—such as start dates and financial amounts—must be realistic, positive, and fall within organizational policy thresholds.
+- All timestamps should follow ISO 8601 format. If a static date is needed, it should default to `2025-07-01`.
 
 ---
 
-### Security and Limitations
+### What the System Should Not Allow
 
-- Only users with authorized roles (e.g., HR or admin) may assign user roles, create contracts, or update financial records such as bonuses or invoice payments.
+- The system should not allow creation of users with duplicate email addresses. If the email already exists, the operation must fail with a clear message indicating the conflict.
 
-- Time entry queries must include valid start and end dates and should not span more than one calendar year to prevent over-fetching.
+- No time entry should exceed 24 hours in duration. The system should either cap or reject any entry above this limit.
 
-- Contracts must not be created for users who are offboarded or do not exist in the system.
+- Virtual card spending limits must be positive and must not exceed 100,000 units in their configured currency. Any value outside this range should be rejected.
 
-- Users marked as ‘suspended’ or ‘inactive’ must not undergo any role changes.
+- The system should not allow a user to be deactivated if they are currently linked to any reimbursements or payroll records that are pending or ongoing.
 
-- Reimbursements and invoices must not be linked to non-existent workers or organizations. Any such attempts must be rejected with a clear error message.
+- Reassigning a worker across organizations or departments should only be allowed for users with elevated roles, such as admins or HR managers. All others must be restricted from doing so.
