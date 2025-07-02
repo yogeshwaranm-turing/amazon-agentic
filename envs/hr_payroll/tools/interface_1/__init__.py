@@ -10,6 +10,7 @@ from .allocate_time_entry import AllocateTimeEntry
 from .submit_reimbursement_receipt import SubmitReimbursementReceipt
 from .update_virtual_card_limit import UpdateVirtualCardLimit
 from .deactivate_user import DeactivateUser
+from .get_worker_profile_by_id import GetWorkerProfileById
 
 
 ALL_TOOLS_INTERFACE_1 = [
@@ -25,4 +26,5 @@ ALL_TOOLS_INTERFACE_1 = [
     SubmitReimbursementReceipt,
     UpdateVirtualCardLimit,
     DeactivateUser,
+    GetWorkerProfileById
 ]
