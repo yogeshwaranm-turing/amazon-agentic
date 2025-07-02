@@ -1,12 +1,12 @@
-# Interface 4 Policy: User, Contract, Payroll, and Organization Onboarding
+# Policy: User, Contract, Payroll, and Organization Onboarding
 
-Current Date: July 1, 2025
+**Effective Date: July 1, 2025**
 
 ---
 
 ### Overview
 
-This interface governs the processes of onboarding and managing users, organizations, contracts, payroll components, reimbursements, and virtual card adjustments. It ensures that every onboarding step, contract update, or payroll change is carried out in line with policy, validated relationships, and system integrity. Actions performed through this interface must always operate on complete and verified records.
+This policy governs the processes of onboarding and managing users, organizations, contracts, payroll components, reimbursements, and virtual card adjustments. It ensures that every onboarding step, contract update, or payroll change is carried out in line with policy, validated relationships, and system integrity. Actions performed must always operate on complete and verified records.
 
 ---
 

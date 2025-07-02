@@ -1,12 +1,12 @@
-# Interface 5 Policy: Invoices, Reimbursements, Roles, and Worker Access Control
+# Policy: Invoices, Reimbursements, Roles, and Worker Access Control
 
-Current Date: July 1, 2025
+**Effective Date: July 1, 2025**
 
 ---
 
 ### Scope and Responsibilities
 
-This interface is responsible for managing key operational activities such as invoice handling, reimbursement tracking, role assignments, time entry processing, and access control for workers. It also covers workflows around team assignments, logging bonuses, issuing or modifying virtual cards, and secure offboarding processes. All actions must respect organizational boundaries and user permissions.
+This policy is responsible for managing key operational activities such as invoice handling, reimbursement tracking, role assignments, time entry processing, and access control for workers. It also covers workflows around team assignments, logging bonuses, issuing or modifying virtual cards, and secure offboarding processes. All actions must respect organizational boundaries and user permissions.
 
 ---
 

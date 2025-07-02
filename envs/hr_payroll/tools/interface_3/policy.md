@@ -1,12 +1,12 @@
-# Interface 3 Policy: Contracts, Invoices, Reimbursements, and Payroll Access
+# Policy: Contracts, Invoices, Reimbursements, and Payroll Access
 
-Current Date: July 1, 2025
+**Effective Date: July 1, 2025**
 
 ---
 
 ### Overview
 
-This interface governs operations related to invoices, contracts, reimbursements, payroll summaries, and virtual card assignment. It handles both data management and query access at an operational level. All actions must respect record status, organizational policy, and system-defined relationships to ensure consistency and compliance across financial workflows.
+This policy governs operations related to invoices, contracts, reimbursements, payroll summaries, and virtual card assignment. It handles both data management and query access at an operational level. All actions must respect record status, organizational policy, and system-defined relationships to ensure consistency and compliance across financial workflows.
 
 ---
 
