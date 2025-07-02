@@ -2,6 +2,7 @@ import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
+
 class GetProductInformation(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], product_id: str) -> str:

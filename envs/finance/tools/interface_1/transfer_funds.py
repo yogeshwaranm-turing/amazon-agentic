@@ -20,16 +20,22 @@ class TransferFunds(Tool):
         if from_account is None or to_account is None:
             raise ValueError("Account not found.")
         
-        # Get available balances
-        from_balance = from_account["balances"]["available"]
-        to_balance = to_account["balances"]["available"]
+        # Get available balances with null checks
+        from_balance = from_account.get("balances", {}).get("available")
+        to_balance = to_account.get("balances", {}).get("available")
+        
+        # Handle None balances
+        if from_balance is None:
+            raise ValueError(f"Source account {from_account_id} has no available balance information.")
+        if to_balance is None:
+            raise ValueError(f"Destination account {to_account_id} has no available balance information.")
         
         if from_balance < amount:
             raise ValueError("Insufficient funds in the source account.")
         
         # Update account balances
-        from_account["balances"]["available"] -= amount
-        to_account["balances"]["available"] += amount
+        from_account["balances"]["available"] = from_balance - amount
+        to_account["balances"]["available"] = to_balance + amount
         
         existing = [int(t.replace("TXN-", "").split('-')[-1]) for t in txs.keys() if t.startswith("TXN-")]
         next_id = max(existing, default=0) + 1

@@ -1,10 +1,6 @@
 import json
-from datetime import datetime, timezone
 from typing import Any, Dict
-from faker import Faker
 from tau_bench.envs.tool import Tool
-
-fake = Faker()
 
 class CreateAsset(Tool):
     @staticmethod
@@ -15,7 +11,8 @@ class CreateAsset(Tool):
         purchase_date: str, 
         cost: float, 
         location: str,
-        vendor: str
+        vendor: str,
+        user_id: str = "default_user"
     ) -> str:
         assets = data.setdefault("assets", {})
         
@@ -24,7 +21,7 @@ class CreateAsset(Tool):
         asset = {
             "asset_id": asset_id,
             "name": name,
-            "serial_number": f"SN-{fake.bothify(text='?????-#####')}",
+            "serial_number": "SN-HfFxx-#####",
             "category": category,
             "description": "",
             "location": location,
@@ -44,7 +41,8 @@ class CreateAsset(Tool):
             "status": "active",
             "disposal_date": None,
             "disposal_proceeds": None,
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": "2025-06-15T15:00:00",
+            "user_id": user_id
         }
         
         assets[asset_id] = asset
@@ -68,7 +66,11 @@ class CreateAsset(Tool):
                     "purchase_date":{"type":"string","format":"date"},
                     "cost":{"type":"number"},
                     "location":{"type":"string"},
-                    "vendor":{"type":"string"}
+                    "vendor":{"type":"string"},
+                    "user_id":{
+                        "type":"string",
+                        "description":"The user ID of the customer to whom the asset belongs. Defaults to 'default_user' if not provided."
+                    }
                 },
                 "required":["name","category","purchase_date","cost","location","vendor"]
             }

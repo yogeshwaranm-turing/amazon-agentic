@@ -1,7 +1,9 @@
 import json
 from typing import Any, Dict, List
+from tau_bench.envs.tool import Tool
 
-class ImportPurchaseOrder:
+
+class ImportPurchaseOrder(Tool):
     @staticmethod
     def invoke(
         data: Dict[str, Any],
