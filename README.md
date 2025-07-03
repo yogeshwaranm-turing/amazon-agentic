@@ -54,11 +54,11 @@ Tasks must follow the a given complexity distribution for task complexity:
 
 ## Task naming
 
-For each week, we will have a folder at the top-level of the repo called `week_<number>`, starting with `week_1`. This folder will hold all the tasks for the week, with one additional folder for each pod with the name of the pod lead.
+- For each week, we will have a folder at the top-level of the repo called `week_<number>`, starting with `week_1`. This folder will hold all the tasks for the week
+- Inside the week's folder, tehre will be an additional folder for each pod with the name of the pod lead.
+- Each individual task will be submitted by trainers to their pod's folder inside a new folder + filename according to the convention: `<trainer_name>-<db_name>-<interface_num>-<complexity_level>-<timestamp>/task.json`
 
-Each individual task will be submitted by trainers to their pod's folder for that week with the following naming convention:
-
-`<trainer_name>-<db_name>-<interface_num>-<complexity_level>-<timestamp>.json`
+Details for the convention:
 
 - trainer_name is the name of the trainer as in the first part of their Turing email. For example: francisco.m
 - db_name is the name of the database the task is targetting, in the original tau bench we could use `finance` or `ecommerce`.
