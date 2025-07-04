@@ -13,7 +13,7 @@ from .submit_payroll_item_adjustment import SubmitPayrollItemAdjustment
 from .get_financial_provider_details import GetFinancialProviderDetails
 from .reject_reimbursement_request import RejectReimbursementRequest
 from .disable_user_account import DisableUserAccount
-
+from .get_user_profile import GetUserProfile
 
 ALL_TOOLS_INTERFACE_4 = [
     ListWorkersByOrg,
@@ -31,4 +31,5 @@ ALL_TOOLS_INTERFACE_4 = [
     GetFinancialProviderDetails,
     RejectReimbursementRequest,
     DisableUserAccount,
+    GetUserProfile
 ]
