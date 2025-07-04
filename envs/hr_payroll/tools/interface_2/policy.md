@@ -34,7 +34,21 @@ This policy governs contract management, payroll execution, reimbursement approv
 
 - Contracts must be uniquely scoped to each worker and time period. If the system detects an overlap or duplicate range, the new contract creation should be blocked.
 
----
+- Suspicious payments are only blocked if a payment has not already been settled and matches a fraud condition, such as duplicate payment attempts or irregular transaction routing.
+
+- Virtual cards can only be blocked if they are marked 'active' and not already flagged. If blocked, the action must reflect in system audit trails.
+
+- A contract can only be extended if the new end date is later than the existing one and remains within organizational bounds or defined limits.
+
+- New contracts require a verified user ID, a valid link to an organization, and acceptable payment terms. Optional fields like probation may be included but should follow configured defaults.
+
+- Detailed payroll run access is limited to runs in ‘confirmed’ status. Draft or failed runs must avoid exposing full transaction-level details to ensure data consistency.
+
+- Time summaries are grouped by date and only include workers who were part of the requested team during the corresponding logged periods.
+
+- Documents uploaded must include the type and owner identity. Systems may optionally flag or block duplicate uploads based on metadata or hash match.
+
+--
 
 ### Best Practices to Follow
 

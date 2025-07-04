@@ -2,14 +2,15 @@ import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
-class GetPendingReimbursements(Tool):
+class GetReimbusrments(Tool):
     @staticmethod
     def invoke(
         data: Dict[str, Any],
-        organization_id: str,
+        status: str = None,
         user_id: str = None,
         worker_id: str = None,
         currency: str = None,
+        organization_id: str = None,
         contract_id: str = None,
         submit_date: str = None,
         approve_date: str = None,
@@ -17,17 +18,22 @@ class GetPendingReimbursements(Tool):
         max_amount: float = None
     ) -> str:
         reimbursements = data.get("reimbursements", {})
+        workers = data.get("workers", {})
+
+        # Resolve user_id from worker_id if needed
+        if not user_id and worker_id:
+            if worker_id not in workers:
+                return "Error: Worker not found"
+            user_id = workers[worker_id].get("user_id")
 
         def matches(r):
-            if r.get("status") != "submitted":
-                return False
-            if r.get("organization_id") != organization_id:
+            if status and r.get("status") != status:
                 return False
             if user_id and r.get("user_id") != user_id:
                 return False
-            if worker_id and r.get("worker_id") != worker_id:
-                return False
             if currency and r.get("currency") != currency:
+                return False
+            if organization_id and r.get("organization_id") != organization_id:
                 return False
             if contract_id and r.get("contract_id") != contract_id:
                 return False
@@ -41,49 +47,50 @@ class GetPendingReimbursements(Tool):
                 return False
             return True
 
-        result = [r for r in reimbursements.values() if matches(r)]
-        return json.dumps(result)
+        results = [r for r in reimbursements.values() if matches(r)]
+        return json.dumps(results)
 
     @staticmethod
     def get_info() -> Dict[str, Any]:
         return {
             "type": "function",
             "function": {
-                "name": "get_pending_reimbursements",
-                "description": (
-                    "Returns reimbursements with status 'submitted' for a given organization, "
-                    "optionally filtered by user ID, worker ID, currency, contract ID, date fields, and amount range."
-                ),
+                "name": "list_open_reimbursements",
+                "description": "Lists reimbursements filtered by optional fields like status, user ID, worker ID, currency, organization, contract, dates, and amount.",
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "organization_id": {
+                        "status": {
                             "type": "string",
-                            "description": "Organization ID for which reimbursements are being retrieved"
+                            "description": "Status to filter by (e.g., submitted, paid, rejected)"
                         },
                         "user_id": {
                             "type": "string",
-                            "description": "Filter by user ID"
+                            "description": "The ID of the user"
                         },
                         "worker_id": {
                             "type": "string",
-                            "description": "Filter by worker ID"
+                            "description": "The ID of the worker (used to resolve user_id)"
                         },
                         "currency": {
                             "type": "string",
-                            "description": "Filter by currency code"
+                            "description": "Currency code to filter by"
+                        },
+                        "organization_id": {
+                            "type": "string",
+                            "description": "Organization ID to filter by"
                         },
                         "contract_id": {
                             "type": "string",
-                            "description": "Filter by contract ID"
+                            "description": "Contract ID to filter by"
                         },
                         "submit_date": {
                             "type": "string",
-                            "description": "Filter by exact submit date (YYYY-MM-DD)"
+                            "description": "Submission date to filter by (YYYY-MM-DD)"
                         },
                         "approve_date": {
                             "type": "string",
-                            "description": "Filter by exact approve date (YYYY-MM-DD)"
+                            "description": "Approval date to filter by (YYYY-MM-DD)"
                         },
                         "min_amount": {
                             "type": "number",
@@ -94,7 +101,7 @@ class GetPendingReimbursements(Tool):
                             "description": "Maximum reimbursement amount"
                         }
                     },
-                    "required": ["organization_id"]
+                    "required": []
                 }
             }
         }
