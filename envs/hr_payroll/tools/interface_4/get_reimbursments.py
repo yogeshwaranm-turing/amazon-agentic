@@ -2,10 +2,11 @@ import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
-class ListOpenReimbursements(Tool):
+class GetReimbusrments(Tool):
     @staticmethod
     def invoke(
         data: Dict[str, Any],
+        status: str = None,
         user_id: str = None,
         worker_id: str = None,
         currency: str = None,
@@ -19,14 +20,14 @@ class ListOpenReimbursements(Tool):
         reimbursements = data.get("reimbursements", {})
         workers = data.get("workers", {})
 
-        # Resolve user_id if only worker_id is provided
+        # Resolve user_id from worker_id if needed
         if not user_id and worker_id:
             if worker_id not in workers:
                 return "Error: Worker not found"
             user_id = workers[worker_id].get("user_id")
 
         def matches(r):
-            if r.get("status") != "submitted":
+            if status and r.get("status") != status:
                 return False
             if user_id and r.get("user_id") != user_id:
                 return False
@@ -55,10 +56,14 @@ class ListOpenReimbursements(Tool):
             "type": "function",
             "function": {
                 "name": "list_open_reimbursements",
-                "description": "Lists reimbursements with status 'submitted', filtered optionally by user, worker, currency, organization, contract, date, and amount.",
+                "description": "Lists reimbursements filtered by optional fields like status, user ID, worker ID, currency, organization, contract, dates, and amount.",
                 "parameters": {
                     "type": "object",
                     "properties": {
+                        "status": {
+                            "type": "string",
+                            "description": "Status to filter by (e.g., submitted, paid, rejected)"
+                        },
                         "user_id": {
                             "type": "string",
                             "description": "The ID of the user"

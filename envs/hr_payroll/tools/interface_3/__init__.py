@@ -6,10 +6,14 @@ from .retrieve_payroll_breakdown import RetrievePayrollBreakdown
 from .update_worker_bank_info import UpdateWorkerBankInfo
 from .create_new_invoice import CreateNewInvoice
 from .process_reimbursement_request import ProcessReimbursementRequest
-from .issue_virtual_card_to_worker import IssueVirtualCardToWorker
+from .issue_virtual_card import IssueVirtualCard
 from .mark_invoice_as_paid import MarkInvoiceAsPaid
 from .terminate_worker_contract import TerminateWorkerContract
-
+from .get_filtered_list_invoices import GetFilteredListInvoices
+from .get_payroll_runs_filtered import GetPayrollRunsFiltered
+from .add_new_financial_provider import AddNewFinancialProvider
+from .get_organizations import GetOrganizations
+from .list_users_orgs_with_working_details import ListUsersOrgsWithWorkingDetails
 
 ALL_TOOLS_INTERFACE_3 = [
     ListActiveWorkers,
@@ -20,7 +24,12 @@ ALL_TOOLS_INTERFACE_3 = [
     UpdateWorkerBankInfo,
     CreateNewInvoice,
     ProcessReimbursementRequest,
-    IssueVirtualCardToWorker,
+    IssueVirtualCard,
     MarkInvoiceAsPaid,
     TerminateWorkerContract,
+    GetFilteredListInvoices,
+    GetPayrollRunsFiltered,
+    AddNewFinancialProvider,
+    GetOrganizations,
+    ListUsersOrgsWithWorkingDetails
 ]

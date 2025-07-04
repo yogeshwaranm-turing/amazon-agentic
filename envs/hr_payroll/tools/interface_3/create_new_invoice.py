@@ -1,4 +1,3 @@
-
 import json
 import uuid
 from typing import Any, Dict
@@ -6,27 +5,49 @@ from tau_bench.envs.tool import Tool
 
 class CreateNewInvoice(Tool):
     @staticmethod
-    def invoke(data: Dict[str, Any], contract_id: str, amount: float, due_date: str) -> str:
+    def invoke(
+        data: Dict[str, Any],
+        amount: float,
+        due_date: str,
+        worker_id: str = None,
+        organization_id: str = None,
+        currency: str = None,
+        issue_date: str = "2025-07-01",
+        status: str = "issued",
+        contract_id: str = None
+    ) -> str:
         contracts = data.get("contracts", {})
-        if contract_id not in contracts:
-            raise ValueError("Contract not found")
 
-        worker_id = contracts[contract_id]["worker_id"]
-        org_id = contracts[contract_id]["organization_id"]
+        # Optional backward compatibility via contract_id
+        if contract_id:
+            if contract_id not in contracts:
+                raise ValueError("Contract not found")
+            contract = contracts[contract_id]
+            worker_id = worker_id or contract.get("worker_id")
+            organization_id = organization_id or contract.get("organization_id")
+            currency = currency or contract.get("currency")
 
-        invoices = data.setdefault("invoices", {})
+        if not all([worker_id, organization_id, currency]):
+            raise ValueError("Missing required fields: worker_id, organization_id, and currency")
+
         invoice_id = str(uuid.uuid4())
-        invoices[invoice_id] = {
+        invoice = {
             "worker_id": worker_id,
-            "organization_id": org_id,
-            "issue_date": "2025-07-01",
+            "organization_id": organization_id,
+            "issue_date": issue_date,
             "due_date": due_date,
             "amount": round(amount, 2),
-            "status": "issued",
-            "currency": contracts[contract_id]["currency"]
+            "status": status,
+            "currency": currency
         }
 
-        return json.dumps({"invoice_id": invoice_id})
+        invoices = data.setdefault("invoices", {})
+        invoices[invoice_id] = invoice
+
+        return json.dumps({
+            "invoice_id": invoice_id,
+            **invoice
+        })
 
     @staticmethod
     def get_info() -> Dict[str, Any]:
@@ -34,24 +55,49 @@ class CreateNewInvoice(Tool):
             "type": "function",
             "function": {
                 "name": "create_new_invoice",
-                "description": "Generates a new invoice based on a contract",
+                "description": (
+                    "Creates a new invoice. You may provide contract_id for backward compatibility "
+                    "or directly specify worker_id, organization_id, and currency. Returns full invoice data."
+                ),
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "contract_id": {
                             "type": "string",
-                            "description": "The ID of the contract for which the invoice is issued"
+                            "description": "Optional. Used for backward compatibility to derive worker/org/currency."
+                        },
+                        "worker_id": {
+                            "type": "string",
+                            "description": "Worker associated with the invoice"
+                        },
+                        "organization_id": {
+                            "type": "string",
+                            "description": "Organization issuing the invoice"
+                        },
+                        "currency": {
+                            "type": "string",
+                            "description": "Currency code (e.g. USD, EUR)"
                         },
                         "amount": {
                             "type": "number",
-                            "description": "The total amount to invoice"
+                            "description": "Invoice amount"
+                        },
+                        "issue_date": {
+                            "type": "string",
+                            "description": "Issue date in ISO format",
+                            "default": "2025-07-01"
                         },
                         "due_date": {
                             "type": "string",
-                            "description": "The due date for the invoice in YYYY-MM-DD format"
+                            "description": "Due date in ISO format"
+                        },
+                        "status": {
+                            "type": "string",
+                            "description": "Invoice status (e.g. issued, paid, overdue)",
+                            "default": "issued"
                         }
                     },
-                    "required": ["contract_id", "amount", "due_date"]
+                    "required": ["amount", "due_date"]
                 }
             }
         }
