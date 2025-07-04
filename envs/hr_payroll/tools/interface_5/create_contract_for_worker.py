@@ -1,4 +1,3 @@
-
 import json
 import uuid
 from typing import Any, Dict
@@ -14,7 +13,8 @@ class CreateContractForWorker(Tool):
         contract_id = str(uuid.uuid4())
         worker = workers[worker_id]
         contracts = data.setdefault("contracts", {})
-        contracts[contract_id] = {
+
+        contract = {
             "worker_id": worker_id,
             "organization_id": worker["organization_id"],
             "user_id": worker["user_id"],
@@ -26,7 +26,9 @@ class CreateContractForWorker(Tool):
             "currency": "USD",
             "document_id": None
         }
-        return json.dumps({"contract_id": contract_id})
+
+        contracts[contract_id] = contract
+        return json.dumps({"contract_id": contract_id, **contract})
 
     @staticmethod
     def get_info() -> Dict[str, Any]:

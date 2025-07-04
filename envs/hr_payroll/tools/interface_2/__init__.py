@@ -9,6 +9,13 @@ from .approve_overtime_entry import ApproveOvertimeEntry
 from .create_new_contract import CreateNewContract
 from .update_document_status import UpdateDocumentStatus
 from .block_virtual_card import BlockVirtualCard
+from .get_contracts import GetContracts
+from .get_documents import GetDocuments
+from .get_payments import GetPayments
+from .upload_document import UploadDocument
+from .start_payment import StartPayment
+from .start_new_engagement_for_user import StartNewEngagementForUser
+from .find_user_working_details import FindUserWorkingDetails
 
 
 ALL_TOOLS_INTERFACE_2 = [
@@ -23,4 +30,11 @@ ALL_TOOLS_INTERFACE_2 = [
     CreateNewContract,
     UpdateDocumentStatus,
     BlockVirtualCard,
+    GetContracts,
+    GetDocuments,
+    UploadDocument,
+    GetPayments,
+    StartPayment,
+    StartNewEngagementForUser,
+    FindUserWorkingDetails
 ]
