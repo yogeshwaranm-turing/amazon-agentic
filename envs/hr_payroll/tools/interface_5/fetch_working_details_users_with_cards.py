@@ -6,6 +6,7 @@ class FetchWorkingDetailsUsersWithCards(Tool):
     @staticmethod
     def invoke(
         data: Dict[str, Any],
+        user_id: str = None,
         email: str = None,
         first_name: str = None,
         last_name: str = None,
@@ -21,7 +22,41 @@ class FetchWorkingDetailsUsersWithCards(Tool):
 
         results = []
 
-        for user_id, user in users.items():
+        # If user_id is provided, directly fetch that user
+        if user_id:
+            user = users.get(user_id)
+            if user:
+                user_workers = [
+                    {"worker_id": wid, **w}
+                    for wid, w in workers.items()
+                    if w.get("user_id") == user_id
+                ]
+
+                worker_ids = [w["worker_id"] for w in user_workers]
+                user_contracts = [
+                    {"contract_id": cid, **c}
+                    for cid, c in contracts.items()
+                    if c.get("worker_id") in worker_ids
+                ]
+
+                user_cards = [
+                    {"card_id": cid, **c}
+                    for cid, c in virtual_cards.items()
+                    if c.get("user_id") == user_id
+                ]
+
+                results.append({
+                    "user_id": user_id,
+                    "user": user,
+                    "workers": user_workers,
+                    "contracts": user_contracts,
+                    "virtual_cards": user_cards
+                })
+
+            return json.dumps(results)
+
+        # Otherwise, fall back to filter-based lookup
+        for uid, user in users.items():
             if email and user.get("email") != email:
                 continue
             if first_name and user.get("first_name") != first_name:
@@ -37,14 +72,12 @@ class FetchWorkingDetailsUsersWithCards(Tool):
             if timezone and user.get("timezone") != timezone:
                 continue
 
-            # Fetch associated workers
             user_workers = [
                 {"worker_id": wid, **w}
                 for wid, w in workers.items()
-                if w.get("user_id") == user_id
+                if w.get("user_id") == uid
             ]
 
-            # Fetch contracts associated with these workers
             worker_ids = [w["worker_id"] for w in user_workers]
             user_contracts = [
                 {"contract_id": cid, **c}
@@ -52,15 +85,14 @@ class FetchWorkingDetailsUsersWithCards(Tool):
                 if c.get("worker_id") in worker_ids
             ]
 
-            # Fetch user's virtual cards
             user_cards = [
                 {"card_id": cid, **c}
                 for cid, c in virtual_cards.items()
-                if c.get("user_id") == user_id
+                if c.get("user_id") == uid
             ]
 
             results.append({
-                "user_id": user_id,
+                "user_id": uid,
                 "user": user,
                 "workers": user_workers,
                 "contracts": user_contracts,
@@ -77,11 +109,13 @@ class FetchWorkingDetailsUsersWithCards(Tool):
                 "name": "list_users_working_details_with_cards",
                 "description": (
                     "Lists users with filters on user fields, returning full working details for each matched user. "
-                    "This includes linked workers, their contracts, and any virtual cards issued to the user."
+                    "This includes linked workers, their contracts, and any virtual cards issued to the user. "
+                    "If `user_id` is provided, it will fetch that user directly and ignore other filters."
                 ),
                 "parameters": {
                     "type": "object",
                     "properties": {
+                        "user_id": {"type": "string", "description": "Unique user ID to fetch a specific user's details directly"},
                         "email": {"type": "string", "description": "Filter by user email"},
                         "first_name": {"type": "string", "description": "Filter by user's first name"},
                         "last_name": {"type": "string", "description": "Filter by user's last name"},
