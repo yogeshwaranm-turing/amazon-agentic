@@ -13,22 +13,27 @@ from .remove_worker_from_org import RemoveWorkerFromOrg
 from .log_bonus_payroll_item import LogBonusPayrollItem
 from .freeze_worker_access import FreezeWorkerAccess
 from .enable_virtual_card_for_payment import EnableVirtualCardForPayment
-
+from .change_invoice_details import ChangeInvoiceDetails
+from .update_contract import UpdateContractDetails
+from .fetch_working_details_users_with_cards import FetchWorkingDetailsUsersWithCards
 
 ALL_TOOLS_INTERFACE_5 = [
-    "ListWorkersWithVirtualCards",
-    "RetrieveInvoiceSummary",
-    "GetReimbursementTotalsByWorker",
-    "FetchTimeEntriesByPeriod",
-    "ListDocumentsByUser",
-    "CreateContractForWorker",
-    "UpdateVirtualCardStatus",
-    "AddWorkerToTeam",
-    "SubmitInvoicePayment",
-    "UpdateReimbursementStatus",
-    "AssignRoleToUser",
-    "RemoveWorkerFromOrg",
-    "LogBonusPayrollItem",
-    "FreezeWorkerAccess",
-    "EnableVirtualCardForPayment"
+ListWorkersWithVirtualCards,
+RetrieveInvoiceSummary,
+GetReimbursementTotalsByWorker,
+FetchTimeEntriesByPeriod,
+ListDocumentsByUser,
+CreateContractForWorker,
+UpdateVirtualCardStatus,
+AddWorkerToTeam,
+SubmitInvoicePayment,
+UpdateReimbursementStatus,
+AssignRoleToUser,
+RemoveWorkerFromOrg,
+LogBonusPayrollItem,
+FreezeWorkerAccess,
+EnableVirtualCardForPayment,
+ChangeInvoiceDetails,
+UpdateContractDetails,
+FetchWorkingDetailsUsersWithCards
 ]

@@ -2,12 +2,11 @@ import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
-class SubmitInvoicePayment(Tool):
+class ChangeInvoiceDetails(Tool):
     @staticmethod
     def invoke(
         data: Dict[str, Any],
         invoice_id: str,
-        payment_id: str,
         worker_id: str = None,
         amount: float = None,
         issue_date: str = None,
@@ -17,20 +16,11 @@ class SubmitInvoicePayment(Tool):
         organization_id: str = None
     ) -> str:
         invoices = data.get("invoices", {})
-        payments = data.get("payments", {})
-
         if invoice_id not in invoices:
             raise ValueError("Invoice not found")
-        if payment_id not in payments:
-            raise ValueError("Payment not found")
 
         invoice = invoices[invoice_id]
-        payment = payments[payment_id]
 
-        if payment.get("invoice_id") != invoice_id:
-            raise ValueError("Payment does not match invoice")
-
-        # Update invoice fields if provided
         if worker_id is not None:
             invoice["worker_id"] = worker_id
         if amount is not None:
@@ -41,8 +31,6 @@ class SubmitInvoicePayment(Tool):
             invoice["due_date"] = due_date
         if status is not None:
             invoice["status"] = status
-        else:
-            invoice["status"] = "paid"  # fallback if no status explicitly provided
         if currency is not None:
             invoice["currency"] = currency
         if organization_id is not None:
@@ -58,49 +46,45 @@ class SubmitInvoicePayment(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "submit_invoice_payment",
+                "name": "update_invoice_details",
                 "description": (
-                    "Marks an invoice as paid, and allows setting invoice fields "
-                    "like worker_id, amount, dates, status, currency, and organization_id."
+                    "Updates details of an existing invoice including amount, dates, status, currency, "
+                    "organization ID, or associated worker."
                 ),
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "invoice_id": {
                             "type": "string",
-                            "description": "The invoice to update"
-                        },
-                        "payment_id": {
-                            "type": "string",
-                            "description": "Payment ID associated with the invoice"
+                            "description": "The ID of the invoice to be updated"
                         },
                         "worker_id": {
                             "type": "string",
-                            "description": "Worker associated with the invoice"
+                            "description": "Updated worker ID associated with the invoice"
                         },
                         "amount": {
                             "type": "number",
-                            "description": "Total invoice amount"
+                            "description": "Updated total amount for the invoice"
                         },
                         "issue_date": {
                             "type": "string",
-                            "description": "Invoice issue timestamp (ISO 8601 format)"
+                            "description": "Updated issue date in ISO 8601 format"
                         },
                         "due_date": {
                             "type": "string",
-                            "description": "Invoice due timestamp (ISO 8601 format)"
+                            "description": "Updated due date in ISO 8601 format"
                         },
                         "status": {
                             "type": "string",
-                            "description": "Invoice status (default is 'paid' if not supplied)"
+                            "description": "Updated invoice status (e.g., paid, overdue)"
                         },
                         "currency": {
                             "type": "string",
-                            "description": "Currency of the invoice (e.g., USD, INR)"
+                            "description": "Updated currency code for the invoice"
                         },
                         "organization_id": {
                             "type": "string",
-                            "description": "Organization ID associated with the invoice"
+                            "description": "Updated organization ID linked to the invoice"
                         }
                     },
                     "required": ["invoice_id"]

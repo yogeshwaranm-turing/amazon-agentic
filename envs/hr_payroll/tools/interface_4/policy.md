@@ -25,6 +25,29 @@ This policy governs the processes of onboarding and managing users, organization
 ---
 
 ### Key Behaviors and Conditions
+- New user accounts require a unique email and assigned role. Duplicate emails should be rejected.
+
+- User accounts should only be disabled if they are currently marked as active.
+
+- Time entry fetches by project should include filters for date range and exclude rejected entries by default.
+
+- Financial provider details can only be accessed if the provider exists and supports the user's organization.
+
+- User locale and timezone lookups must return defaults if none are explicitly set.
+
+- Worker onboarding requires a verified user and organization match, and may pre-fill contract templates.
+
+- Listing virtual cards by organization must exclude blocked or expired cards unless explicitly requested.
+
+- Workers listed under an organization should be filtered by active contracts unless overridden.
+
+- New organizations must include validated timezone, region, and at least one admin contact.
+
+- Reimbursement rejections must include a reason and can only be performed on non-paid requests.
+
+- Payroll adjustments require a contract reference and a justification field for the change.
+
+- Contract pay term updates must preserve currency compatibility and not reduce rates below minimum wage.
 
 - If a reimbursement is already marked as paid, the system must not allow it to be rejected afterward. Any attempt to do so should be blocked and accompanied by a clear reason message.
 
