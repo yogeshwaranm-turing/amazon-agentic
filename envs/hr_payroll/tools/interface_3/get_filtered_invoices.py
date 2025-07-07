@@ -3,7 +3,7 @@ from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 from datetime import datetime
 
-class GetFilteredListInvoices(Tool):
+class GetFilteredInvoices(Tool):
     @staticmethod
     def invoke(
         data: Dict[str, Any],
