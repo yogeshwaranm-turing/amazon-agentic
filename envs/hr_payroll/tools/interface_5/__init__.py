@@ -13,7 +13,7 @@ from .remove_worker_from_org import RemoveWorkerFromOrg
 from .log_bonus_payroll_item import LogBonusPayrollItem
 from .freeze_worker_access import FreezeWorkerAccess
 from .enable_virtual_card_for_payment import EnableVirtualCardForPayment
-from .change_invoice_details import ChangeInvoiceDetails
+from .update_invoice_details import UpdateInvoiceDetails
 from .update_contract import UpdateContractDetails
 from .fetch_working_details_users_with_cards import FetchWorkingDetailsUsersWithCards
 
@@ -33,7 +33,7 @@ RemoveWorkerFromOrg,
 LogBonusPayrollItem,
 FreezeWorkerAccess,
 EnableVirtualCardForPayment,
-ChangeInvoiceDetails,
+UpdateInvoiceDetails,
 UpdateContractDetails,
 FetchWorkingDetailsUsersWithCards
 ]
