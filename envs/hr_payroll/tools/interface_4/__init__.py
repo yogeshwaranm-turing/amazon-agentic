@@ -14,7 +14,7 @@ from .get_financial_provider_details import GetFinancialProviderDetails
 from .reject_reimbursement_request import RejectReimbursementRequest
 from .disable_user_account import DisableUserAccount
 from .get_user_profile import GetUserProfile
-from .get_reimbursments import GetReimbusrments
+from .list_open_reimbursements import ListOpenReimbursements
 
 ALL_TOOLS_INTERFACE_4 = [
     ListWorkersByOrg,
@@ -33,5 +33,5 @@ ALL_TOOLS_INTERFACE_4 = [
     RejectReimbursementRequest,
     DisableUserAccount,
     GetUserProfile,
-    GetReimbusrments
+    ListOpenReimbursements
 ]
