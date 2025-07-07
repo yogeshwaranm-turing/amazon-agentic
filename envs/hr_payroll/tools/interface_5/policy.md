@@ -21,6 +21,41 @@ This policy is responsible for managing key operational activities such as invoi
 ---
 
 ### Conditional Logic and Behavior
+- Workers may only be added to teams within the same organization. Cross-org assignments must be blocked.
+
+- User role assignments must validate role eligibility and ensure the user is part of the relevant organization.
+
+- Invoice details may only be changed before the invoice is marked as paid or approved.
+
+- Contracts created for workers must validate that the worker belongs to the specified organization and is not terminated.
+
+- Virtual cards may only be enabled if the worker is active and the linked contract supports virtual payments.
+
+- Fetching time entries by period must respect date limits and may exclude unapproved entries unless explicitly included.
+
+- Freezing worker access should disable both card use and contract activity while maintaining audit trail.
+
+- Reimbursement total queries must include only those reimbursements with status 'paid' or 'approved'.
+
+- Bonuses logged must cite a contract, a justification, and must not exceed configured caps without override approval.
+
+- Workers should not be removed from an organization if they have active contracts or open financial tasks.
+
+- Submitting invoice payments must confirm invoice approval status and must attach a payment method.
+
+- Contract updates must not change the associated organization and should preserve historical rate tracking.
+
+- Reimbursement status can only move forward in flow (e.g., submitted → approved → paid) unless explicitly overridden.
+
+- Virtual card status changes must log the actor and justification if disabling or reactivating a card.
+
+- User document lists must be scoped to the requesting user or include admin override credentials.
+
+- Only workers with at least one active virtual card should appear in this listing unless status filters are used.
+
+- Working detail views for users with cards must include only currently linked and active user–card associations.
+
+- Invoice summaries must group by status and may optionally filter by due date or amount thresholds.
 
 - If a user tries to assign a worker to a team that belongs to a different organization, the system must block the operation and inform the user that cross-organization assignments are not permitted.
 

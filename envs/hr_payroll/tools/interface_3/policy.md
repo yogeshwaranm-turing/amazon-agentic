@@ -23,6 +23,26 @@ This policy governs operations related to invoices, contracts, reimbursements, p
 ---
 
 ### Key Behaviors and Conditions
+- Invoices must be associated with a valid worker, a linked contract, and a positive due amount. Draft invoices may be allowed but require confirmation before marking as paid.
+
+- Invoices may only be marked as paid if their current status is ‘approved’ or ‘sent’. Payment confirmation should include timestamp and method.
+
+- Invoice status queries by organization should filter based on org ID and time range where applicable.
+
+- Reimbursements must only be processed if linked to a valid worker and fall within allowable expense categories defined by the organization or default policy.
+
+- Payroll breakdown views should be restricted to confirmed or completed runs, not draft or partial computations.
+
+- Virtual card issuance requires a currently active worker and a valid financial provider. Issuance should be blocked for suspended or terminated users.
+
+- Contract termination should only occur if the worker is not already terminated, and the system must capture a clear reason or source for the action.
+
+- Updates to worker bank information must include a valid account number, IFSC code, and verified user identity. Previous bank details should be archived.
+
+- Team assignment lookups should only return active users and explicitly exclude any suspended or inactive memberships.
+
+- User working details should reflect only users currently linked to active organizations or contracts, and may exclude historical records unless explicitly requested.
+
 
 - A worker should be considered active only if their employment status is active and they have at least one ongoing contract with a status of active or signed. The system should enforce both conditions.
 
