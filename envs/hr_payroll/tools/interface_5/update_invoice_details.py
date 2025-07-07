@@ -2,7 +2,7 @@ import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
-class ChangeInvoiceDetails(Tool):
+class UpdateInvoiceDetails(Tool):
     @staticmethod
     def invoke(
         data: Dict[str, Any],
