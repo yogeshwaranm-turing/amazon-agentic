@@ -24,7 +24,8 @@ class AssignWorkerToTeam(Tool):
             raise ValueError("Team ID not found")
 
         team_member_id = str(uuid.uuid4())
-        team_members[team_member_id] = {
+
+        new_record = {
             "user_id": user_id,
             "worker_id": worker_id,
             "team_id": team_id,

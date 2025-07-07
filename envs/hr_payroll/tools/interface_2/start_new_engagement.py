@@ -3,7 +3,7 @@ import uuid
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
-class StartNewEngagementForUser(Tool):
+class StartNewEngagement(Tool):
     @staticmethod
     def invoke(
         data: Dict[str, Any],

@@ -2,7 +2,7 @@ import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
-class GetPayrollRunsFiltered(Tool):
+class ListPayrollRuns(Tool):
     @staticmethod
     def invoke(
         data: Dict[str, Any],

@@ -52,7 +52,7 @@ This policy governs contract management, payroll execution, reimbursement approv
 
 ### Best Practices to Follow
 
-- When a payment or card is blocked, the system should return a clear message that includes the reason, the new status, and any recommended next steps—for example, “please contact support for further investigation.”
+- When a payment or card is blocked, do not perform any operations on it.
 
 - Team-level time summaries should include per-day aggregates and should support summarization across multiple workers in the same response.
 
