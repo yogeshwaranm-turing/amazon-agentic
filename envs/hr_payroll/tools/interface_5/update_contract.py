@@ -1,103 +1,129 @@
-import json
-from typing import Any, Dict
-from tau_bench.envs.tool import Tool
-
-class UpdateContractDetails(Tool):
-    @staticmethod
-    def invoke(
-        data: Dict[str, Any],
-        contract_id: str = None,
-        worker_id: str = None,
-        organization_id: str = None,
-        document_id: str = None,
-        updates: Dict[str, Any] = {}
-    ) -> str:
-        contracts = data.get("contracts", {})
-        
-        def find_contract():
-            if contract_id:
-                if contract_id not in contracts:
-                    raise ValueError("Contract not found with given contract_id")
-                return contract_id
-            # Try worker_id + org_id
-            matches = [
-                cid for cid, c in contracts.items()
-                if c.get("worker_id") == worker_id and c.get("organization_id") == organization_id
-            ] if worker_id and organization_id else []
-            
-            # If not found, try worker_id + document_id
-            if not matches and worker_id and document_id:
-                matches = [
-                    cid for cid, c in contracts.items()
-                    if c.get("worker_id") == worker_id and c.get("document_id") == document_id
-                ]
-
-            if len(matches) == 1:
-                return matches[0]
-            elif not matches:
-                raise ValueError("No matching contract found")
-            else:
-                raise ValueError("Multiple matching contracts found")
-
-        matched_id = find_contract()
-
-        valid_fields = {
-            "rate", "rate_type", "start_date", "end_date",
-            "status", "currency", "document_id"
-        }
-
-        contract = contracts[matched_id]
-        for field, value in updates.items():
-            if field in valid_fields:
-                contract[field] = value
-
-        return json.dumps({"contract_id": matched_id, **contract})
-
-    @staticmethod
-    def get_info() -> Dict[str, Any]:
-        return {
-            "type": "function",
-            "function": {
+{
+    "env": "hr_payroll",
+    "model_provider": "openai",
+    "model": "o4-mini",
+    "num_trials": 3,
+    "temperature": 1,
+    "interface_num": 5,
+    "task": {
+        "user_id": "249f983d-b4f5-49b5-9d5f-fda569d07966",
+        "instruction": "You are Andrew Jones (HR manager, user id: 249f983d-b4f5-49b5-9d5f-fda569d07966, email: james83@yahoo.com). You need to handle a contract renewal and payment processing for worker 31b847c4-c38d-4887-8a8e-185cec6d6aab. First, update this worker's contract (id: 5dfc38ca-01a7-4864-9e30-a49e92ca6402) to extend it for another 6 months with a 69.0 rate. Then process the overdue invoice 5c1cc29d-42b0-43fa-ac0d-cfc7a1f474cd using payment method 5ee0513d-3284-4bd2-a211-4d6e4b5feb7c. After that, assign this worker to the 'Mesh Robust Solutions' team have id of 472fae2e-d2ea-4777-ac02-711ecaac1a43 and log a performance bonus of 750 USD. Finally, retrieve the invoice summary for the organization and list all workers with virtual cards in the same organization for verification.",
+        "actions": [
+            {
                 "name": "update_contract_details",
-                "description": (
-                    "Updates a contract using contract_id or using a combination of "
-                    "worker_id + organization_id or worker_id + document_id. Supports updating "
-                    "rate, rate_type, start_date, end_date, status, currency, and document_id."
-                ),
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "contract_id": {
-                            "type": "string",
-                            "description": "Unique contract ID (primary match method)"
-                        },
-                        "worker_id": {
-                            "type": "string",
-                            "description": "Worker ID (used in fallback primary key combinations)"
-                        },
-                        "organization_id": {
-                            "type": "string",
-                            "description": "Organization ID (used with worker_id to identify contract)"
-                        },
-                        "document_id": {
-                            "type": "string",
-                            "description": "Document ID (used with worker_id to identify contract)"
-                        },
-                        "updates": {
-                            "type": "object",
-                            "description": "Fields to update in the contract",
-                            "properties": {
-                                "rate": {"type": "number"},
-                                "rate_type": {"type": "string"},
-                                "start_date": {"type": "string"},
-                                "end_date": {"type": "string"},
-                                "status": {"type": "string"},
-                                "currency": {"type": "string"},
-                                "document_id": {"type": "string"}
-                            }
-                        }
-                    },
-                    "required": ["updates"]
+                "arguments": {
+                    "contract_id": "5dfc38ca-01a7-4864-9e30-a49e92ca6402",
+                    "updates": {
+                        "end_date": "2026-12-30",
+                        "rate": 69.0
+                    }
+                }
+            },
+            {
+                "name": "submit_invoice_payment",
+                "arguments": {
+                    "invoice_id": "5c1cc29d-42b0-43fa-ac0d-cfc7a1f474cd",
+                    "payment_id": "5ee0513d-3284-4bd2-a211-4d6e4b5feb7c"
+                }
+            },
+            {
+                "name": "add_worker_to_team",
+                "arguments": {
+                    "worker_id": "31b847c4-c38d-4887-8a8e-185cec6d6aab",
+                    "team_id": "472fae2e-d2ea-4777-ac02-711ecaac1a43"
+                }
+            },
+            {
+                "name": "log_bonus_payroll_item",
+                "arguments": {
+                    "worker_id": "31b847c4-c38d-4887-8a8e-185cec6d6aab",
+                    "amount": 750
+                }
+            },
+            {
+                "name": "retrieve_invoice_summary",
+                "arguments": {
+                     "organization_id": "d90e1ff2-84ce-4ba9-8a71-bdb6918dfb98"
+                }
+            },
+            {
+                "name": "list_workers_with_virtual_cards",
+                "arguments": {
+                    "organization_id": "d90e1ff2-84ce-4ba9-8a71-bdb6918dfb98"
                 }
             }
-        }
+        ],
+        "edges": [
+            {
+                "from": "instruction",
+                "to": "update_contract_details",
+                "connection": {
+                    "output": "contract_id, end_date, rate",
+                    "input": "contract_id, updates.end_date, updates.rate"
+                }
+            },
+            {
+                "from": "instruction",
+                "to": "submit_invoice_payment",
+                "connection": {
+                    "output": "invoice_id, payment_id",
+                    "input": "invoice_id, payment_id"
+                }
+            },
+            {
+                "from": "instruction",
+                "to": "add_worker_to_team",
+                "connection": {
+                    "output": "team_id",
+                    "input": "team_id"
+                }
+            },
+            {
+                "from": "update_contract_details",
+                "to": "log_bonus_payroll_item",
+                "connection": {
+                    "output": "worker_id",
+                    "input": "worker_id"
+                }
+            },
+            {
+                "from": "instruction",
+                "to": "log_bonus_payroll_item",
+                "connection": {
+                    "output": "amount",
+                    "input": "amount"
+                }
+            },
+            {
+                "from": "log_bonus_payroll_item",
+                "to": "add_worker_to_team",
+                "connection": {
+                    "output": "worker_id",
+                    "input": "worker_id"
+                }
+            },
+            {
+                "from": "submit_invoice_payment",
+                "to": "retrieve_invoice_summary",
+                "connection": {
+                    "output": "organization_id",
+                    "input": "organization_id"
+                }
+            },
+            {
+                "from": "submit_invoice_payment",
+                "to": "list_workers_with_virtual_cards",
+                "connection": {
+                    "output": "organization_id",
+                    "input": "organization_id"
+                }
+            }
+        ],
+        "outputs": [
+            "31b847c4-c38d-4887-8a8e-185cec6d6aab",
+            "472fae2e-d2ea-4777-ac02-711ecaac1a43",
+            "750"
+        ],
+        "num_edges": 8
+    }
+} 
