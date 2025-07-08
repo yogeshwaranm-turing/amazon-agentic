@@ -13,9 +13,9 @@ from .get_contracts import GetContracts
 from .get_documents import GetDocuments
 from .get_payments import GetPayments
 from .upload_document import UploadDocument
-from .start_payment import StartPayment
-from .start_new_engagement_for_user import StartNewEngagementForUser
-from .find_user_working_details import FindUserWorkingDetails
+from .create_payment import CreatePayment
+from .start_new_engagement import StartNewEngagement
+from .find_user import FindUser
 
 
 ALL_TOOLS_INTERFACE_2 = [
@@ -34,7 +34,7 @@ ALL_TOOLS_INTERFACE_2 = [
     GetDocuments,
     UploadDocument,
     GetPayments,
-    StartPayment,
-    StartNewEngagementForUser,
-    FindUserWorkingDetails
+    CreatePayment,
+    StartNewEngagement,
+    FindUser
 ]
