@@ -12,8 +12,8 @@ from .update_virtual_card_limit import UpdateVirtualCardLimit
 from .deactivate_user import DeactivateUser
 from .get_worker_profile import GetWorkerProfile
 from .create_worker import CreateWorker
-from .list_org_departments_with_filters import ListOrganizationDepartmentsWithFilters
-from .list_teams_with_filters import ListTeamsWithFilter
+from .list_organization_departments import ListOrganizationDepartments
+from .list_organization_teams import ListOrganizationTeams
 from .assign_worker_to_team import AssignWorkerToTeam
 from .remove_team_member import RemoveTeamMember
 from .count_team_members import CountTeamMembers
@@ -33,8 +33,8 @@ ALL_TOOLS_INTERFACE_1 = [
     DeactivateUser,
     GetWorkerProfile,
     CreateWorker,
-    ListOrganizationDepartmentsWithFilters,
-    ListTeamsWithFilter,
+    ListOrganizationDepartments,
+    ListOrganizationTeams,
     AssignWorkerToTeam,
     RemoveTeamMember,
     CountTeamMembers
