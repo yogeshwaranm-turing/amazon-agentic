@@ -23,9 +23,9 @@ This policy governs operations related to invoices, contracts, reimbursements, p
 ---
 
 ### Key Behaviors and Conditions
-- Invoices must be associated with a valid worker, a linked contract, and a positive due amount. Draft invoices may be allowed but require confirmation before marking as paid.
+- Invoices must be associated with a valid worker, a linked contract, and a positive due amount. Issued invoices may be allowed but require confirmation before marking as paid.
 
-- Invoices may only be marked as paid if their current status is ‘approved’ or ‘sent’. Payment confirmation should include timestamp and method.
+- Invoices may only be marked as paid if their current status is 'issued' or ‘unpaid’. Payment confirmation should include timestamp and method.
 
 - Invoice status queries by organization should filter based on org ID and time range where applicable.
 
@@ -74,7 +74,7 @@ This policy governs operations related to invoices, contracts, reimbursements, p
 
 - If a virtual card is already active for a user, the system should not allow another card to be issued for the same user.
 
-- Invoices that are marked as paid or cancelled should not be modified again. The system must block any further edits or attempts to re-pay these invoices.
+- Invoices that are marked as paid should not be modified again. The system must block any further edits or attempts to re-pay these invoices.
 
 - Contracts that are ended or terminated should not be reactivated or extended under any condition.
 
