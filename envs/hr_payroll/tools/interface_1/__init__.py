@@ -10,8 +10,13 @@ from .allocate_time_entry import AllocateTimeEntry
 from .submit_reimbursement_receipt import SubmitReimbursementReceipt
 from .update_virtual_card_limit import UpdateVirtualCardLimit
 from .deactivate_user import DeactivateUser
-from .get_worker_profile_by_id import GetWorkerProfileById
-
+from .get_worker_profile import GetWorkerProfile
+from .create_worker import CreateWorker
+from .list_organization_departments import ListOrganizationDepartments
+from .list_organization_teams import ListOrganizationTeams
+from .assign_worker_to_team import AssignWorkerToTeam
+from .remove_team_member import RemoveTeamMember
+from .count_team_members import CountTeamMembers
 
 ALL_TOOLS_INTERFACE_1 = [
     ListOrganizations,
@@ -26,5 +31,11 @@ ALL_TOOLS_INTERFACE_1 = [
     SubmitReimbursementReceipt,
     UpdateVirtualCardLimit,
     DeactivateUser,
-    GetWorkerProfileById
+    GetWorkerProfile,
+    CreateWorker,
+    ListOrganizationDepartments,
+    ListOrganizationTeams,
+    AssignWorkerToTeam,
+    RemoveTeamMember,
+    CountTeamMembers
 ]
