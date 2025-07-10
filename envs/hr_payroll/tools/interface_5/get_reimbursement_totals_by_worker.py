@@ -8,17 +8,32 @@ class GetReimbursementTotalsByWorker(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], worker_id: str) -> str:
         reimbursements = data.get("reimbursements", {})
-        result = defaultdict(float)
+        known_statuses = ["approved", "paid", "submitted", "rejected"]
 
-        for r in reimbursements.values():
+        # Initialize result with all known statuses
+        result = {
+            status: {
+                "amount": 0.0,
+                "reimbursement_ids": []
+            }
+            for status in known_statuses
+        }
+
+        for reimbursement_id, r in reimbursements.items():
             if r.get("worker_id") == worker_id:
                 status = r.get("status", "submitted")
-                result[status] += r.get("amount", 0)
+                if status not in result:
+                    # Skip unknown statuses (or you could add them dynamically if desired)
+                    continue
+                amount = r.get("amount", 0.0)
+                result[status]["amount"] += float(amount)
+                result[status]["reimbursement_ids"].append(reimbursement_id)
 
         return json.dumps({
             "worker_id": worker_id,
-            "totals": dict(result)
+            "totals": result
         })
+
 
     @staticmethod
     def get_info() -> Dict[str, Any]:
