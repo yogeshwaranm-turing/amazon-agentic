@@ -39,8 +39,6 @@ This policy is responsible for managing key operational activities such as invoi
 
 - Bonuses logged must cite a contract, a justification, and must not exceed configured caps without override approval.
 
-- Workers should not be removed from an organization if they have active contracts or open financial tasks.
-
 - Submitting invoice payments must confirm invoice approval status and must attach a payment method.
 
 - Contract updates must not change the associated organization and should preserve historical rate tracking.
