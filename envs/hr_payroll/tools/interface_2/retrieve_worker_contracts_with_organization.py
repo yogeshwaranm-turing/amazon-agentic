@@ -1,4 +1,3 @@
-
 import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
@@ -8,7 +7,8 @@ class RetrieveWorkerContractsWithOrganization(Tool):
     def invoke(data: Dict[str, Any], worker_id: str, org_id: str) -> str:
         contracts = data.get("contracts", {})
         result = [
-            c for c in contracts.values()
+            {**c, "contract_id": cid}
+            for cid, c in contracts.items()
             if c.get("worker_id") == worker_id and c.get("organization_id") == org_id
         ]
         return json.dumps(result)
