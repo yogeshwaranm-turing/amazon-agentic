@@ -15,7 +15,7 @@ from .freeze_worker_access import FreezeWorkerAccess
 from .enable_virtual_card_for_payment import EnableVirtualCardForPayment
 from .update_invoice_details import UpdateInvoiceDetails
 from .update_contract_details import UpdateContractDetails
-from .fetch_working_details_users_with_cards import FetchWorkingDetailsUsersWithCards
+from .list_users_working_details_with_cards import FetchWorkingDetailsUsersWithCards
 from .list_invoices import ListInvoices
 
 ALL_TOOLS_INTERFACE_5 = [
