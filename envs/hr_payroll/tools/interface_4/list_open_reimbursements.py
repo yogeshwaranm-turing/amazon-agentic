@@ -47,7 +47,11 @@ class GetReimbusrments(Tool):
                 return False
             return True
 
-        results = [r for r in reimbursements.values() if matches(r)]
+        results = [
+            {**r, "reimbursement_id": rid}
+            for rid, r in reimbursements.items()
+            if matches(r)
+        ]
         return json.dumps(results)
 
     @staticmethod
