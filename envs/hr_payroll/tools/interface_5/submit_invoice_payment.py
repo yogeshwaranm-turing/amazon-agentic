@@ -1,4 +1,5 @@
 import json
+import uuid
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
@@ -6,8 +7,8 @@ class SubmitInvoicePayment(Tool):
     @staticmethod
     def invoke(
         data: Dict[str, Any],
-        invoice_id: str,
-        payment_id: str,
+        invoice_id: str = None,
+        payment_id: str = None,
         worker_id: str = None,
         amount: float = None,
         issue_date: str = None,
@@ -16,21 +17,17 @@ class SubmitInvoicePayment(Tool):
         currency: str = None,
         organization_id: str = None
     ) -> str:
-        invoices = data.get("invoices", {})
-        payments = data.get("payments", {})
+        invoices = data.setdefault("invoices", {})
+        payments = data.setdefault("payments", {})
 
-        if invoice_id not in invoices:
-            raise ValueError("Invoice not found")
-        if payment_id not in payments:
-            raise ValueError("Payment not found")
+        # Generate invoice ID if not provided
+        if invoice_id is None:
+            invoice_id = str(uuid.uuid4())
 
-        invoice = invoices[invoice_id]
-        payment = payments[payment_id]
+        # Use existing invoice or initialize new one
+        invoice = invoices.get(invoice_id, {})
 
-        if payment.get("invoice_id") != invoice_id:
-            raise ValueError("Payment does not match invoice")
-
-        # Update invoice fields if provided
+        # Set or update invoice fields
         if worker_id is not None:
             invoice["worker_id"] = worker_id
         if amount is not None:
@@ -42,11 +39,22 @@ class SubmitInvoicePayment(Tool):
         if status is not None:
             invoice["status"] = status
         else:
-            invoice["status"] = "paid"  # fallback if no status explicitly provided
+            invoice["status"] = "paid"
         if currency is not None:
             invoice["currency"] = currency
         if organization_id is not None:
             invoice["organization_id"] = organization_id
+
+        # Save or update invoice
+        invoices[invoice_id] = invoice
+
+        # Link and complete payment if provided
+        if payment_id:
+            if payment_id not in payments:
+                raise ValueError("Payment not found")
+            payment = payments[payment_id]
+            payment["invoice_id"] = invoice_id
+            payment["status"] = "completed"
 
         return json.dumps({
             "invoice_id": invoice_id,
@@ -60,19 +68,19 @@ class SubmitInvoicePayment(Tool):
             "function": {
                 "name": "submit_invoice_payment",
                 "description": (
-                    "Marks an invoice as paid, and allows setting invoice fields "
-                    "like worker_id, amount, dates, status, currency, and organization_id."
+                    "Creates or updates an invoice. If no invoice ID is provided, a new one is generated. "
+                    "If a payment ID is given, it links the payment to the invoice and marks it as completed."
                 ),
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "invoice_id": {
                             "type": "string",
-                            "description": "The invoice to update"
+                            "description": "The ID of the invoice to update (if omitted, a new one is created)"
                         },
                         "payment_id": {
                             "type": "string",
-                            "description": "Payment ID associated with the invoice"
+                            "description": "Optional payment ID to link and mark as completed"
                         },
                         "worker_id": {
                             "type": "string",
@@ -103,7 +111,7 @@ class SubmitInvoicePayment(Tool):
                             "description": "Organization ID associated with the invoice"
                         }
                     },
-                    "required": ["invoice_id"]
+                    "required": []
                 }
             }
         }
