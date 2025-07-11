@@ -36,8 +36,6 @@ For any action involving monetary amounts—such as updating card limits or reim
 
 - Error messages should be user-friendly and abstracted. For instance, instead of returning a technical error, the system should say, “This worker is no longer eligible for assignment.”
 
-- When a new entity is created—such as a user profile or time entry—the system should return the complete object along with its newly generated ID.
-
 - The system must check roles before performing sensitive actions. Only users with roles like HR manager or admin should be allowed to deactivate users or assign workers.
 
 - The system should avoid over-fetching data. Summaries, such as those for payroll totals or time aggregates, should return only the most relevant fields.
