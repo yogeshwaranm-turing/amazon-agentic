@@ -14,6 +14,8 @@ class GetUserProfile(Tool):
             "user_id": user_id,
             "role": user.get("role"),
             "locale": user.get("locale"),
+            "first_name": user.get("first_name"),
+            "last_name": user.get("last_name"),
             "email": user.get("email"),
             "timezone": user.get("timezone"),
             "status": user.get("status")
@@ -25,7 +27,7 @@ class GetUserProfile(Tool):
             "type": "function",
             "function": {
                 "name": "get_user_profile",
-                "description": "Retrieves user metadata (role, locale, contact)",
+                "description": "Retrieves user metadata (first name, last name, role, locale, email, timezone, status)",
                 "parameters": {
                     "type": "object",
                     "properties": {
