@@ -11,7 +11,7 @@ class ListOrganizationTeams(Tool):
         name: str = None,
         description: str = None
     ) -> str:
-        teams = data.get("org_teams", {})
+        teams = data.get("teams", {})
 
         def matches(tid, team):
             if team_id and tid != team_id:
