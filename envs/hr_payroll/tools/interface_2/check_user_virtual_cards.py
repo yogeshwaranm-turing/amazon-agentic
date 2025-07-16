@@ -13,7 +13,8 @@ class CheckUserVirtualCards(Tool):
         cards = data.get("virtual_cards", {})
 
         result = [
-            card for card in cards.values()
+            {**card, "card_id": cid}
+            for cid, card in cards.items()
             if card.get("user_id") == user_id
             and (limit is None or card.get("limit") == round(limit, 2))
             and (provider_id is None or card.get("provider_id") == provider_id)

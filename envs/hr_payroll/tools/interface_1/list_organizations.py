@@ -54,9 +54,11 @@ class ListOrganizations(Tool):
 
         # Apply filters
         matched_orgs = [
-            org for oid, org in organizations.items()
+            {**org, "organization_id": oid}
+            for oid, org in organizations.items()
             if (org_ids is None or oid in org_ids) and match(org)
         ]
+
 
         return json.dumps(matched_orgs)
 

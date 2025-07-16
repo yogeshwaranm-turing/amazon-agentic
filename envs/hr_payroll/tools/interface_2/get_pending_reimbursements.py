@@ -41,7 +41,11 @@ class GetPendingReimbursements(Tool):
                 return False
             return True
 
-        result = [r for r in reimbursements.values() if matches(r)]
+        result = [
+            {**r, "reimbursement_id": rid}
+            for rid, r in reimbursements.items()
+            if matches(r)
+        ]
         return json.dumps(result)
 
     @staticmethod
