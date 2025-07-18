@@ -46,7 +46,10 @@ class CreateComment(Tool):
             # Calculate thread level based on parent
             parent = comments[str(parent_id)]
             thread_level = parent.get("thread_level", 0) + 1
-        
+
+        created_at = updated_at = "2025-07-01T00:00:00Z"
+
+
         new_comment = {
             "id": new_id,
             "page_id": page_id,
@@ -55,8 +58,8 @@ class CreateComment(Tool):
             "content_format": content_format,
             "status": "active",
             "thread_level": thread_level,
-            "created_at": "NOW()",
-            "updated_at": "NOW()",
+            "created_at": created_at,
+            "updated_at": updated_at,
             "created_by": created_by
         }
         

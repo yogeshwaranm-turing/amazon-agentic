@@ -25,7 +25,9 @@ class UpdatePage(Tool):
             page[key] = value
         
         # Ensure the page has an updated_at field
-        page["updated_at"] = None  # or use current timestamp if needed
+        updated_at = "2025-07-01T00:00:00Z"
+
+        page["updated_at"] = updated_at
         # Return the updated page as a JSON string
         pages[page_id] = page
         # data["pages"] = pages  # Update the original data structure

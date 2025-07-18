@@ -34,6 +34,10 @@ class CreateNotification(Tool):
         notifications = data.setdefault("notifications", {})
         new_id = generate_id(notifications)
         
+        
+        created_at = "2025-07-01T00:00:00Z"
+
+        
         new_notification = {
             "id": new_id,
             "user_id": user_id,
@@ -46,7 +50,7 @@ class CreateNotification(Tool):
             "read_at": None,
             "delivery_method": "web",
             "email_sent": False,
-            "created_at": "NOW()",
+            "created_at": created_at,
             "created_by": created_by
         }
         

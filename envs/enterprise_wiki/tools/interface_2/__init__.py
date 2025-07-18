@@ -1,26 +1,47 @@
-from .get_pending_reimbursements import GetPendingReimbursements
-from .fetch_time_summary_by_team import FetchTimeSummaryByTeam
-from .retrieve_worker_contracts_with_organization import RetrieveWorkerContractsWithOrganization
-from .get_payroll_run_details import GetPayrollRunDetails
-from .check_user_virtual_cards import CheckUserVirtualCards
-from .block_suspicious_payment import BlockSuspiciousPayment
-from .extend_contract_period import ExtendContractPeriod
-from .approve_overtime_entry import ApproveOvertimeEntry
-from .create_new_contract import CreateNewContract
-from .update_document_status import UpdateDocumentStatus
-from .block_virtual_card import BlockVirtualCard
+from .get_page_comments import GetPageComments
+from .create_comment import CreateComment
+from .update_comment_content import UpdateCommentContent
+from .update_comment_status import UpdateCommentStatus
 
+from .create_notification import CreateNotification
+from .update_notification_delivery_method import UpdateNotificationDeliveryMethod
+from .get_user_notifications import GetUserNotifications
+
+from .create_watcher import CreateWatcher
+from .delete_watcher import DeleteWatcher
+from .update_watcher_settings import UpdateWatcherSettings
+
+from .get_users_by_filters import GetUsersByFilters
+from .get_user_by_email import GetUserByEmail
+from .get_user_groups import GetUserGroups
+from .update_user_status import UpdateUserStatus
+
+from .get_spaces_by_filters import GetSpacesByFilters
+from .get_space_pages import GetSpacePages
+
+from .get_comment_info import GetCommentInfo
 
 ALL_TOOLS_INTERFACE_2 = [
-    GetPendingReimbursements,
-    FetchTimeSummaryByTeam,
-    RetrieveWorkerContractsWithOrganization,
-    GetPayrollRunDetails,
-    CheckUserVirtualCards,
-    BlockSuspiciousPayment,
-    ExtendContractPeriod,
-    ApproveOvertimeEntry,
-    CreateNewContract,
-    UpdateDocumentStatus,
-    BlockVirtualCard,
+    GetPageComments,
+    CreateComment,
+    UpdateCommentContent,
+    UpdateCommentStatus,
+
+    CreateNotification,
+    UpdateNotificationDeliveryMethod,
+    GetUserNotifications,
+
+    CreateWatcher,
+    DeleteWatcher,
+    UpdateWatcherSettings,
+
+    GetUsersByFilters,
+    GetUserByEmail,
+    GetUserGroups,
+    UpdateUserStatus,
+
+    GetSpacesByFilters,
+    GetSpacePages,
+
+    GetCommentInfo
 ]

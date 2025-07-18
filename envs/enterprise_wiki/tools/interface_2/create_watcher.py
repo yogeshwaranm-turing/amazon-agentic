@@ -30,6 +30,10 @@ class CreateWatcher(Tool):
         watchers = data.setdefault("watchers", {})
         new_id = generate_id(watchers)
         
+        
+        created_at = "2025-07-01T00:00:00Z"
+
+        
         new_watcher = {
             "id": new_id,
             "user_id": user_id,
@@ -37,7 +41,7 @@ class CreateWatcher(Tool):
             "target_id": target_id,
             "watch_type": watch_type,
             "notifications_enabled": notifications_enabled,
-            "created_at": "NOW()"
+            "created_at": created_at
         }
         
         watchers[str(new_id)] = new_watcher
