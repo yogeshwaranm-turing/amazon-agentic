@@ -8,7 +8,7 @@ class GetUserSpacePermissions(Tool):
     def invoke(data: Dict[str, Any], user_id: int, space_id: int) -> str:
         space_permissions = data.get("space_permissions", [])
         return json.dumps([
-            perm for perm in space_permissions
+            perm for perm in space_permissions.values()
             if str(perm.get("space_id")) == str(space_id) and
                perm.get("subject_type") == "user" and
                str(perm.get("subject_id")) == str(user_id)

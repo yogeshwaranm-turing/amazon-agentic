@@ -6,17 +6,31 @@ from tau_bench.envs.tool import Tool
 class RemovePermissionFromUser(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], space_id: int, user_id: int, permission_id: int) -> str:
-        space_permissions = data.get("space_permissions", [])
+        space_permissions = data.get("space_permissions", {})
+        
+        to_remove_key = None
+        for key, perm in space_permissions.items():
+            if (
+                str(perm["space_id"]) == str(space_id) and
+                perm["subject_type"] == "user" and
+                str(perm["subject_id"]) == str(user_id) and
+                str(perm["permission_id"]) == str(permission_id)
+            ):
+                to_remove_key = key
+                break
+
+        if to_remove_key is None:
+            return json.dumps({
+                "status": "not_found",
+                "space_id": space_id,
+                "user_id": user_id,
+                "permission_id": permission_id
+            })
+
         before = len(space_permissions)
-        space_permissions[:] = [
-            p for p in space_permissions if not (
-                str(p["space_id"]) == str(space_id) and
-                p["subject_type"] == "user" and
-                str(p["subject_id"]) == str(user_id) and
-                str(p["permission_id"]) == str(permission_id)
-            )
-        ]
+        del space_permissions[to_remove_key]
         after = len(space_permissions)
+
         return json.dumps({
             "status": "removed" if before != after else "not_found",
             "space_id": space_id,

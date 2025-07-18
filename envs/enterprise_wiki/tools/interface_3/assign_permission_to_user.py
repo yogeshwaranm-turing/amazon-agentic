@@ -14,10 +14,10 @@ class AssignPermissionToUser(Tool):
 
         # Check for duplicate assignment manually
         already_assigned = any(
-            p.get("space_id") == space_id and
+            str(p.get("space_id")) == str(space_id) and
             p.get("subject_type") == "user" and
-            p.get("subject_id") == user_id and
-            p.get("permission_id") == permission_id
+            str(p.get("subject_id")) == str(user_id) and
+            str(p.get("permission_id")) == str(permission_id)
             for p in space_permissions.values()
         )
 

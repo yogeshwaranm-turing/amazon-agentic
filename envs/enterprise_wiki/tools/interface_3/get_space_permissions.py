@@ -6,8 +6,8 @@ from tau_bench.envs.tool import Tool
 class GetSpacePermissions(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], space_id: int) -> str:
-        space_permissions = data.get("space_permissions", [])
-        return json.dumps([perm for perm in space_permissions if str(perm.get("space_id")) == str(space_id)])
+        space_permissions = data.get("space_permissions", {})
+        return json.dumps([perm for perm in space_permissions.values() if str(perm.get("space_id")) == str(space_id)])
 
     @staticmethod
     def get_info() -> Dict[str, Any]:
