@@ -10,6 +10,7 @@ class GetCommentInfo(Tool):
         comment = comments.get(str(comment_id))
         if not comment:
             raise ValueError("Comment not found")
+        
         return json.dumps(comment)
 
     @staticmethod

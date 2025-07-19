@@ -20,6 +20,10 @@ from .get_spaces_by_filters import GetSpacesByFilters
 from .get_space_pages import GetSpacePages
 
 from .get_comment_info import GetCommentInfo
+from .create_attachment import CreateAttachment
+from .update_notification_read_status import UpdateNotificationReadStatus
+
+
 
 ALL_TOOLS_INTERFACE_2 = [
     GetPageComments,
@@ -43,5 +47,8 @@ ALL_TOOLS_INTERFACE_2 = [
     GetSpacesByFilters,
     GetSpacePages,
 
-    GetCommentInfo
+    GetCommentInfo,
+    CreateAttachment,
+    UpdateNotificationReadStatus,
+
 ]

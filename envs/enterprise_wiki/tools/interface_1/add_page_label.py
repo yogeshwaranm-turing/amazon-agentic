@@ -37,6 +37,7 @@ class AddPageLabel(Tool):
             "page_id": page_id,
             "label_id": label_id,
             "added_by": added_by
+            "added_at": "2025-07-01T00:00:00Z" 
         }
         
         page_labels[str(page_label_id)] = new_page_label
