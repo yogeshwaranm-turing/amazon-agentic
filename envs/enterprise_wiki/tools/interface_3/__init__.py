@@ -26,6 +26,9 @@ from .get_spaces_by_filters import GetSpacesByFilters
 from .update_permission import UpdatePermission
 from .update_user import UpdateUser
 
+from .add_user_to_group import AddUserToGroup
+from .remove_user_from_group import RemoveUserFromGroup
+
 ALL_TOOLS_INTERFACE_ADMIN = [
     GetGroupInfo,
     GetUserByEmail,
@@ -54,4 +57,7 @@ ALL_TOOLS_INTERFACE_ADMIN = [
 
     UpdatePermission,
     UpdateUser,
+    
+    AddUserToGroup,
+    RemoveUserFromGroup
 ]

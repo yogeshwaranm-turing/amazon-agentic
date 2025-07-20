@@ -7,7 +7,7 @@ class GetPageComments(Tool):
     def invoke(data: Dict[str, Any], page_id: int) -> str:
         comments = data.get("comments", {})
         print(type(comments))
-        return json.dumps([c for c in comments.values() if c["page_id"] == int(page_id)])
+        return json.dumps([c["id"] for c in comments.values() if c["page_id"] == int(page_id)])
 
     @staticmethod
     def get_info() -> Dict[str, Any]:
@@ -15,7 +15,7 @@ class GetPageComments(Tool):
             "type": "function",
             "function": {
                 "name": "get_page_comments",
-                "description": "Get all top-level comments for a page",
+                "description": "Get all comment IDs for a page",
                 "parameters": {
                     "type": "object",
                     "properties": {

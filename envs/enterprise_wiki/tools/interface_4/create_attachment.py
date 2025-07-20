@@ -7,7 +7,8 @@ class CreateAttachment(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], filename: str, original_filename: str, 
                mime_type: str, file_size: int, storage_path: str, uploaded_by: str,
-               page_id: Optional[str] = None, comment_id: Optional[str] = None) -> str:
+               storage_type: str = None, version: str = None, page_id: Optional[str] = None, 
+               comment_id: Optional[str] = None) -> str:
         attachments = data.get("attachments", {})
         users = data.get("users", {})
         
@@ -40,7 +41,10 @@ class CreateAttachment(Tool):
             "mime_type": mime_type,
             "file_size": file_size,
             "storage_path": storage_path,
-            "uploaded_by": uploaded_by
+            "storage_type": storage_type,
+            "version": version,
+            "uploaded_by": uploaded_by,
+            "created_at": "2025-07-01T00:00:00Z",
         }
         
         attachments[str(attachment_id)] = new_attachment
@@ -84,6 +88,14 @@ class CreateAttachment(Tool):
                         "storage_path": {
                             "type": "string",
                             "description": "The storage path of the file"
+                        },
+                        "storage_type": {
+                            "type": "string",
+                            "description": "The type of storage (optional)"
+                        },
+                        "version": {
+                            "type": "string",
+                            "description": "The version of the attachment"
                         },
                         "uploaded_by": {
                             "type": "string",
