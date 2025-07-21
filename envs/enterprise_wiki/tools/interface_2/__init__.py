@@ -14,6 +14,7 @@ from .update_watcher_settings import UpdateWatcherSettings
 from .get_users_by_filters import GetUsersByFilters
 from .get_user_by_email import GetUserByEmail
 from .get_user_groups import GetUserGroups
+from .get_user_watchers import GetUserWatchers
 from .update_user_status import UpdateUserStatus
 
 from .get_spaces_by_filters import GetSpacesByFilters
@@ -37,6 +38,7 @@ ALL_TOOLS_INTERFACE_2 = [
 
     CreateWatcher,
     DeleteWatcher,
+    GetUserWatchers,
     UpdateWatcherSettings,
 
     GetUsersByFilters,
