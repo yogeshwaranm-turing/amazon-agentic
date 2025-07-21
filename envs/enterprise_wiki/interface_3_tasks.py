@@ -18,7 +18,7 @@ INTERFACE_3_TEST = [
                 "first_name": "Alice",
                 "last_name": "Johnson",
                 "display_name": "Alice Johnson"
-            })
+            }),
             Action(name="get_spaces_by_filters", kwargs={
                 "name": "SilverData Space"
             }),

@@ -1,6 +1,6 @@
 from tau_bench.types import Action, Task
 
-WIKI_INTERFACE_TEST = [
+INTERFACE_2_TEST = [
     Task(
         annotator="0",
         user_id="emma_community_mgr_4521",

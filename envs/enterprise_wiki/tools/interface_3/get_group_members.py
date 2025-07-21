@@ -7,16 +7,7 @@ class GetGroupMembers(Tool):
     def invoke(data: Dict[str, Any], group_id: int) -> str:
         user_groups = data.get("user_groups", [])
         users = data.get("users", {})
-        
-        # Check if user_groups is a dict or list and handle accordingly
-        if isinstance(user_groups, dict):
-            user_group_items = user_groups.values()
-        elif isinstance(user_groups, list):
-            user_group_items = user_groups
-        else:
-            raise ValueError("user_groups must be either a list or dictionary")
-        
-        member_ids = [ug["user_id"] for ug in user_group_items if str(ug["group_id"]) == str(group_id)]
+        member_ids = [ug["user_id"] for ug in user_groups.values() if str(ug["group_id"]) == str(group_id)]
         return json.dumps([users[str(uid)] for uid in member_ids if str(uid) in users])
 
     @staticmethod

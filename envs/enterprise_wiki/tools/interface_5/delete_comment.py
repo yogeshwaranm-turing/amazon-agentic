@@ -4,7 +4,6 @@ import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
-
 class DeleteComment(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], comment_id: int) -> str:
