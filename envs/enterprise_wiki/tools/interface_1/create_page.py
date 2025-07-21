@@ -16,9 +16,6 @@ class CreatePage(Tool):
         if created_by not in users:
             raise ValueError("User not found")
         
-        if parent_id and parent_id not in pages:
-            raise ValueError("Parent page not found")
-        
         def generate_id(table: Dict[str, Any]) -> int:
             if not table:
                 return 1
@@ -32,7 +29,7 @@ class CreatePage(Tool):
             "content": content,
             "content_format": content_format,
             "created_by": created_by,
-            "parent_id": int(parent_id),
+            "parent_id": int(parent_id) if parent_id is not None else None,
             "template_id": template_id
         }
         
