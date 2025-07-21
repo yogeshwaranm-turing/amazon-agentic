@@ -2,7 +2,6 @@ import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
-
 class CreateNotification(Tool):
     @staticmethod
     def invoke(

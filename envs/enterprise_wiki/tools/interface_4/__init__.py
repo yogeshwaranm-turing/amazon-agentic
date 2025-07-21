@@ -19,7 +19,7 @@ from .get_user_spaces import GetUserSpaces
 from .increment_label_usage_count import IncrementLabelUsageCount
 from .update_page import UpdatePage
 
-ALL_TOOLS_INTERFACE_SPACE_OWNER = [
+ALL_TOOLS_INTERFACE_4 = [
     AddPageLabel,
     CreateAttachment,
     CreateComment,

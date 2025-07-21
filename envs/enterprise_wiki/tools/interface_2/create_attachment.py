@@ -1,7 +1,6 @@
 import json
 from typing import Any, Dict, Optional
 from tau_bench.envs.tool import Tool
-import uuid
 
 class CreateAttachment(Tool):
     @staticmethod

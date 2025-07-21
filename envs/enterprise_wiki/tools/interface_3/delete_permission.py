@@ -6,12 +6,7 @@ class DeletePermission(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], permission_id: int) -> str:
         permissions = data.get("permissions", {})
-        
-        # Try both string and integer keys to handle different data formats
         removed = permissions.pop(str(permission_id), None)
-        if not removed:
-            removed = permissions.pop(permission_id, None)
-        
         if not removed:
             raise ValueError("Permission not found.")
         

@@ -3,7 +3,6 @@ import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
-
 class GetUserNotifications(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], user_id: int) -> str:

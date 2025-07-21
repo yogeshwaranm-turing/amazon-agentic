@@ -2,7 +2,6 @@ import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
-
 class DeleteWatcher(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], watcher_id: int) -> str:

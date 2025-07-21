@@ -2,7 +2,6 @@ import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
-
 class DeleteLabel(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], label_id: int) -> str:

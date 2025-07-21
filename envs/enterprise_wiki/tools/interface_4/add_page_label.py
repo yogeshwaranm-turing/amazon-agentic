@@ -2,7 +2,6 @@ import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
-
 class AddPageLabel(Tool):
     """
     Add a label to a page (join table: page_labels).
