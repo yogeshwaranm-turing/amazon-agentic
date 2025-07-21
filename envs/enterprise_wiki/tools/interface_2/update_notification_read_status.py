@@ -2,7 +2,6 @@ import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
-
 class UpdateNotificationReadStatus(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], notification_id: int, is_read: bool) -> str:
