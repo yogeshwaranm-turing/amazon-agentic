@@ -29,7 +29,7 @@ class GetSpaceActivityLog(Tool):
 
         for notif in data.get("notifications", {}).values():
             if notif.get("target_type") == "space" and str(notif.get("target_id")) == str(space_id):
-                # notification_type = notif.get("type", "unknown")
+                notif["type"] = notif.get("type", "unknown") + "_notification"
                 logs.append(notif)
 
         logs.sort(key=lambda x: x.get("timestamp") or "", reverse=True)

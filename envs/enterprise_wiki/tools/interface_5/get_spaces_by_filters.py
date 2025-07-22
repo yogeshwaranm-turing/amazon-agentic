@@ -4,7 +4,7 @@ from tau_bench.envs.tool import Tool
 
 class GetSpacesByFilters(Tool):
     @staticmethod
-    def invoke(data: Dict[str, Any], id,  **criteria: Any) -> str:
+    def invoke(data: Dict[str, Any],  **criteria: Any) -> str:
         """
         Return all spaces that match *all* supplied non-None criteria.
         Example call:
@@ -13,18 +13,20 @@ class GetSpacesByFilters(Tool):
         spaces = data.get("spaces", {})
         filtered_spaces = []
         # print("Criteria received:", criteria)
-        if (criteria == {}):
-            raise ValueError("At least one filter criterion must be provided.")
-
+        
         # Remove params that aren't actual filters (defensive) and drop None values
         criteria = {
             k: v for k, v in criteria.items()
             if k not in ("data",) and v is not None  # 'data' shouldn't be passed, but guard anyway
         }
+        
+        # Check for empty criteria after filtering
+        if not criteria:
+            raise ValueError("At least one filter criterion must be provided.")
 
         for space in spaces.values():
             # require all provided criteria to match exactly
-            if all(space.get(k) == v for k, v in criteria.items()):
+            if all(str(space.get(k)) == str(v) for k, v in criteria.items()):
                 filtered_spaces.append(space)
 
         return json.dumps(filtered_spaces)
@@ -84,7 +86,7 @@ class GetSpacesByFilters(Tool):
                         },
                         "anonymous_access": {
                             "type": "boolean",
-                            "description": "Whether anonymous users may view the space."
+                            "description": "Whether anonymous users may view the space (True/False)."
                         },
                         "public_signup": {
                             "type": "boolean",
@@ -99,7 +101,7 @@ class GetSpacesByFilters(Tool):
                             "description": "ISO8601 last update timestamp."
                         },
                     },
-                    "required": ["id"]
+                    "required": []
                 },
             },
         }
