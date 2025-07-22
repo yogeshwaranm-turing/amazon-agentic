@@ -26,7 +26,7 @@ class GetSpacesByFilters(Tool):
 
         for space in spaces.values():
             # require all provided criteria to match exactly
-            if all(space.get(k) == v for k, v in criteria.items()):
+            if all(str(space.get(k)) == str(v) for k, v in criteria.items()):
                 filtered_spaces.append(space)
 
         return json.dumps(filtered_spaces)
@@ -86,7 +86,7 @@ class GetSpacesByFilters(Tool):
                         },
                         "anonymous_access": {
                             "type": "boolean",
-                            "description": "Whether anonymous users may view the space."
+                            "description": "Whether anonymous users may view the space (True/False)."
                         },
                         "public_signup": {
                             "type": "boolean",
