@@ -24,10 +24,11 @@ class UpdatePage(Tool):
                 continue  # drop Nones; remove this if you want to allow explicit nulling
             page[key] = value
         
-        # Ensure the page has an updated_at field
+        # Ensure the page has an updated_at field and last_modified_by
         updated_at = "2025-07-01T00:00:00Z"
 
         page["updated_at"] = updated_at
+        page["last_modified_by"] = last_modified_by
         # Return the updated page as a JSON string
         pages[page_id] = page
         # data["pages"] = pages  # Update the original data structure
