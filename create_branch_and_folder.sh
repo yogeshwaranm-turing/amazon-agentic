@@ -21,6 +21,5 @@ git checkout -b $DIR # I'm using file anme as the branch name
 mkdir $FILES_PATH
 
 touch "${FILES_PATH}/task.json"
-touch "${FILES_PATH}/response.json"
 
 echo "Switched to a new branch '${FILES_PATH}' and created folder structure successfully."
