@@ -90,7 +90,7 @@ class LogIncidentChange(Tool):
             "type": "function",
             "function": {
                 "name": "log_incident_change",
-                "description": "Log a change to an incident in the history. Records both old and new values for incident and task changes. Incident values can include title, description, status, priority, assigned_to, category_id, subcategory_id, and department_id. Task values are organized by task ID, where each task can have changes to description, status, priority, assigned_to, and due_date. Only changes are logged using this API.",
+                "description": "Log a change to an incident in the history. Records both old and new values for incident and task changes. Incident values can include title, description, status, priority, assigned_to, category_id, subcategory_id, and department_id. Task values are organized by task ID, where each task can have changes to description, status, priority, assigned_to, and due_date. Only changes are logged using this API. Either incident_values or task_values must be provided.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -98,12 +98,12 @@ class LogIncidentChange(Tool):
                         "changed_by": {"type": "string", "description": "ID of the user making the change"},
                         "incident_values": {
                             "type": "object", 
-                            "description": "Object with incident field changes. Each field contains the new value to set. Structure: {'field_name': new_value}. Trackable fields: title, description, status (open/in_progress/resolved/closed), priority (low/medium/high/critical), assigned_to, category_id, subcategory_id, department_id",
+                            "description": "Object with incident field changes. Each field contains the new value to set. Structure: {'field_name_1': new_value, 'field_name_2': new_value, ...}. Trackable fields: title, description, status (open/in_progress/resolved/closed), priority (low/medium/high/critical), assigned_to, category_id, subcategory_id, department_id",
                             "additionalProperties": True
                         },
                         "task_values": {
                             "type": "object", 
-                            "description": "Object organizing task changes by task ID. Each task ID maps to an object of field changes. Structure: {'task_id': {'field_name': new_value, ...}, ...}. Trackable fields per task: description, status (todo/in_progress/blocked/done/cancelled), priority (low/medium/high/critical), assigned_to, due_date",
+                            "description": "Object organizing task changes by task ID. Each task ID maps to an object of field changes. Structure: {'task_x_id': {'field_name': new_value, ...}, 'task_y_id': {'field_name': new_value, ...}, ...}. Trackable fields per task: description, status (todo/in_progress/blocked/done/cancelled), priority (low/medium/high/critical), assigned_to, due_date",
                             "properties": {
                                 "task_id": {
                                     "type": "object",
