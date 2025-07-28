@@ -24,7 +24,7 @@ class UpdatePage(Tool):
                 continue  # drop Nones; remove this if you want to allow explicit nulling
             page[key] = value
         
-        # Ensure the page has an updated_at field and last_modified_by
+        # Ensure the page has an updated_at field
         updated_at = "2025-07-01T00:00:00Z"
 
         page["updated_at"] = updated_at
