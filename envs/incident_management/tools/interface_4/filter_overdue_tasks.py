@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+import dateutil
 from typing import Any, Dict, Optional
 from tau_bench.envs.tool import Tool
 
@@ -17,7 +18,7 @@ class FilterOverdueTasks(Tool):
         if current_date is None:
             current_date = "2025-10-01T00:00:00"
         
-        current_datetime = datetime.fromisoformat(current_date.replace('Z', '+00:00'))
+        current_datetime = dateutil.parser.parse(current_date.replace('Z', '+00:00'))
         
         for task in tasks.values():
             # Skip tasks without due dates
@@ -26,7 +27,7 @@ class FilterOverdueTasks(Tool):
             
             # Parse due date
             try:
-                due_datetime = datetime.fromisoformat(task["due_date"].replace('Z', '+00:00'))
+                due_datetime = dateutil.parser.parse(task["due_date"].replace('Z', '+00:00'))
             except (ValueError, AttributeError):
                 continue
             
