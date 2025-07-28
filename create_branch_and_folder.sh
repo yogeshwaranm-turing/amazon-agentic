@@ -1,10 +1,10 @@
 # Change this information
-TRAINER_NAME="adnan.k1"
-DB_NAME="airline"
-INTERFACE_NUM="1"
+TRAINER_NAME="rubal.shakya"
+DB_NAME="enterprise_wiki"
+INTERFACE_NUM="3"
 COMPLEXITY_LEVEL="medium"
-POD_NAME="michael_pod"
-WEEK="week_1"
+POD_NAME="snehal_pod"
+WEEK="week_4"
 
 # --- Get the current UNIX timestamp ---
 # This command gets the number of seconds since the Unix epoch
@@ -21,6 +21,5 @@ git checkout -b $DIR # I'm using file anme as the branch name
 mkdir $FILES_PATH
 
 touch "${FILES_PATH}/task.json"
-touch "${FILES_PATH}/response.json"
 
 echo "Switched to a new branch '${FILES_PATH}' and created folder structure successfully."
