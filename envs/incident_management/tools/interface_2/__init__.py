@@ -19,6 +19,7 @@ from .fetch_incident_slas import FetchIncidentSLAs
 from .update_sla_policy import UpdateSLAPolicy
 from .fetch_incidents import FetchIncidents
 from .update_subcategory import UpdateSubcategory
+from .fetch_sla_policies import FetchSLAPolicies
 
 
 ALL_TOOLS_INTERFACE_2 = [
@@ -42,5 +43,6 @@ ALL_TOOLS_INTERFACE_2 = [
     FetchIncidentSLAs,
     UpdateSLAPolicy,
     FetchIncidents,
-    UpdateSubcategory
+    UpdateSubcategory,
+    FetchSLAPolicies
 ]
