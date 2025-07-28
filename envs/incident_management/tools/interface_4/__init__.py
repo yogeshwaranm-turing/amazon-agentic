@@ -13,7 +13,7 @@ from .get_company_by_name import GetCompanyByName
 from .get_incident_comments import GetIncidentComments
 from .get_incident_tasks import GetIncidentTasks
 from .get_overdue_change_requests import GetOverdueChangeRequests
-from .link_incident_to_kb import LinkIncidentToKB
+from .link_incident_to_kb import LinkIncidentToKnowledgeBase
 from .log_incident_change import LogIncidentChange
 from .query_incidents import QueryIncidents
 from .register_change_request import RegisterChangeRequest
@@ -38,7 +38,7 @@ ALL_TOOLS_INTERFACE_4 = [
     GetIncidentComments,
     GetIncidentTasks,
     GetOverdueChangeRequests,
-    LinkIncidentToKB,
+    LinkIncidentToKnowledgeBase,
     LogIncidentChange,
     QueryIncidents,
     RegisterChangeRequest,

@@ -11,7 +11,7 @@ from .create_sla_policy import CreateSLAPolicy
 from .get_incident_tasks import GetIncidentTasks
 from .create_subcategory import CreateSubcategory
 from .log_incident_change import LogIncidentChange
-from .fetch_breached_incident_sla import FetchBreachedIncidentSLA
+from .fetch_breached_incident_sla import FetchBreachedIncidentSLAs
 from .update_attached_incident_sla import UpdateAttachedIncidentSLA
 from .fetch_departments import FetchDepartments
 from .update_category import UpdateCategory
@@ -35,7 +35,7 @@ ALL_TOOLS_INTERFACE_2 = [
     GetIncidentTasks,
     CreateSubcategory,
     LogIncidentChange,
-    FetchBreachedIncidentSLA,
+    FetchBreachedIncidentSLAs,
     UpdateAttachedIncidentSLA,
     FetchDepartments,
     UpdateCategory,

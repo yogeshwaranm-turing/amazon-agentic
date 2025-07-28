@@ -1,8 +1,8 @@
 import json
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from tau_bench.envs.tool import Tool
 
-class SearchKbArticles(Tool):
+class SearchKnowledgeBaseArticles(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], company_id: Optional[str] = None,
                department_id: Optional[str] = None, category_id: Optional[str] = None,

@@ -21,7 +21,7 @@ from .get_incident_history import GetIncidentHistory
 from .update_incident import UpdateIncident
 from .get_incident_tasks import GetIncidentTasks
 from .update_incident_comment import UpdateIncidentComment
-from .link_incident_to_kb import LinkIncidentToKB
+from .link_incident_to_kb import LinkIncidentToKnowledgeBase
 from .update_task import UpdateTask
 from .log_incident_change import LogIncidentChange
 
@@ -50,7 +50,7 @@ ALL_TOOLS_INTERFACE_3 = [
     UpdateIncident,
     GetIncidentTasks,
     UpdateIncidentComment,
-    LinkIncidentToKB,
+    LinkIncidentToKnowledgeBase,
     UpdateTask,
     LogIncidentChange
 ]

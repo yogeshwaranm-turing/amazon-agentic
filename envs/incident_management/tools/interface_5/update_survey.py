@@ -5,8 +5,7 @@ from tau_bench.envs.tool import Tool
 
 class UpdateSurvey(Tool):
     @staticmethod
-    def invoke(data: Dict[str, Any], survey_id: str, rating: int,
-               feedback_text: Optional[str] = None) -> str:
+    def invoke(data: Dict[str, Any], survey_id: str, rating: int) -> str:
         surveys = data.get("surveys", {})
         
         # Validate survey exists
@@ -35,8 +34,7 @@ class UpdateSurvey(Tool):
                     "type": "object",
                     "properties": {
                         "survey_id": {"type": "string", "description": "ID of the survey to update"},
-                        "rating": {"type": "integer", "description": "New rating (1-5 scale)"},
-                        "feedback_text": {"type": "string", "description": "Optional new feedback text"}
+                        "rating": {"type": "integer", "description": "New rating (1-5 scale)"}
                     },
                     "required": ["survey_id", "rating"]
                 }

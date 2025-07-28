@@ -1,11 +1,11 @@
 import json
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from tau_bench.envs.tool import Tool
 
 
 class UpdateAttachedIncidentSLA(Tool):
     @staticmethod
-    def invoke(data: Dict[str, Any], incident_id: str, sla_id: str,
+    def invoke(data: Dict[str, Any], incident_sla_id: str,
                response_due: Optional[str] = None, resolve_due: Optional[str] = None,
                breached: Optional[bool] = None, status: Optional[str] = None) -> str:
         incident_slas = data.get("incident_sla", {})
@@ -18,8 +18,8 @@ class UpdateAttachedIncidentSLA(Tool):
             valid_statuses = ["Pending", "Completed", "Cancelled"]
             if status not in valid_statuses:
                 raise ValueError(f"Invalid status. Must be one of {valid_statuses}")
-        
-        
+
+
         sla = incident_slas[str(incident_sla_id)]
         timestamp = "2025-10-01T00:00:00"
         

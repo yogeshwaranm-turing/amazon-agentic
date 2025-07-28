@@ -2,7 +2,7 @@ import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
-class LinkIncidentToKb(Tool):
+class LinkIncidentToKnowledgeBase(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], incident_id: str, knowledge_base_id: str) -> str:
         def generate_id(table: Dict[str, Any]) -> int:

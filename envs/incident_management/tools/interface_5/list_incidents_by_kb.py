@@ -1,9 +1,8 @@
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
-
-class ListIncidentsByKB(Tool):
+class ListIncidentsByKnowledgeBase(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], knowledge_base_id: str) -> str:
         incident_knowledge = data.get("incident_knowledge", {})

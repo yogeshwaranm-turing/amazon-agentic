@@ -2,7 +2,6 @@ import json
 from typing import Any, Dict, Optional
 from tau_bench.envs.tool import Tool
 
-
 class ListCategoriesByFilters(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], category_id: Optional[str] = None,

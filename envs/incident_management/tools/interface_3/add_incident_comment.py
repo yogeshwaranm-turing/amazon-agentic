@@ -2,8 +2,6 @@ import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
-
-
 class AddIncidentComment(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], incident_id: str, user_id: str, 

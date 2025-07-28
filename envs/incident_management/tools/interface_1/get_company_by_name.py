@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
 # Utility function to generate IDs

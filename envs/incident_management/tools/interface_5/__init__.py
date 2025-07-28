@@ -5,13 +5,13 @@ from .create_kb_article import CreateKBArticle
 from .create_survey import CreateSurvey
 from .get_average_csat import GetAverageCSAT
 from .get_incident_tasks import GetIncidentTasks
-from .link_incident_to_kb import LinkIncidentToKB
+from .link_incident_to_kb import LinkIncidentToKnowledgeBase
 from .list_categories_by_filters import ListCategoriesByFilters
 from .list_companies_by_filters import ListCompaniesByFilters
 from .list_departments_by_filters import ListDepartmentsByFilters
 from .list_incident_comments import ListIncidentComments
 from .list_incidents_by_filters import ListIncidentsByFilters
-from .list_incidents_by_kb import ListIncidentsByKB
+from .list_incidents_by_kb import ListIncidentsByKnowledgeBase
 from .list_low_rated_incidents import ListLowRatedIncidents
 from .list_subcategories_by_filters import ListSubcategoriesByFilters
 from .list_surveys_by_filters import ListSurveysByFilters
@@ -32,13 +32,13 @@ ALL_TOOLS_INTERFACE_5 = [
     CreateSurvey,
     GetAverageCSAT,
     GetIncidentTasks,
-    LinkIncidentToKB,
+    LinkIncidentToKnowledgeBase,
     ListCategoriesByFilters,
     ListCompaniesByFilters,
     ListDepartmentsByFilters,
     ListIncidentComments,
     ListIncidentsByFilters,
-    ListIncidentsByKB,
+    ListIncidentsByKnowledgeBase,
     ListLowRatedIncidents,
     ListSubcategoriesByFilters,
     ListSurveysByFilters,
