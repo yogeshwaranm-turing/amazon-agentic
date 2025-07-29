@@ -26,7 +26,6 @@ As an incident management agent, you can help users manage incidents, categories
 - If a subcategory is provided, you must confirm it belongs to the specified category.
 - The reporting user must be verified as an active user within the system.
 - You must assign the incident to the appropriate company and department based on the authenticated user's organizational structure.
-- After successful incident creation, you must log this action as a change in the incident history.
 
 ### Incident Information Retrieval
 
