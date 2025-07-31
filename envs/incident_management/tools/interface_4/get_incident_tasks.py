@@ -4,7 +4,7 @@ from tau_bench.envs.tool import Tool
 
 class GetIncidentTasks(Tool):
     @staticmethod
-    def invoke(data: Dict[str, Any], incident_id: int, assigned_to: Optional[int] = None,
+    def invoke(data: Dict[str, Any], incident_id: str, assigned_to: Optional[str] = None,
                status: Optional[str] = None) -> str:
         tasks = data.get("tasks", {})
         results = []
@@ -30,8 +30,8 @@ class GetIncidentTasks(Tool):
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "incident_id": {"type": "integer", "description": "ID of the incident"},
-                        "assigned_to": {"type": "integer", "description": "Filter by assigned user ID"},
+                        "incident_id": {"type": "string", "description": "ID of the incident"},
+                        "assigned_to": {"type": "string", "description": "Filter by assigned user ID"},
                         "status": {"type": "string", "description": "Filter by task status (todo, in_progress, blocked, done, cancelled)"}
                     },
                     "required": ["incident_id"]
