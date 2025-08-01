@@ -2,7 +2,7 @@ import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
-class RetreiveRoomInfo(Tool):
+class RetrieveRoomInfo(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any],
                room_id: str) -> str:

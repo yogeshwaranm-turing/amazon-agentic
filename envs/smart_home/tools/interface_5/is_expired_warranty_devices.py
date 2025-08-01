@@ -4,7 +4,7 @@ from datetime import datetime
 from tau_bench.envs.tool import Tool
 
 
-class IsExpiredWarrentyDevices(Tool):
+class IsExpiredWarrantyDevices(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any],
                current_date: str,
