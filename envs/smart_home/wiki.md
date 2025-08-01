@@ -1,112 +1,147 @@
-# Smart Home Management System
+# Smart Home Database Wiki
 
 ## Overview
 
-The Smart Home Management System is a comprehensive platform that allows users to control, monitor, and automate their smart home devices, track energy consumption, manage routines, and handle emergency alerts.
+The Smart Home Database supports home management functionalities, user profiles, room assignments, device operations, automated routines, energy consumption tracking, emergency alerts, and user feedback. The database interacts exclusively through provided APIs, ensuring secure and structured data management.
 
-## Core Features
+## Database Schema
+
+### Homes
+
+Stores primary information about homes.
+
+* **Fields:** home\_id, owner\_id, address\_id, home\_type, created\_at, updated\_at
+
+### Users
+
+Maintains user profiles.
+
+* **Fields:** user\_id, first\_name, last\_name, phone\_number, role, parent\_id, email, primary\_address\_id, date\_of\_birth, status, created\_at, updated\_at
+
+### Rooms
+
+Details individual rooms within homes.
+
+* **Fields:** room\_id, home\_id, room\_type, room\_owner\_id, status, width\_ft, length\_ft, created\_at, updated\_at
+
+### Devices
+
+Tracks smart home devices.
+
+* **Fields:** device\_id, device\_type, room\_id, installed\_on, insurance\_expiry\_date, home\_id, status, width\_ft, length\_ft, price, scheduled\_maintainance\_date, last\_maintainance\_date, daily\_rated\_power\_consumption\_kWh, created\_at, updated\_at
+
+### Historical Energy Consumption
+
+Records historical energy usage.
+
+* **Fields:** consumption\_id, device\_id, home\_id, room\_id, date, power\_used\_kWh, created\_at, updated\_at
+
+### Automated Routines
+
+Manages scheduled device operations.
+
+* **Fields:** routine\_id, user\_id, home\_id, start\_action\_date, action\_time, action\_interval, created\_at, updated\_at
+
+### Device Commands
+
+Commands assigned to devices via routines.
+
+* **Fields:** device\_command\_id, routine\_id, device\_id, status, created\_at, updated\_at
+
+### Specialized Device Commands
+
+* **Bulb Commands:** bulb\_command\_id, routine\_id, device\_id, brightness\_level, color, created\_at, updated\_at
+* **Thermostat Commands:** thermostat\_command\_id, routine\_id, device\_id, current\_temperature, created\_at, updated\_at
+
+### Specialized Devices
+
+* **Security Cameras:** device\_id, resolution, last\_activity\_timestamp, created\_at, updated\_at
+* **Smart Thermostats:** device\_id, current\_temperate, lowest\_rated\_temperature, highest\_rated\_temperature, last\_adjustment\_time, created\_at, updated\_at
+* **Smart Bulbs:** device\_id, brightness\_level, color, created\_at, updated\_at
+
+### User Feedbacks
+
+Captures feedback on devices.
+
+* **Fields:** user\_feedback\_id, user\_id, device\_id, rating, created\_at, updated\_at
+
+### Addresses
+
+Details address information.
+
+* **Fields:** address\_id, house\_number, building\_name, street, city\_name, state, created\_at, updated\_at
+
+### Emergency Alerts
+
+Logs device-related emergencies.
+
+* **Fields:** alert\_id, home\_id, device\_id, alert\_type, severity\_level, triggered\_at, acknowledged\_at, acknowledged\_by\_user, resolved\_at, resolved\_by\_user, created\_at
+
+### Energy Tariffs
+
+Defines energy billing rates.
+
+* **Fields:** tariff\_id, home\_id, tariff\_name, rate\_per\_kWh, peak\_hours\_start, peak\_hours\_end, peak\_rate\_multiplier, effective\_from, effective\_until, created\_at, updated\_at
+
+## API Interactions
+
+APIs provided are the exclusive means for the agent to interact with the database, managing users, homes, rooms, devices, alerts, energy consumption, routines, commands, tariffs, and feedback.
+
+### Key API Categories
+
+* **User Management:** Create and update user profiles.
+* **Home Management:** Add/update home details and addresses.
+* **Room Management:** Manage room assignments and statuses.
+* **Device Management:** Add/update devices and associated records.
+* **Routine & Command Management:** Schedule and execute automated device actions.
+* **Energy Management:** Log consumption and manage tariffs.
+* **Emergency Management:** Handle creation and updates of alerts.
+* **Feedback Management:** Collect and analyze device feedback.
+
+## Smart Home Agent Policy
+
+### General Guidelines
+
+* Operate exclusively through APIs.
+* Obtain explicit user-provided information for every database interaction.
+
+### Authentication & Permissions
+
+* Always authenticate user identity before performing actions.
+* Verify user permissions through provided APIs.
+
+### Home & Room Management
+
+* Only home owners can create/update homes and rooms.
+* Verify ownership explicitly before making changes.
 
 ### Device Management
 
-- **Device Registration**: Add new smart devices to your home network
-- **Device Control**: Control device states, settings, and configurations
-- **Device Monitoring**: Track device status, health, and performance
-- **Device Categories**: Support for various device types including:
-  - Smart Bulbs (lighting control, dimming, color changes)
-  - Smart Thermostats (temperature control, scheduling)
-  - Security Cameras (monitoring, recording, alerts)
-  - General Smart Devices (various IoT devices)
+* Only the home or room owner can add/update devices.
+* Confirm device location and user permissions via API.
+* Validate device details to avoid duplicates.
 
-### Home and Room Organization
+### Automated Routine Management
 
-- **Home Management**: Create and manage multiple home locations
-- **Room Organization**: Organize devices by rooms for better control
-- **Address Management**: Manage home addresses and location information
-
-### Automation and Routines
-
-- **Custom Routines**: Create automated sequences of device actions
-- **Scheduled Automation**: Set time-based triggers for device operations
-- **Condition-Based Automation**: Create rules based on device states and environmental conditions
+* Confirm user's association with home before creating routines.
+* Verify no scheduling conflicts exist through APIs.
 
 ### Energy Management
 
-- **Energy Consumption Tracking**: Monitor energy usage by device and time period
-- **Historical Analysis**: View historical energy consumption patterns
-- **Energy Tariffs**: Manage and track energy pricing information
-- **Optimization Recommendations**: Get insights for energy efficiency
+* Always obtain explicit user confirmation before accessing historical consumption data.
+* Retrieve accurate tariff information proactively for estimations.
 
-### Emergency and Safety
+### Emergency Alerts Management
 
-- **Emergency Alerts**: Configure and manage emergency notification systems
-- **Alert Management**: Handle various types of alerts and notifications
-- **Safety Monitoring**: Monitor home security and safety status
+* Confirm device association and user identity explicitly before alert creation or updates.
+* Update alert status only after confirming active alerts.
 
-### User Management
+### User Feedback
 
-- **User Profiles**: Manage user accounts and preferences
-- **Permission Control**: Control access to devices and features
-- **Family Management**: Support for multiple users and family members
-- **Feedback System**: Collect and manage user feedback
+* Validate user's association with the device explicitly before feedback submission.
 
-## System Interfaces
+### Data Integrity & Security
 
-The system provides multiple interfaces for different use cases:
+* Validate data explicitly through APIs.
+* Adhere strictly to privacy standards and user consent.
 
-### Interface 1: Basic Operations
-
-- Core device control and monitoring
-- Basic routine management
-- Essential user operations
-
-### Interface 2: Enhanced Management
-
-- Advanced device configuration
-- User and home management
-- Enhanced routine capabilities
-
-### Interface 3: Comprehensive Control
-
-- Full device lifecycle management
-- Advanced automation features
-- Comprehensive monitoring and alerts
-
-### Interface 4: Advanced Analytics
-
-- Detailed energy consumption analysis
-- Advanced feedback and rating systems
-- Complex routine and automation management
-
-### Interface 5: Expert Administration
-
-- System administration features
-- Advanced device analytics and warranty tracking
-- Expert-level automation and control
-
-## Usage Guidelines
-
-1. **Authentication**: Always verify user identity before performing operations
-2. **Permissions**: Respect user permissions and access controls
-3. **Safety First**: Prioritize emergency and safety-related operations
-4. **Confirmation**: Confirm destructive or significant changes with users
-5. **Energy Awareness**: Help users optimize energy consumption
-6. **Security**: Maintain system security and data privacy
-
-## API Capabilities
-
-The system provides RESTful APIs for:
-
-- Device management and control
-- User authentication and management
-- Routine creation and execution
-- Energy monitoring and reporting
-- Alert and notification management
-- Home and room organization
-
-## Technical Specifications
-
-- **Supported Protocols**: WiFi, Zigbee, Z-Wave, Bluetooth
-- **Device Compatibility**: Wide range of smart home device manufacturers
-- **Data Storage**: Secure cloud-based data storage with local caching
-- **Real-time Updates**: Live device status and energy consumption monitoring
-- **Scalability**: Support for large-scale smart home deployments
