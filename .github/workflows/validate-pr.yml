@@ -1,0 +1,48 @@
+name: Validate PR Label and Changed JSON File
+
+on:
+  pull_request:
+    branches:
+      - main
+      - automate_actions
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Require at least one label from the set: medium, hard, low
+      - name: Require at least one label
+        uses: mheap/github-action-required-labels@v5
+        with:
+          mode: minimum
+          count: 1
+          labels: |
+            medium
+            hard
+            low
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Get the list of changed files in the PR
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v40
+
+      # Validate file change count and extension
+      - name: Validate that exactly one JSON file changed
+        run: |
+          changed_files=(${{ steps.changed-files.outputs.all_changed_files }})
+          if [ ${#changed_files[@]} -ne 1 ]; then
+            echo "::error ::Error: Exactly one file must be changed."
+            exit 1
+          fi
+
+          file=${changed_files[0]}
+          if [[ ! $file == *.json ]]; then
+            echo "::error ::Error: Changed file must be a JSON file."
+            exit 1
+          fi
