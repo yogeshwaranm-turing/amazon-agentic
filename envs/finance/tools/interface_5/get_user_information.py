@@ -4,28 +4,14 @@ from tau_bench.envs.tool import Tool
 
 class get_user_information(Tool):
     @staticmethod
-    def invoke(
-        data: Dict[str, Any],
-        user_id: Optional[str] = None,
-        email: Optional[str] = None
-    ) -> str:
-        """
-        Retrieve user records, optionally filtering by user_id or email. 
-        Returns a JSON list of matching users.
-        """
+    def invoke(data: Dict[str, Any], user_id: str) -> str:
         users = data.get("users", {})
-        result = {}
-        for uid, user in users.items():
-            # Filter by user_id if provided
-            if user_id and str(uid) != user_id:
-                continue
-            # Filter by email if provided
-            if email and user.get("email") != email:
-                continue
-            return(json.dumps(user))
-
-
-        raise ValueError("User not found")
+        
+        if str(user_id) not in users:
+            raise ValueError(f"User {user_id} not found")
+        
+        user = users[str(user_id)]
+        return json.dumps(user)
 
     @staticmethod
     def get_info() -> Dict[str, Any]:
@@ -33,14 +19,13 @@ class get_user_information(Tool):
             "type": "function",
             "function": {
                 "name": "get_user_information",
-                "description": "Retrieve user information with optional filters",
+                "description": "Retrieve information for a specific user",
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "user_id": {"type": "string", "description": "Filter by user ID"},
-                        "email": {"type": "string", "description": "Filter by user email"}
+                        "user_id": {"type": "string", "description": "ID of the user to retrieve"}
                     },
-                    "required": []
+                    "required": ["user_id"]
                 }
             }
         }
