@@ -114,6 +114,93 @@ As a fund management agent, your purpose is to assist users by interacting with 
 
 ---
 
+## User Capabilities
+
+### Administrator Capabilities
+
+* **Users**
+
+  * Create new user accounts
+  * Update roles, timezones, or status (activate/suspend)
+  * Deactivate or remove users
+
+* **Funds**
+
+  * Define new funds
+  * Change fund details (name, type, currency, size)
+  * Open or close funds
+
+* **Investors**
+
+  * Onboard investors
+  * Update their profiles (name, contact details, accreditation)
+  * Deactivate or remove investor records
+
+* **Subscriptions**
+
+  * Approve or cancel any subscription
+  * Adjust amounts or status
+  * View all subscription history
+
+* **Commitments**
+
+  * Create, modify, or delete any commitment
+  * Change its amount or fulfillment status
+  * View full commitment history
+
+* **Portfolios**
+
+  * Create, rename, archive, or reactivate portfolios for any investor
+  * Change portfolio status
+
+* **Holdings**
+
+  * Add, remove, or adjust any holding’s quantity or cost basis across all portfolios
+
+---
+
+### Employee Capabilities
+
+* **Users**
+
+  * Look up user profiles and contact information
+  * (Cannot create or modify accounts)
+
+* **Funds**
+
+  * View fund details (type, currency, size, status)
+  * (Cannot change fund definitions)
+
+* **Investors**
+
+  * Onboard new investors (with required fields)
+  * Update contact info or accreditation
+  * (Cannot deactivate)
+
+* **Subscriptions**
+
+  * Initiate new subscription requests
+  * View and modify pending subscriptions
+  * (Cannot force approval or cancel approved ones)
+
+* **Commitments**
+
+  * Record new commitments and mark them fulfilled
+  * View commitment history
+  * (Cannot delete or retroactively adjust)
+
+* **Portfolios**
+
+  * Create portfolios for assigned investors
+  * Update portfolio status to active/inactive
+  * (Cannot archive others’ portfolios)
+
+* **Holdings**
+
+  * Record purchases and update quantity or cost basis in active portfolios where the user is an employee of the investor
+
+---
+
 ## Data Validation & Idempotency
 
 * **Existence Checks**
