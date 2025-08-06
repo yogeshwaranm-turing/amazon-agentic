@@ -11,7 +11,7 @@ The Finance Database supports investment management functionalities, user profil
 Maintains user profiles for financial system access.
 
 - **Fields:** user_id, first_name, last_name, email, role, status, timezone, created_at, updated_at
-- **Roles:** admin, fund_manager, investor, analyst
+- **Roles:** admin, employee
 - **Status:** active, inactive, suspended
 
 ### Funds
@@ -36,49 +36,51 @@ Details individual and institutional investors.
 Tracks investment portfolios.
 
 - **Fields:** portfolio_id, investor_id, name, status, created_at, updated_at
-- **Status:** active, inactive, closed
+- **Status:** active, inactive, archived
 
 ### Portfolio Holdings
 
 Records holdings within portfolios.
 
-- **Fields:** holding_id, portfolio_id, instrument_id, quantity, unit_cost, market_value, created_at, updated_at
+- **Fields:** holding_id, portfolio_id, instrument_id, quantity, cost_basis, created_at
 
 ### Instruments
 
 Financial instruments available for investment.
 
-- **Fields:** instrument_id, symbol, name, instrument_type, currency, status, created_at, updated_at
-- **Types:** stock, bond, fund, commodity, derivative
+- **Fields:** instrument_id, ticker, name, instrument_type
+- **Types:** stock, bond, derivative, cash, other
 - **Status:** active, suspended, delisted
 
 ### Instrument Prices
 
 Current and historical pricing data.
 
-- **Fields:** price_id, instrument_id, price, price_date, currency, created_at, updated_at
+- **Fields:** price_id, instrument_id, price_date, open_price, high_price, low_price, close_price
 
 ### Subscriptions
 
 Investor subscriptions to funds.
 
-- **Fields:** subscription_id, investor_id, fund_id, amount, status, subscription_date, created_at, updated_at
-- **Status:** pending, confirmed, cancelled
+- **Fields:** subscription_id, investor_id, fund_id, amount, status, currency, request_assigned_to, request_date, approval_date, updated_at
+- **Status:** pending, approved, cancelled
+- **Currency:** USD, EUR,GBP,NGN 
 
 ### Commitments
 
 Investment commitments from investors.
 
-- **Fields:** commitment_id, investor_id, fund_id, committed_amount, unfunded_amount, commitment_date, status, created_at, updated_at
-- **Status:** active, fulfilled, cancelled
+- **Fields:** commitment_id, investor_id, fund_id, commitment_amount, currency, commitment_date, status, updated_at
+- **Status:** pending, fulfilled
+- **Currency:** USD, EUR,GBP,NGN 
 
 ### Trades
 
 Trading activity records.
 
-- **Fields:** trade_id, fund_id, instrument_id, trade_type, quantity, price, trade_date, status, created_at, updated_at
-- **Types:** buy, sell
-- **Status:** pending, executed, cancelled
+- **Fields:** trade_id, fund_id, instrument_id, quantity, price, side, trade_date, status, created_at
+- **side:** buy, sell
+- **Status:** pending, executed, failed
 
 ### Invoices
 
@@ -98,7 +100,7 @@ Payment tracking and history.
 
 Net Asset Value tracking for funds.
 
-- **Fields:** nav_id, fund_id, nav_date, nav_value, total_assets, total_liabilities, shares_outstanding, created_at, updated_at
+- **Fields:** nav_id, fund_id, nav_date, nav_value, updated_at
 
 ### Reports
 
@@ -112,25 +114,26 @@ Financial reporting and analytics.
 
 System notifications and alerts.
 
-- **Fields:** notification_id, user_id, message, notification_type, status, created_at, read_at
-- **Types:** alert, reminder, update, system
-- **Status:** unread, read, archived
+- **Fields:** notification_id, email, type, class, reference_id, status, sent_at, created_at
+- **Types:** alert, reminder, report, subscription_update
+- **Classes:** funds, investors,portfolios,trades,invoices,reports,documents,subscriptions, commitments,tickets,users,portfolio_holdings
+- **Status:** pending, sent, failed
 
 ### Tickets
 
 Support and issue tracking.
 
-- **Fields:** ticket_id, user_id, subject, description, priority, status, assigned_to, created_at, updated_at
-- **Priority:** low, medium, high, critical
-- **Status:** open, in_progress, resolved, closed
+- **Fields:** ticket_id, invoice_id, issue_date, type, status, assigned_to, resolution_date, created_at, updated_at
+- **Types:** missing_payment, overpayment, underpayment, mismatched_amount, invoice_duplicate, manual_follow_up
+- **Status:** open, in_review, resolved, closed
 
 ### Documents
 
 Document management and storage.
 
-- **Fields:** document_id, investor_id, fund_id, document_type, file_name, file_path, upload_date, status, created_at, updated_at
-- **Types:** legal, compliance, financial, identity
-- **Status:** pending, approved, rejected
+- **Fields:** document_id, name, type, uploaded_by, uploaded_date, report_id, size_bytes, status
+- **Types:** pdf, xlsx, docx, csv, other
+- **Status:** available, archived, deleted
 
 ## API Interactions
 
