@@ -66,3 +66,133 @@ You are authorized to query the system to provide users with specific informatio
 
 * You can retrieve details about existing funds, commitments, invoices, payments, and previously generated reports based on user inquiries.
 * When requested, you can check the fulfillment status of a commitment or calculate the percentage of a commitment that has been fulfilled to date.
+
+## User Capabilities
+
+### Administrator Capabilities
+
+* **Users**
+
+  * Create new user accounts
+  * Update roles, timezones, or status (activate/suspend)
+  * Deactivate or remove users
+
+* **Investors**
+
+  * Onboard investors
+  * Update profiles (name, contact details, accreditation)
+  * Deactivate or remove investor records
+
+* **Subscriptions**
+
+  * Approve or cancel any subscription
+  * Adjust amounts or status
+  * View all subscription history
+
+* **Funds**
+
+  * Define new funds
+  * Change fund details (name, type, currency, size)
+  * Open or close funds
+
+* **Commitments**
+
+  * Create, modify, or delete any commitment
+  * Change its amount or fulfillment status
+  * View full commitment history
+
+* **Tickets**
+
+  * Assign, escalate, resolve, or close support tickets
+  * Override ticket status or assignee
+
+* **Reports**
+
+  * Generate any report
+  * Update report status
+  * Remove outdated or failed reports
+
+* **Notifications**
+
+  * View, resend, or delete any notification
+  * Manage notification templates and status
+
+* **Invoices**
+
+  * Issue, update, or delete any invoice
+  * Change due dates or amounts
+  * Mark as paid manually
+
+* **Payments**
+
+  * Create, adjust, or remove any payment record
+  * Correct payment methods or dates
+
+---
+
+### Employee Capabilities
+
+* **Users**
+
+  * Look up user profiles and contact information
+  * (Cannot create or modify accounts)
+
+* **Investors**
+
+  * Onboard new investors (with required fields)
+  * Update contact info or accreditation
+  * (Cannot deactivate)
+
+* **Subscriptions**
+
+  * Initiate new subscription requests
+  * View and modify pending subscriptions
+  * (Cannot force approval or cancel approved ones)
+
+* **Funds**
+
+  * View fund details (type, currency, size, status)
+  * (Cannot change fund definitions)
+
+* **Commitments**
+
+  * Record new commitments and mark them fulfilled
+  * View commitment history
+  * (Cannot delete or retroactively adjust)
+
+* **Tickets**
+
+  * Create tickets for payment or invoice issues
+  * Update status or reassign within their scope
+  * (Cannot close tickets they aren’t assigned)
+
+* **Reports**
+
+  * Generate and view reports
+
+* **Notifications**
+
+  * Trigger notifications for events they initiate (e.g. subscription updates)
+  * View notification status
+
+* **Invoices**
+
+  * Issue invoices for fulfilled commitments
+  * Mark invoices as paid
+  * (Cannot delete issued invoices)
+
+* **Payments**
+
+  * Register payments against invoices
+  * View payment history
+  * (Cannot delete or adjust completed payments)
+
+---
+
+
+## Data Validation & Idempotency
+ 
+* **Value Constraints**
+
+  * Monetary amounts must be positive and expressed in supported currencies.
+  * Dates must be valid calendar dates and, where relevant, not in the future (e.g., request date cannot post-date today).
