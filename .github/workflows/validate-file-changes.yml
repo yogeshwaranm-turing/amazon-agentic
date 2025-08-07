@@ -5,39 +5,38 @@ on:
     types: [opened, labeled, unlabeled, synchronize, reopened]
     branches:
       - main
-      - automate_actions
+      - autoate
+
+permissions:
+  contents: read
 
 jobs:
   check-json-change:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Fetch changed files
-        id: file_check
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { owner, repo, number } = context.issue;
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v46.0.1
 
-            const response = await github.rest.pulls.listFiles({
-              owner,
-              repo,
-              pull_number: number,
-            });
+      - name: Validate changed files count and extension
+        run: |
+          echo "Changed files:"
+          echo "${{ steps.changed-files.outputs.all_changed_files }}"
+          
+          files="${{ steps.changed-files.outputs.all_changed_files }}"
+          IFS=',' read -ra FILE_ARRAY <<< "$files"
 
-            const files = response.data.map(file => file.filename);
-            console.log("Changed files:", files);
+          count=${#FILE_ARRAY[@]}
+          if [ "$count" -ne 1 ]; then
+            echo "❌ PR must change exactly one file. Found $count files."
+            exit 1
+          fi
 
-            if (files.length !== 1) {
-              core.setFailed(`PR must change exactly one file. Found ${files.length} files.`);
-              return;
-            }
+          file="${FILE_ARRAY[0]}"
+          if [[ ! "$file" =~ \.json$ ]]; then
+            echo "❌ Changed file must be a .json file. Found: $file"
+            exit 1
+          fi
 
-            const changedFile = files[0];
-
-            if (!changedFile.endsWith('.json')) {
-              core.setFailed(`Changed file must be a .json file. Found: ${changedFile}`);
-              return;
-            }
-
-            console.log(`Passed: PR changes exactly one .json file: ${changedFile}`);
+          echo "✅ Passed: PR changes exactly one .json file: $file"
