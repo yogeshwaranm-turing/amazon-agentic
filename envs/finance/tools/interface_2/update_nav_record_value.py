@@ -1,5 +1,4 @@
 import json
-from datetime import datetime
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
@@ -14,7 +13,7 @@ class update_nav_record_value(Tool):
         
         # Update NAV record
         nav_records[str(nav_id)]["nav_value"] = nav_value
-        nav_records[str(nav_id)]["updated_at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+        nav_records[str(nav_id)]["updated_at"] = "2025-08-07T00:00:00Z"
         
         return json.dumps(nav_records[str(nav_id)])
 
