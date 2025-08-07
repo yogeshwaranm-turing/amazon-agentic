@@ -6,7 +6,7 @@ from tau_bench.envs.tool import Tool
 class create_commitment(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], fund_id: str, investor_id: str,
-               commitment_amount: str, currency: str, commitment_date: str) -> str:
+               commitment_amount: float, currency: str, commitment_date: str) -> str:
         
         def generate_id(table: Dict[str, Any]) -> int:
             if not table:
@@ -37,7 +37,7 @@ class create_commitment(Tool):
             "commitment_id": str(commitment_id),
             "fund_id": fund_id,
             "investor_id": investor_id,
-            "commitment_amount": commitment_amount,
+            "commitment_amount": round(float(commitment_amount), 2),
             "currency": currency,
             "commitment_date": commitment_date,
             "status": "pending",
@@ -59,7 +59,7 @@ class create_commitment(Tool):
                     "properties": {
                         "fund_id": {"type": "string", "description": "ID of the fund"},
                         "investor_id": {"type": "string", "description": "ID of the investor"},
-                        "commitment_amount": {"type": "string", "description": "Commitment amount"},
+                        "commitment_amount": {"type": "number", "description": "Commitment amount"},
                         "currency": {"type": "string", "description": "Currency (USD, EUR, GBP, NGN)"},
                         "commitment_date": {"type": "string", "description": "Commitment date in YYYY-MM-DD format"}
                     },

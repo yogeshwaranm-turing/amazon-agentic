@@ -8,7 +8,7 @@ class modify_subscription(Tool):
     def invoke(
         data: Dict[str, Any],
         subscription_id: str,
-        amount: Optional[str] = None,
+        amount: Optional[float] = None,
         currency: Optional[str] = None,
         status: Optional[str] = None,
         request_assigned_to: Optional[str] = None
@@ -48,7 +48,7 @@ class modify_subscription(Tool):
 
         # Update amount if provided
         if amount is not None:
-            subscription["amount"] = amount
+            subscription["amount"] = round(float(amount), 2)
 
         # Always update timestamp when any change occurs
         subscription["updated_at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -70,7 +70,7 @@ class modify_subscription(Tool):
                             "description": "ID of the subscription to modify"
                         },
                         "amount": {
-                            "type": "string",
+                            "type": "number",
                             "description": "New subscription amount (optional)"
                         },
                         "currency": {

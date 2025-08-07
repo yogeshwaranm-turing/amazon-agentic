@@ -11,7 +11,7 @@ class create_invoice(Tool):
         investor_id: str,
         invoice_date: str,
         due_date: str,
-        amount: str,
+        amount: float,
         currency: str,
         payment_type: Optional[str] = "manual",
         commitment_id: Optional[str] = None
@@ -56,7 +56,7 @@ class create_invoice(Tool):
             "commitment_id": commitment_id,
             "invoice_date": invoice_date,
             "due_date": due_date,
-            "amount": amount,
+            "amount": round(float(amount), 2),
             "payment_type": payment_type,
             "currency": currency,
             "status": "issued",
@@ -101,7 +101,7 @@ class create_invoice(Tool):
                             "description": "Due date (YYYY-MM-DD)"
                         },
                         "amount": {
-                            "type": "string",
+                            "type": "number",
                             "description": "Invoice amount"
                         },
                         "currency": {

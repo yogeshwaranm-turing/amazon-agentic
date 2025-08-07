@@ -6,7 +6,7 @@ from tau_bench.envs.tool import Tool
 class add_subscription(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], fund_id: str, investor_id: str,
-               amount: str, currency: str, request_assigned_to: str,
+               amount: float, currency: str, request_assigned_to: str,
                request_date: str) -> str:
         
         def generate_id(table: Dict[str, Any]) -> int:
@@ -43,7 +43,7 @@ class add_subscription(Tool):
             "subscription_id": str(subscription_id),
             "fund_id": fund_id,
             "investor_id": investor_id,
-            "amount": amount,
+            "amount": round(float(amount), 2),
             "currency": currency,
             "status": "pending",
             "request_assigned_to": request_assigned_to,
@@ -67,7 +67,7 @@ class add_subscription(Tool):
                     "properties": {
                         "fund_id": {"type": "string", "description": "ID of the fund"},
                         "investor_id": {"type": "string", "description": "ID of the investor"},
-                        "amount": {"type": "string", "description": "Subscription amount"},
+                        "amount": {"type": "number", "description": "Subscription amount"},
                         "currency": {"type": "string", "description": "Currency (USD, EUR, GBP, NGN)"},
                         "request_assigned_to": {"type": "string", "description": "ID of the user assigned to handle the request"},
                         "request_date": {"type": "string", "description": "Request date"}

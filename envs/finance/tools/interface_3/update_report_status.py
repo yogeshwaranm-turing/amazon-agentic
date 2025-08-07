@@ -29,7 +29,7 @@ class update_report_status(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "update_report",
+                "name": "update_report_status",
                 "description": "Update a report's status",
                 "parameters": {
                     "type": "object",

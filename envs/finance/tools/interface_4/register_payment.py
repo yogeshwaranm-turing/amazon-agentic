@@ -9,7 +9,7 @@ class register_payment(Tool):
         data: Dict[str, Any],
         invoice_id: str,
         payment_date: str,
-        amount: str,
+        amount: float,
         payment_method: str,
         status: Optional[str] = None
     ) -> str:
@@ -41,7 +41,7 @@ class register_payment(Tool):
             "payment_id": payment_id,
             "invoice_id": invoice_id,
             "payment_date": payment_date,
-            "amount": amount,
+            "amount": round(float(amount), 2),
             "payment_method": payment_method,
             "status": st,
             "created_at": timestamp
@@ -69,7 +69,7 @@ class register_payment(Tool):
                             "description": "Payment date in ISO format"
                         },
                         "amount": {
-                            "type": "string",
+                            "type": "number",
                             "description": "Payment amount"
                         },
                         "payment_method": {

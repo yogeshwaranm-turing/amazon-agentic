@@ -23,7 +23,7 @@ class update_nav_record_value(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "update_nav_records",
+                "name": "update_nav_record_value",
                 "description": "Update an existing NAV record",
                 "parameters": {
                     "type": "object",
