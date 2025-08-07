@@ -1,0 +1,57 @@
+name: Validate Week Folder
+
+on:
+  pull_request:
+    types: [opened, labeled, unlabeled, synchronize, reopened, ready_for_review]
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  validate-week:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@ed68ef82c095e0d48ec87eccea555d944a631a4c # v46.0.1
+
+      - name: Validate week folder for all changed files
+        run: |
+          FILES="${{ steps.changed-files.outputs.all_changed_files }}"
+          IFS=',' read -ra FILE_ARRAY <<< "$FILES"
+
+          echo "Checking ${#FILE_ARRAY[@]} changed file(s)..."
+
+          # Your configured start week and start date
+          START_WEEK=6
+          START_DATE="2025-08-05"
+
+          # Calculate the current week number
+          TODAY=$(date -u +%Y-%m-%d)
+          DAYS_DIFF=$(( ( $(date -d "$TODAY" +%s) - $(date -d "$START_DATE" +%s) ) / 86400 ))
+          WEEK_OFFSET=$(( DAYS_DIFF / 7 ))
+          EXPECTED_WEEK=$(( START_WEEK + WEEK_OFFSET ))
+          EXPECTED_FOLDER="week_${EXPECTED_WEEK}"
+
+          echo " Today is: $TODAY"
+          echo "Expected folder: $EXPECTED_FOLDER"
+
+          for FILE in "${FILE_ARRAY[@]}"; do
+            ACTUAL_FOLDER=$(echo "$FILE" | cut -d'/' -f1)
+
+            echo "File: $FILE"
+            echo "   ↪ Folder: $ACTUAL_FOLDER"
+
+            if [[ "$ACTUAL_FOLDER" != "$EXPECTED_FOLDER" ]]; then
+              echo "File '$FILE' is in wrong week folder '$ACTUAL_FOLDER'. Expected: '$EXPECTED_FOLDER'"
+              exit 1
+            fi
+          done
+
+          echo "All files are in the correct folder: $EXPECTED_FOLDER"
