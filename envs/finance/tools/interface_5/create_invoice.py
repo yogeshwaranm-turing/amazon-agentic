@@ -1,5 +1,4 @@
 import json
-from datetime import datetime
 from typing import Any, Dict, Optional
 from tau_bench.envs.tool import Tool
 
@@ -47,7 +46,7 @@ class create_invoice(Tool):
             raise ValueError(f"Invalid payment_type. Must be one of {valid_payment_types}")
 
         invoice_id = generate_id(invoices)
-        timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+        timestamp = "2025-08-07T00:00:00Z"
 
         new_invoice = {
             "invoice_id": str(invoice_id),

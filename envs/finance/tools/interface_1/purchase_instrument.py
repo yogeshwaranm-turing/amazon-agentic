@@ -1,5 +1,4 @@
 import json
-from datetime import datetime
 from typing import Any, Dict, Optional
 from tau_bench.envs.tool import Tool
 
@@ -28,7 +27,7 @@ class purchase_instrument(Tool):
             raise ValueError(f"Instrument {instrument_id} not found")
 
         holding_id = generate_id(portfolio_holdings)
-        now = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+        now = "2025-08-07T00:00:00Z"
 
         new_holding = {
             "holding_id": holding_id,

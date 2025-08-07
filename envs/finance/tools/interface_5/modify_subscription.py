@@ -1,5 +1,4 @@
 import json
-from datetime import datetime
 from typing import Any, Dict, Optional
 from tau_bench.envs.tool import Tool
 
@@ -35,7 +34,7 @@ class modify_subscription(Tool):
                 raise ValueError(f"Invalid status. Must be one of {valid_statuses}")
             subscription["status"] = status
             if status == "approved":
-                subscription["approval_date"] = datetime.now().strftime("%Y-%m-%d")
+                subscription["approval_date"] = "2025-08-07"
 
         # Validate and update request_assigned_to if provided
         if request_assigned_to is not None:
@@ -51,7 +50,7 @@ class modify_subscription(Tool):
             subscription["amount"] = round(float(amount), 2)
 
         # Always update timestamp when any change occurs
-        subscription["updated_at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+        subscription["updated_at"] = "2025-08-07T00:00:00Z"
 
         return json.dumps(subscription)
 

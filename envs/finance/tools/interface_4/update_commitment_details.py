@@ -1,5 +1,4 @@
 import json
-from datetime import datetime
 from typing import Any, Dict, Optional
 from tau_bench.envs.tool import Tool
 
@@ -32,7 +31,7 @@ class update_commitment_details(Tool):
 
         # Only bump the timestamp if we actually updated something
         if commitment_amount is not None or status is not None:
-            commitment["updated_at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+            commitment["updated_at"] = "2025-08-07T00:00:00Z"
 
         return json.dumps(commitment)
 
