@@ -8,7 +8,7 @@ class update_invoice(Tool):
     def invoke(
         data: Dict[str, Any],
         invoice_id: str,
-        amount: Optional[str] = None,
+        amount: Optional[float] = None,
         due_date: Optional[str] = None,
         status: Optional[str] = None
     ) -> str:
@@ -21,7 +21,7 @@ class update_invoice(Tool):
 
         # Update amount if provided
         if amount is not None:
-            invoice["amount"] = amount
+            invoice["amount"] = round(float(amount), 2)
 
         # Update due_date if provided
         if due_date is not None:
@@ -58,7 +58,7 @@ class update_invoice(Tool):
                             "description": "ID of the invoice to update"
                         },
                         "amount": {
-                            "type": "string",
+                            "type": "number",
                             "description": "New invoice amount (optional)"
                         },
                         "due_date": {

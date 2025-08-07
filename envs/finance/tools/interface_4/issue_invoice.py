@@ -12,7 +12,7 @@ class issue_invoice(Tool):
         commitment_id: str,
         invoice_date: str,
         due_date: str,
-        amount: str,
+        amount: float,
         currency: str,
         payment_type: Optional[str] = None
     ) -> str:
@@ -57,7 +57,7 @@ class issue_invoice(Tool):
             "commitment_id": commitment_id,
             "invoice_date": invoice_date,
             "due_date": due_date,
-            "amount": amount,
+            "amount": round(float(amount), 2),
             "payment_type": pt,
             "currency": currency,
             "status": "issued",
@@ -82,7 +82,7 @@ class issue_invoice(Tool):
                         "commitment_id": {"type": "string", "description": "ID of the commitment"},
                         "invoice_date": {"type": "string", "description": "Invoice date in YYYY-MM-DD format"},
                         "due_date": {"type": "string", "description": "Due date in YYYY-MM-DD format"},
-                        "amount": {"type": "string", "description": "Invoice amount"},
+                        "amount": {"type": "number", "description": "Invoice amount"},
                         "currency": {"type": "string", "description": "Currency (USD, EUR, GBP, NGN)"},
                         "payment_type": {
                             "type": "string",

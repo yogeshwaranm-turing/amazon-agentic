@@ -8,7 +8,7 @@ class update_subscription(Tool):
     def invoke(
         data: Dict[str, Any],
         subscription_id: str,
-        amount: str = None,
+        amount: float = None,
         status: str = None,
         request_assigned_to: str = None
     ) -> str:
@@ -20,7 +20,7 @@ class update_subscription(Tool):
         subscription = subscriptions[str(subscription_id)]
 
         if amount is not None:
-            subscription["amount"] = amount
+            subscription["amount"] = round(float(amount), 2)
 
         if status is not None:
             valid_statuses = ["pending", "approved", "cancelled"]
@@ -53,7 +53,7 @@ class update_subscription(Tool):
                     "type": "object",
                     "properties": {
                         "subscription_id": {"type": "string", "description": "ID of the subscription"},
-                        "amount": {"type": "string", "description": "New subscription amount"},
+                        "amount": {"type": "number", "description": "New subscription amount"},
                         "status": {"type": "string", "description": "New subscription status"},
                         "request_assigned_to": {"type": "string", "description": "User ID to assign the subscription request to (must be active)"}
                     },

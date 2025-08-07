@@ -6,7 +6,7 @@ from tau_bench.envs.tool import Tool
 class create_fund(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], name: str, fund_type: str, base_currency: str,
-               manager_id: str, size: str, status: str) -> str:
+               manager_id: str, size: float, status: str) -> str:
         
         def generate_id(table: Dict[str, Any]) -> int:
             if not table:
@@ -44,7 +44,7 @@ class create_fund(Tool):
             "fund_type": fund_type,
             "base_currency": base_currency,
             "manager_id": manager_id,
-            "size": size,
+            "size": round(float(size), 2),
             "status": status,
             "created_at": timestamp,
             "updated_at": timestamp
@@ -67,7 +67,7 @@ class create_fund(Tool):
                         "fund_type": {"type": "string", "description": "Fund type (equity, fixed_income, multi_asset, hedge)"},
                         "base_currency": {"type": "string", "description": "Base currency (USD, EUR, GBP, NGN)"},
                         "manager_id": {"type": "string", "description": "ID of the fund manager"},
-                        "size": {"type": "string", "description": "Fund size"},
+                        "size": {"type": "number", "description": "Fund size"},
                         "status": {"type": "string", "description": "Fund status (open, closed)"}
                     },
                     "required": ["name", "fund_type", "base_currency", "manager_id", "size", "status"]

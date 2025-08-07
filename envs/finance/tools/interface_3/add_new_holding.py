@@ -7,7 +7,7 @@ from tau_bench.envs.tool import Tool
 class add_new_holding(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], portfolio_id: str, instrument_id: str, 
-               quantity: str, cost_basis: str) -> str:
+               quantity: float, cost_basis: float) -> str:
         
         def generate_id(table: Dict[str, Any]) -> int:
             if not table:
@@ -33,8 +33,8 @@ class add_new_holding(Tool):
             "holding_id": holding_id,
             "portfolio_id": portfolio_id,
             "instrument_id": instrument_id,
-            "quantity": quantity,
-            "cost_basis": cost_basis,
+            "quantity": round(float(quantity), 4),
+            "cost_basis": round(float(cost_basis), 4),
             "created_at": timestamp
         }
         
@@ -53,8 +53,8 @@ class add_new_holding(Tool):
                     "properties": {
                         "portfolio_id": {"type": "string", "description": "ID of the portfolio"},
                         "instrument_id": {"type": "string", "description": "ID of the instrument"},
-                        "quantity": {"type": "string", "description": "Quantity of the holding"},
-                        "cost_basis": {"type": "string", "description": "Cost basis of the holding"}
+                        "quantity": {"type": "number", "description": "Quantity of the holding"},
+                        "cost_basis": {"type": "number", "description": "Cost basis of the holding"}
                     },
                     "required": ["portfolio_id", "instrument_id", "quantity", "cost_basis"]
                 }

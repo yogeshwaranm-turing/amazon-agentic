@@ -8,7 +8,7 @@ class update_commitment_details(Tool):
     def invoke(
         data: Dict[str, Any],
         commitment_id: str,
-        commitment_amount: Optional[str] = None,
+        commitment_amount: Optional[float] = None,
         status: Optional[str] = None
     ) -> str:
         commitments = data.get("commitments", {})
@@ -21,7 +21,7 @@ class update_commitment_details(Tool):
         # Update amount if provided
         if commitment_amount is not None:
             # Optionally validate numeric format here
-            commitment["commitment_amount"] = commitment_amount
+            commitment["commitment_amount"] = round(float(commitment_amount), 2)
 
         # Update status if provided
         if status is not None:
@@ -54,7 +54,7 @@ class update_commitment_details(Tool):
                             "description": "ID of the commitment to update"
                         },
                         "commitment_amount": {
-                            "type": "string",
+                            "type": "number",
                             "description": "New commitment amount (optional)"
                         },
                         "status": {
