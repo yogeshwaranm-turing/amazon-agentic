@@ -1,0 +1,57 @@
+name: Validate PR Title Matches Folder Name
+
+on:
+  pull_request:
+    types: [opened, labeled, unlabeled, synchronize, reopened, ready_for_review]
+    branches:
+      - main
+      - automate_actions
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  check-folder-name:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@ed68ef82c095e0d48ec87eccea555d944a631a4c # v46.0.1
+
+      - name: Extract folder name from file path
+        id: extract
+        run: |
+          files="${{ steps.changed-files.outputs.all_changed_files }}"
+          IFS=',' read -ra FILES <<< "$files"
+
+          if [[ ${#FILES[@]} -ne 1 ]]; then
+            echo "❌ Only one file should be changed."
+            exit 1
+          fi
+
+          FILE_PATH="${FILES[0]}"
+          echo "Changed file: $FILE_PATH"
+
+          FOLDER_NAME=$(echo "$FILE_PATH" | cut -d'/' -f3)
+
+          echo "Extracted folder name: $FOLDER_NAME"
+          echo "folder_name=$FOLDER_NAME" >> $GITHUB_OUTPUT
+
+      - name: Validate PR title matches folder name
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          FOLDER_NAME="${{ steps.extract.outputs.folder_name }}"
+
+          echo "🔎 PR Title: $PR_TITLE"
+          echo "📁 Folder:   $FOLDER_NAME"
+
+          if [[ "$PR_TITLE" != "$FOLDER_NAME" ]]; then
+            echo "❌ PR title does not match folder name!"
+            exit 1
+          fi
+
+          echo "✅ PR title matches folder name."
