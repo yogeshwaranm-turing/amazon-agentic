@@ -1,48 +1,34 @@
-name: Validate PR Label and Changed JSON File
+# .github/workflows/check-difficulty-label.yml
+name: Check Difficulty Label
 
 on:
   pull_request:
-    branches:
-      - main
-      - automate_actions
-    types: [opened, edited synchronize, reopened, labeled, unlabeled]
-
+    types: [opened, labeled, unlabeled, synchronize, reopened]
 
 jobs:
-  validate:
+  check-label:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-
-      # Require at least one label from the set: medium, hard, low
-      - name: Require at least one label
-        uses: mheap/github-action-required-labels@v5
+      - name: Check for required labels
+        id: label_check
+        uses: actions/github-script@v7
         with:
-          mode: minimum
-          count: 1
-          labels: |
-            medium
-            hard
-            low
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const requiredLabels = ["medium", "expert", "hard"];
+            const labels = context.payload.pull_request.labels.map(label => label.name);
+            const hasRequiredLabel = requiredLabels.some(label => labels.includes(label));
 
-      # Get the list of changed files in the PR
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v40
+            if (hasRequiredLabel) {
+              core.setOutput("label_present", "true");
+              console.log("At least one required label is present.");
+            } else {
+              core.setOutput("label_present", "false");
+              console.log("None of the required labels are present.");
+            }
 
-      # Validate file change count and extension
-      - name: Validate that exactly one JSON file changed
+      - name: Fail if no required label is present
+        if: steps.label_check.outputs.label_present == 'false'
         run: |
-          changed_files=(${{ steps.changed-files.outputs.all_changed_files }})
-          if [ ${#changed_files[@]} -ne 1 ]; then
-            echo "::error ::Error: Exactly one file must be changed."
-            exit 1
-          fi
-
-          file=${changed_files[0]}
-          if [[ ! $file == *.json ]]; then
-            echo "::error ::Error: Changed file must be a JSON file."
-            exit 1
-          fi
+          echo "Pull request must have at least one of these labels: medium, expert, hard."
+          exit 1
