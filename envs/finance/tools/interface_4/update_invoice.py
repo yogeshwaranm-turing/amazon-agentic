@@ -1,5 +1,4 @@
 import json
-from datetime import datetime
 from typing import Any, Dict, Optional
 from tau_bench.envs.tool import Tool
 
@@ -36,7 +35,7 @@ class update_invoice(Tool):
 
         # Bump updated_at only if any field changed
         if any(arg is not None for arg in (amount, due_date, status)):
-            invoice["updated_at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+            invoice["updated_at"] = "2025-08-07T00:00:00Z"
 
         return json.dumps(invoice)
 
