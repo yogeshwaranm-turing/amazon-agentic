@@ -27,32 +27,37 @@ jobs:
           echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n'
 
       - name: Validate only one .json file changed
-        id: validate
         run: |
+          # Get all changed files from previous step
           FILES="${{ steps.changed-files.outputs.all_changed_files }}"
-          FILES=$(echo "$FILES" | tr -s ' ' | sed 's/^ *//;s/ *$//')
-
+          
+          # Split into array
           read -ra FILE_ARRAY <<< "$FILES"
-          COUNT=${#FILE_ARRAY[@]}
-
-          echo "🔍 Found $COUNT changed file(s):"
-          for i in "${!FILE_ARRAY[@]}"; do
-            echo "  [$((i+1))] ${FILE_ARRAY[$i]}"
+          
+          # Filter only .json files
+          JSON_FILES=()
+          for FILE in "${FILE_ARRAY[@]}"; do
+            if [[ "$FILE" == *.json ]]; then
+              JSON_FILES+=("$FILE")
+            fi
           done
-
+          
+          COUNT=${#JSON_FILES[@]}
+          
+          echo "🔍 Found $COUNT changed JSON file(s):"
+          for i in "${!JSON_FILES[@]}"; do
+            echo "  [$((i+1))] ${JSON_FILES[$i]}"
+          done
+          
           if [[ "$COUNT" -ne 1 ]]; then
-            echo "❌ PR must change exactly one file. Found $COUNT."
+            echo "❌ PR must change exactly one .json file. Found $COUNT."
             exit 1
           fi
-
-          FILE="${FILE_ARRAY[0]}"
-          if [[ "${FILE}" != *.json ]]; then
-            echo "❌ File is not a .json file: $FILE"
-            exit 1
-          fi
-
-          echo "✅ Passed: Exactly one .json file changed: $FILE"
-          echo "changed_file=$FILE" >> $GITHUB_ENV
+          
+          # Export the file path for next steps
+          echo "file_path=${JSON_FILES[0]}" >> $GITHUB_ENV
+          echo "✅ Passed: Exactly one .json file changed: ${JSON_FILES[0]}"
+      
 
       - name: Set up Python
         uses: actions/setup-python@v5
