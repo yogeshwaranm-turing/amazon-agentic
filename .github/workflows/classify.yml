@@ -1,4 +1,4 @@
-name: Classify Changed JSON File
+name: Classify JSON Instructions
 
 on:
   pull_request:
@@ -10,11 +10,29 @@ on:
       - '**.json'
 
 jobs:
-  classify:
+  classify-json:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v46.0.1
+        with:
+          ignore_whitespace: true
+          base_sha: ${{ github.event.pull_request.base.sha }}
+
+      - name: Find JSON file
+        id: find-json
+        run: |
+          FILES="${{ steps.changed-files.outputs.all_changed_files }}"
+          FILES=$(echo "$FILES" | tr -s ' ' | sed 's/^ *//;s/ *$//')
+          read -ra FILE_ARRAY <<< "$FILES"
+
+          FILE="${FILE_ARRAY[0]}"
+          echo "Detected JSON file: $FILE"
+          echo "json_file=$FILE" >> $GITHUB_ENV
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -24,16 +42,9 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Find JSON file
-        id: find_file
-        run: |
-          FILE=$(find . -name "*.json" | head -n 1)
-          echo "file_path=$FILE" >> $GITHUB_ENV
-          echo "Detected JSON file: $FILE"
-
-      - name: Classify file
+      - name: Classify JSON file
         env:
-          OPENAI_API_KEY: ${{ secrets.OPEN_AI_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          echo "Classifying $file_path"
-          python classify.py "$file_path"
+          echo "Classifying $json_file"
+          python classify.py "$json_file"
