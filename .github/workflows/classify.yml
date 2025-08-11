@@ -1,4 +1,4 @@
-name: Validate & Classify Single JSON Change
+name: Validate Single JSON Change
 
 on:
   pull_request:
@@ -14,62 +14,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Get changed files
+      # Get changed files from the PR via GitHub API
+      - name: Get changed files in PR
         id: changed-files
-        uses: tj-actions/changed-files@v46.0.1
+        uses: tj-actions/changed-files@v46
         with:
-          ignore_whitespace: true
-          base_sha: ${{ github.event.pull_request.base.sha }}
+          files: '**/*.json' # Only consider JSON files
 
-      - name: Debug changed files
+      # Validate exactly one JSON file changed
+      - name: Validate only one JSON file changed
         run: |
-          echo "🔍 All changed files:"
-          echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n'
+          JSON_FILES="${{ steps.changed-files.outputs.all_changed_files }}"
+          COUNT=$(echo "$JSON_FILES" | tr ' ' '\n' | grep -c . || true)
 
-      - name: Validate only one .json file changed
-        run: |
-          # Get all changed files from previous step
-          FILES="${{ steps.changed-files.outputs.all_changed_files }}"
-          
-          # Split into array
-          read -ra FILE_ARRAY <<< "$FILES"
-          
-          # Filter only .json files
-          JSON_FILES=()
-          for FILE in "${FILE_ARRAY[@]}"; do
-            if [[ "$FILE" == *.json ]]; then
-              JSON_FILES+=("$FILE")
-            fi
-          done
-          
-          COUNT=${#JSON_FILES[@]}
-          
-          echo "🔍 Found $COUNT changed JSON file(s):"
-          for i in "${!JSON_FILES[@]}"; do
-            echo "  [$((i+1))] ${JSON_FILES[$i]}"
-          done
-          
+          echo "🔍 Changed JSON files:"
+          echo "$JSON_FILES" | tr ' ' '\n'
+
           if [[ "$COUNT" -ne 1 ]]; then
-            echo "❌ PR must change exactly one .json file. Found $COUNT."
+            echo "❌ PR must change exactly one JSON file. Found $COUNT."
             exit 1
           fi
-          
-          # Export the file path for next steps
-          echo "file_path=${JSON_FILES[0]}" >> $GITHUB_ENV
-          echo "✅ Passed: Exactly one .json file changed: ${JSON_FILES[0]}"
-      
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+          FILE_PATH=$(echo "$JSON_FILES" | tr ' ' '\n' | head -n 1)
+          echo "✅ Passed: $FILE_PATH"
+          echo "file_path=$FILE_PATH" >> $GITHUB_ENV
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Classify changed JSON
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      # Example: Use the file in next step
+      - name: Process JSON file
         run: |
-          echo "Classifying $changed_file"
-          python classify.py "$changed_file"
+          echo "Processing file: $file_path"
+          cat "$file_path"
