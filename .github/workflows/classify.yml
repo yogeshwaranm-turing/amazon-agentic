@@ -1,16 +1,14 @@
-name: Classify JSON Instructions
+name: Validate & Classify Single JSON Change
 
 on:
   pull_request:
     types: [opened, labeled, unlabeled, synchronize, reopened]
     branches:
       - main
-      - workflows_LLM
-    paths:
-      - '**.json'
+      - automate_action_check
 
 jobs:
-  classify-json:
+  validate-json-change:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,17 +21,38 @@ jobs:
           ignore_whitespace: true
           base_sha: ${{ github.event.pull_request.base.sha }}
 
-      - name: Find JSON file
-        id: find-json
+      - name: Debug changed files
+        run: |
+          echo "🔍 All changed files:"
+          echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n'
+
+      - name: Validate only one .json file changed
+        id: validate
         run: |
           FILES="${{ steps.changed-files.outputs.all_changed_files }}"
           FILES=$(echo "$FILES" | tr -s ' ' | sed 's/^ *//;s/ *$//')
+
           read -ra FILE_ARRAY <<< "$FILES"
+          COUNT=${#FILE_ARRAY[@]}
+
+          echo "🔍 Found $COUNT changed file(s):"
+          for i in "${!FILE_ARRAY[@]}"; do
+            echo "  [$((i+1))] ${FILE_ARRAY[$i]}"
+          done
+
+          if [[ "$COUNT" -ne 1 ]]; then
+            echo "❌ PR must change exactly one file. Found $COUNT."
+            exit 1
+          fi
 
           FILE="${FILE_ARRAY[0]}"
-          echo "📂 Detected changed JSON file:"
-          echo "    $FILE"
-          echo "json_file=$FILE" >> $GITHUB_ENV
+          if [[ "${FILE}" != *.json ]]; then
+            echo "❌ File is not a .json file: $FILE"
+            exit 1
+          fi
+
+          echo "✅ Passed: Exactly one .json file changed: $FILE"
+          echo "changed_file=$FILE" >> $GITHUB_ENV
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -43,10 +62,9 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Classify JSON file
+      - name: Classify changed JSON
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          echo "🚀 Running classification on:"
-          echo "    $json_file"
-          python classify.py "$json_file"
+          echo "Classifying $changed_file"
+          python classify.py "$changed_file"
