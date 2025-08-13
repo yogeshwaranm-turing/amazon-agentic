@@ -1,4 +1,4 @@
-name: Validate Single JSON Change
+name: Classify Changed JSON
 
 on:
   pull_request:
@@ -8,39 +8,59 @@ on:
       - workflows_LLM
 
 jobs:
-  validate-json-change:
+  classify-json:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      # Get changed files from the PR via GitHub API
-      - name: Get changed files in PR
+      - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v46
         with:
-          files: '**/*.json' # Only consider JSON files
+          ignore_whitespace: true
+          base_sha: ${{ github.event.pull_request.base.sha }}
 
-      # Validate exactly one JSON file changed
-      - name: Validate only one JSON file changed
+      - name: Find single changed JSON file
+        id: find-json
         run: |
-          JSON_FILES="${{ steps.changed-files.outputs.all_changed_files }}"
-          COUNT=$(echo "$JSON_FILES" | tr ' ' '\n' | grep -c . || true)
+          FILES="${{ steps.changed-files.outputs.all_changed_files }}"
+          FILES=$(echo "$FILES" | tr -s ' ' | sed 's/^ *//;s/ *$//')
 
-          echo "🔍 Changed JSON files:"
-          echo "$JSON_FILES" | tr ' ' '\n'
+          read -ra FILE_ARRAY <<< "$FILES"
+          COUNT=${#FILE_ARRAY[@]}
+
+          echo "🔍 Found $COUNT changed file(s)"
+          for f in "${FILE_ARRAY[@]}"; do
+            echo "  - $f"
+          done
 
           if [[ "$COUNT" -ne 1 ]]; then
-            echo "❌ PR must change exactly one JSON file. Found $COUNT."
+            echo "❌ PR must change exactly one file"
             exit 1
           fi
 
-          FILE_PATH=$(echo "$JSON_FILES" | tr ' ' '\n' | head -n 1)
-          echo "✅ Passed: $FILE_PATH"
-          echo "file_path=$FILE_PATH" >> $GITHUB_ENV
+          FILE="${FILE_ARRAY[0]}"
+          if [[ "${FILE}" != *.json ]]; then
+            echo "❌ File is not a .json file: $FILE"
+            exit 1
+          fi
 
-      # Example: Use the file in next step
-      - name: Process JSON file
+          echo "✅ Found JSON file: $FILE"
+          echo "json_file_path=$FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Show JSON content
         run: |
-          echo "Processing file: $file_path"
-          cat "$file_path"
+          echo "📂 Printing JSON file: ${{ steps.find-json.outputs.json_file_path }}"
+          cat "${{ steps.find-json.outputs.json_file_path }}"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run classify.py
+        run: python classify.py "${{ steps.find-json.outputs.json_file_path }}"
