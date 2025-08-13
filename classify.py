@@ -4,7 +4,7 @@ import openai
 import os
 
 file_path = sys.argv[1]
-openai.api_key = os.environ["OPENAI_API_KEY"]
+openai.api_key = os.environ["OPEN_AI_KEY"]
 
 # Load the full JSON
 with open(file_path, "r", encoding="utf-8") as f:
