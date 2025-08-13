@@ -36,7 +36,7 @@ JSON content:
 # Call Claude 3.5 Sonnet
 response = client.messages.create(
     model="claude-3-5-sonnet-20240620",  # latest Claude 3.5 Sonnet
-    max_tokens=20000,
+    max_tokens=8000,
     messages=[
         {"role": "user", "content": prompt}
     ]
