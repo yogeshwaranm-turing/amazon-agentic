@@ -29,7 +29,7 @@ You are an expert JSON interpreter and AI instruction evaluator. I will give you
 
 # Call Claude 3.5 Sonnet
 response = client.messages.create(
-    model="claude-3-5-sonnet-20240620",  # latest Claude 3.5 Sonnet
+    model="claude-sonnet-4-20250514",
     max_tokens=8000,
     messages=[
         {"role": "user", "content": prompt}
