@@ -2,6 +2,7 @@ import json
 import sys
 import os
 import anthropic
+import re
 
 # Get the file path from arguments
 file_path = sys.argv[1]
