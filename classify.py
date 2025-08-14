@@ -102,6 +102,8 @@ response = client.messages.create(
     ]
 )
 
+output_text = response.content[0].text.strip()
+
 # Output the result
 print("Classification Raw Output:\n", output_text)
 
