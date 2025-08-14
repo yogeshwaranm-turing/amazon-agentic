@@ -101,7 +101,9 @@ response = client.messages.create(
 )
 
 # Output the result
-print("Classification result:", response.content[0].text.strip())
+output_text = response.content[0].text.strip()
+
+print("Classification Raw Output:\n", output_text)
 
 # --- Part 2 parsing ---
 user_facing = re.search(r"User-Facing:\s*(Yes|No)", output_text, re.IGNORECASE)
