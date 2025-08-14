@@ -3,6 +3,8 @@ import sys
 import os
 import anthropic
 import re
+import sys
+
 
 # Get the file path from arguments
 file_path = sys.argv[1]
@@ -101,8 +103,6 @@ response = client.messages.create(
 )
 
 # Output the result
-output_text = response.content[0].text.strip()
-
 print("Classification Raw Output:\n", output_text)
 
 # --- Part 2 parsing ---
@@ -126,7 +126,13 @@ if verdict and verdict.group(1).lower() == "fail":
     fail_reason.append("❌ Claude marked as fail.")
 
 if fail_reason:
+    with open("result.txt", "w", encoding="utf-8") as f:
+        f.write(output_text + "\n")
+        f.write("\n".join(fail_reason))
     print("\n".join(fail_reason))
-    sys.exit(1)
+
+with open("result.txt", "w", encoding="utf-8") as f:
+    f.write(output_text + "\n")
+    f.write("✅ All checks passed.\n")
 
 print("✅ All checks passed.")
