@@ -132,9 +132,8 @@ if fail_reason:
         f.write(output_text + "\n")
         f.write("\n".join(fail_reason))
     print("\n".join(fail_reason))
-
-with open("result.txt", "w", encoding="utf-8") as f:
-    f.write(output_text + "\n")
-    f.write("✅ All checks passed.\n")
-
-print("✅ All checks passed.")
+else:
+    with open("result.txt", "w", encoding="utf-8") as f:
+        f.write(output_text + "\n")
+        f.write("✅ All checks passed.\n")
+    print("✅ All checks passed.")
