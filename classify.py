@@ -112,7 +112,7 @@ print("Classification Raw Output:\n", output_text)
 # --- Part 2 parsing ---
 user_facing = re.search(r"User-Facing:\s*(Yes|No)", output_text, re.IGNORECASE)
 goal_oriented = re.search(r"Goal-Oriented:\s*(Yes|No)", output_text, re.IGNORECASE)
-single_outcome = re.search(r"Single Unambiguous Outcome:\s*(Yes|No)", output_text, re.IGNORECASE)
+unambiguous_input = re.search(r"Unambiguous input:\s*(Yes|No)", output_text, re.IGNORECASE)
 verdict = re.search(r"Verdict:\s*(Pass|Fail)", output_text, re.IGNORECASE)
 
 fail_reason = []
@@ -123,8 +123,8 @@ if not user_facing or user_facing.group(1).lower() != "yes":
 if not goal_oriented or goal_oriented.group(1).lower() != "yes":
     fail_reason.append("❌ Not goal-oriented.")
 
-if not single_outcome or single_outcome.group(1).lower() != "yes":
-    fail_reason.append("❌ Not a single, verifiable outcome.")
+if not unambiguous_input or unambiguous_input.group(1).lower() != "yes":
+    fail_reason.append("❌ Unambiguous input.")
 
 if verdict and verdict.group(1).lower() == "fail":
     fail_reason.append("❌ Claude marked as fail.")
