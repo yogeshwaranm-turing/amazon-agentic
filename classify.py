@@ -67,8 +67,10 @@ Your tasks are:
 2. **Goal/Output-oriented** — The instruction must be outcome-focused.  
    If it is process-oriented or step-by-step procedural, fail.
 
-3. **Single verifiable outcome** — The desired outcome must be unambiguous and achievable in exactly one way.  
-   If the outcome could be achieved in multiple different ways or is vague, fail.
+3. **Unambiguous input** —  — The provided instruction must be precise and explicit. 
+    All details should be clearly stated without vague terms. 
+    For example, instead of saying “evening,” it should specify “3:00 PM.” 
+    If any part of the instruction leaves room for interpretation, fail.
 
 ---
 
@@ -85,7 +87,7 @@ Return your analysis in **two parts**:
 
 User-Facing: Yes/No  
 Goal-Oriented: Yes/No  
-Single Unambiguous Outcome: Yes/No  
+Unambiguous input : Yes/No  
 Reasoning: <short reasoning for each check>  
 Verdict: Pass/Fail  
 
