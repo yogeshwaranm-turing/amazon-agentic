@@ -130,10 +130,8 @@ if verdict and verdict.group(1).lower() == "fail":
 if fail_reason:
     with open("result.txt", "w", encoding="utf-8") as f:
         f.write(output_text + "\n")
-        f.write("\n".join(fail_reason))
-    print("\n".join(fail_reason))
+        f.write("\n".join(fail_reason) + "\n")
 else:
     with open("result.txt", "w", encoding="utf-8") as f:
         f.write(output_text + "\n")
         f.write("✅ All checks passed.\n")
-    print("✅ All checks passed.")
