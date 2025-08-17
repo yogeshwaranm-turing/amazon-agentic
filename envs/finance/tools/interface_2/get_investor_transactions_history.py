@@ -33,16 +33,16 @@ class GetInvestorTransactionsHistory(Tool):
                         continue
                     
                     # Enrich with fund details
-                    fund_id = subscription.get("fund_id")
-                    fund_details = funds.get(str(fund_id), {})
+                    target_fund_id = subscription.get("target_fund_id")
+                    fund_details = funds.get(str(target_fund_id), {})
                     
                     transactions.append({
-                        "transaction_id": subscription.get("subscription_id"),
+                        "investor_transaction_id": subscription.get("investor_subscription_id"),
                         "transaction_type": "subscription",
-                        "fund_id": fund_id,
-                        "fund_name": fund_details.get("name"),
+                        "target_fund_id": target_fund_id,
+                        "fund_name": fund_details.get("investor_name"),
                         "amount": subscription.get("amount"),
-                        "status": subscription.get("status"),
+                        "investor_status": subscription.get("investor_status"),
                         "date": request_date,
                         "approval_date": subscription.get("approval_date")
                     })
@@ -50,8 +50,8 @@ class GetInvestorTransactionsHistory(Tool):
         # Get redemptions
         if not transaction_type or transaction_type == "redemption":
             for redemption in redemptions.values():
-                subscription_id = redemption.get("subscription_id")
-                subscription = subscriptions.get(str(subscription_id), {})
+                investor_subscription_id = redemption.get("investor_subscription_id")
+                subscription = subscriptions.get(str(investor_subscription_id), {})
                 
                 if subscription.get("investor_id") == investor_id:
                     request_date = redemption.get("request_date")
@@ -63,16 +63,16 @@ class GetInvestorTransactionsHistory(Tool):
                         continue
                     
                     # Enrich with fund details
-                    fund_id = subscription.get("fund_id")
-                    fund_details = funds.get(str(fund_id), {})
+                    target_fund_id = subscription.get("target_fund_id")
+                    fund_details = funds.get(str(target_fund_id), {})
                     
                     transactions.append({
-                        "transaction_id": redemption.get("redemption_id"),
+                        "investor_transaction_id": redemption.get("redemption_id"),
                         "transaction_type": "redemption",
-                        "fund_id": fund_id,
-                        "fund_name": fund_details.get("name"),
+                        "target_fund_id": target_fund_id,
+                        "fund_name": fund_details.get("investor_name"),
                         "amount": redemption.get("redemption_amount"),
-                        "status": redemption.get("status"),
+                        "investor_status": redemption.get("investor_status"),
                         "date": request_date,
                         "processed_date": redemption.get("processed_date"),
                         "redemption_fee": redemption.get("redemption_fee")
@@ -91,16 +91,16 @@ class GetInvestorTransactionsHistory(Tool):
                         continue
                     
                     # Enrich with fund details
-                    fund_id = commitment.get("fund_id")
-                    fund_details = funds.get(str(fund_id), {})
+                    target_fund_id = commitment.get("target_fund_id")
+                    fund_details = funds.get(str(target_fund_id), {})
                     
                     transactions.append({
-                        "transaction_id": commitment.get("commitment_id"),
+                        "investor_transaction_id": commitment.get("commitment_id"),
                         "transaction_type": "commitment",
-                        "fund_id": fund_id,
-                        "fund_name": fund_details.get("name"),
+                        "target_fund_id": target_fund_id,
+                        "fund_name": fund_details.get("investor_name"),
                         "amount": commitment.get("commitment_amount"),
-                        "status": commitment.get("status"),
+                        "investor_status": commitment.get("investor_status"),
                         "date": commitment_date
                     })
         
@@ -114,7 +114,7 @@ class GetInvestorTransactionsHistory(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "get_investor_transactions_history",
+                "investor_name": "get_investor_transactions_history",
                 "description": "Comprehensive transaction history including all subscriptions, redemptions, switches, and payments",
                 "parameters": {
                     "type": "object",

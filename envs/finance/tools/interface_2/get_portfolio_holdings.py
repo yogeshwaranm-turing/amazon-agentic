@@ -4,12 +4,12 @@ from tau_bench.envs.tool import Tool
 
 class GetPortfolioHoldings(Tool):
     @staticmethod
-    def invoke(data: Dict[str, Any], portfolio_id: str) -> str:
+    def invoke(data: Dict[str, Any], investor_portfolio_id: str) -> str:
         portfolio_holdings = data.get("portfolio_holdings", {})
         results = []
         
         for holding in portfolio_holdings.values():
-            if holding.get("portfolio_id") == str(portfolio_id):
+            if holding.get("investor_portfolio_id") == str(investor_portfolio_id):
                 results.append(holding)
         
         return json.dumps(results)
@@ -19,14 +19,14 @@ class GetPortfolioHoldings(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "get_portfolio_holdings",
+                "investor_name": "get_portfolio_holdings",
                 "description": "Get portfolio holdings for holdings analysis and risk management",
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "portfolio_id": {"type": "string", "description": "ID of the portfolio"}
+                        "investor_portfolio_id": {"type": "string", "description": "ID of the portfolio"}
                     },
-                    "required": ["portfolio_id"]
+                    "required": ["investor_portfolio_id"]
                 }
             }
         }

@@ -1,4 +1,4 @@
-# Fund Management & Trading Operations Policy
+# Fund Management & Trading Operations Policy - Interface 1
 
 This policy defines responsibilities, principles, and procedures for fund management and trading operations.
 
@@ -10,11 +10,16 @@ This policy defines responsibilities, principles, and procedures for fund manage
 
 3. **Adherence to Scope**: Only perform actions supported by tools. Refuse out-of-scope requests.
 
-4. **Regulatory Compliance**: Align with SEC, BSA, FinCEN, GAAP ASC 946. Verify Compliance Officer approval for sensitive operations.
+4. **Regulatory Compliance**: Align with SEC, BSA, FinCEN, GAAP ASC 946. Verify Fund Manager approval for sensitive operations.
 
 5. **Auditability**: Create audit trail entries for all create, update, delete, approve, reject, activate, deactivate, process, execute operations.
 
-6. **Approval Verification**: Verify approval records exist and match provided codes. Prompt for missing codes.
+6. **Approval System Logic**:
+   - Use `validate_fund_manager_approval` tool to verify fund manager approval codes
+   - The tool returns `{"approval_valid": true}` if the approval code exists and has `approver_role: "fund_manager"`
+   - The tool returns `{"approval_valid": false}` if the approval code is invalid or not found
+   - All fund creation and trading operations require valid fund manager approval codes
+   - Never proceed with operations if approval validation returns false
 
 ---
 

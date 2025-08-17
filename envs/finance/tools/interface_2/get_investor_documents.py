@@ -6,7 +6,7 @@ class GetInvestorDocuments(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], investor_id: str, 
                document_format: Optional[str] = None, confidentiality_level: Optional[str] = None,
-               status: Optional[str] = None) -> str:
+               investor_status: Optional[str] = None) -> str:
         investors = data.get("investors", {})
         documents = data.get("documents", {})
         reports = data.get("reports", {})
@@ -39,8 +39,8 @@ class GetInvestorDocuments(Tool):
                 if confidentiality_level and document.get("confidentiality_level") != confidentiality_level:
                     continue
                 
-                # Filter by status if specified
-                if status and document.get("status") != status:
+                # Filter by investor_status if specified
+                if investor_status and document.get("investor_status") != investor_status:
                     continue
                 
                 # Enrich with uploader details
@@ -49,8 +49,8 @@ class GetInvestorDocuments(Tool):
                 
                 enriched_document = {
                     **document,
-                    "uploader_name": f"{uploader.get('first_name', '')} {uploader.get('last_name', '')}".strip(),
-                    "uploader_email": uploader.get("email")
+                    "uploader_name": f"{uploader.get('investor_first_name', '')} {uploader.get('investor_last_name', '')}".strip(),
+                    "uploader_email": uploader.get("investor_email")
                 }
                 investor_documents.append(enriched_document)
         
@@ -61,7 +61,7 @@ class GetInvestorDocuments(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "get_investor_documents",
+                "investor_name": "get_investor_documents",
                 "description": "Retrieve all documents related to the investor (agreements, reports, correspondence)",
                 "parameters": {
                     "type": "object",
@@ -69,7 +69,7 @@ class GetInvestorDocuments(Tool):
                         "investor_id": {"type": "string", "description": "ID of the investor"},
                         "document_format": {"type": "string", "description": "Filter by document format (pdf, xlsx, docx, csv, other)"},
                         "confidentiality_level": {"type": "string", "description": "Filter by confidentiality level (public, internal, confidential, restricted)"},
-                        "status": {"type": "string", "description": "Filter by document status (available, archived, deleted)"}
+                        "investor_status": {"type": "string", "description": "Filter by document investor_status (available, archived, deleted)"}
                     },
                     "required": ["investor_id"]
                 }

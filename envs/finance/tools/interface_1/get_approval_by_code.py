@@ -1,31 +1,32 @@
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
-class GetApprovalByCode(Tool):
+class ValidateApprovalInterface1(Tool):
     @staticmethod
-    def invoke(data: Dict[str, Any], approval_code: str) -> str:
+    def invoke(data: Dict[str, Any], fund_approval_code: str) -> str:
         approvals = data.get("approvals", {})
         
         for approval in approvals.values():
-            if approval.get("code") == approval_code:
-                return json.dumps(approval)
+            if (approval.get("code") == fund_approval_code and 
+                approval.get("approver_role") == "fund_manager"):
+                return json.dumps({"approval_valid": True})
         
-        raise ValueError(f"Approval with code {approval_code} not found")
+        return json.dumps({"approval_valid": False})
 
     @staticmethod
     def get_info() -> Dict[str, Any]:
         return {
             "type": "function",
             "function": {
-                "name": "get_approval_by_code",
-                "description": "Get a specific approval record by its unique approval code",
+                "name": "validate_approval_interface_1",
+                "description": "Validate fund manager approval code for Interface 1 (Fund Management & Trading Operations). Returns boolean indicating if approval is valid.",
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "approval_code": {"type": "string", "description": "Unique approval code (e.g., INV1-COMMIT-37)"}
+                        "fund_approval_code": {"type": "string", "description": "Fund manager approval code for validation (e.g., FUND0001)"}
                     },
-                    "required": ["approval_code"]
+                    "required": ["fund_approval_code"]
                 }
             }
         }

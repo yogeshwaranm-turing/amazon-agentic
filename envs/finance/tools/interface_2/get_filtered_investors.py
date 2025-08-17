@@ -7,8 +7,8 @@ class GetFilteredInvestors(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], 
                accreditation_status: Optional[str] = None,
-               status: Optional[str] = None, 
-               country: Optional[str] = None,
+               investor_status: Optional[str] = None, 
+               investor_country: Optional[str] = None,
                source_of_funds: Optional[str] = None,
                name_contains: Optional[str] = None,
                registration_number: Optional[int] = None,
@@ -29,15 +29,15 @@ class GetFilteredInvestors(Tool):
             # Existing filters
             if accreditation_status and investor.get("accreditation_status") != accreditation_status:
                 continue
-            if status and investor.get("status") != status:
+            if investor_status and investor.get("investor_status") != investor_status:
                 continue
-            if country and investor.get("country") != country:
+            if investor_country and investor.get("investor_country") != investor_country:
                 continue
             if source_of_funds and investor.get("source_of_funds") != source_of_funds:
                 continue
             
-            # New name filter
-            if name_contains and name_contains.lower() not in investor.get("name", "").lower():
+            # New investor_name filter
+            if name_contains and name_contains.lower() not in investor.get("investor_name", "").lower():
                 continue
             
             # Registration number filter
@@ -65,7 +65,7 @@ class GetFilteredInvestors(Tool):
                     continue
             
             # Multiple countries filter
-            if countries and investor.get("country") not in countries:
+            if countries and investor.get("investor_country") not in countries:
                 continue
             
             # Tax ID presence filter
@@ -106,14 +106,14 @@ class GetFilteredInvestors(Tool):
             
             # Email domain filter
             if email_domain:
-                email = investor.get("contact_email", "")
-                if not email or not email.endswith(f"@{email_domain}"):
+                investor_email = investor.get("contact_email", "")
+                if not investor_email or not investor_email.endswith(f"@{email_domain}"):
                     continue
             
             # Address contains filter
             if address_contains:
-                address = investor.get("address", "")
-                if address_contains.lower() not in address.lower():
+                investor_address = investor.get("investor_address", "")
+                if address_contains.lower() not in investor_address.lower():
                     continue
             
             results.append(investor)
@@ -125,24 +125,24 @@ class GetFilteredInvestors(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "get_filtered_investors",
+                "investor_name": "get_filtered_investors",
                 "description": "Get filtered investors for CRM and marketing segmentation with comprehensive filtering options",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "accreditation_status": {
                             "type": "string", 
-                            "description": "Filter by accreditation status (accredited/non_accredited)",
+                            "description": "Filter by accreditation investor_status (accredited/non_accredited)",
                             "enum": ["accredited", "non_accredited"]
                         },
-                        "status": {
+                        "investor_status": {
                             "type": "string", 
-                            "description": "Filter by investor status (onboarded/offboarded)",
+                            "description": "Filter by investor investor_status (onboarded/offboarded)",
                             "enum": ["onboarded", "offboarded"]
                         },
-                        "country": {
+                        "investor_country": {
                             "type": "string", 
-                            "description": "Filter by specific country"
+                            "description": "Filter by specific investor_country"
                         },
                         "source_of_funds": {
                             "type": "string", 
@@ -153,7 +153,7 @@ class GetFilteredInvestors(Tool):
                         },
                         "name_contains": {
                             "type": "string", 
-                            "description": "Filter by partial name match (case-insensitive)"
+                            "description": "Filter by partial investor_name match (case-insensitive)"
                         },
                         "registration_number": {
                             "type": "integer", 
@@ -190,11 +190,11 @@ class GetFilteredInvestors(Tool):
                         },
                         "email_domain": {
                             "type": "string", 
-                            "description": "Filter by email domain (e.g., 'company.com' to find all @company.com emails)"
+                            "description": "Filter by investor_email domain (e.g., 'company.com' to find all @company.com emails)"
                         },
                         "address_contains": {
                             "type": "string", 
-                            "description": "Filter by partial address match (case-insensitive)"
+                            "description": "Filter by partial investor_address match (case-insensitive)"
                         }
                     },
                     "required": []

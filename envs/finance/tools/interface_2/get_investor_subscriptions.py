@@ -5,7 +5,7 @@ from tau_bench.envs.tool import Tool
 class GetInvestorSubscriptions(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], investor_id: str, 
-               status: Optional[str] = None, fund_id: Optional[str] = None) -> str:
+               investor_status: Optional[str] = None, target_fund_id: Optional[str] = None) -> str:
         investors = data.get("investors", {})
         subscriptions = data.get("subscriptions", {})
         funds = data.get("funds", {})
@@ -18,21 +18,21 @@ class GetInvestorSubscriptions(Tool):
         investor_subscriptions = []
         for subscription in subscriptions.values():
             if subscription.get("investor_id") == investor_id:
-                # Filter by status if specified
-                if status and subscription.get("status") != status:
+                # Filter by investor_status if specified
+                if investor_status and subscription.get("investor_status") != investor_status:
                     continue
                 
                 # Filter by fund if specified
-                if fund_id and subscription.get("fund_id") != fund_id:
+                if target_fund_id and subscription.get("target_fund_id") != target_fund_id:
                     continue
                 
                 # Enrich with fund details
-                sub_fund_id = subscription.get("fund_id")
+                sub_fund_id = subscription.get("target_fund_id")
                 fund_details = funds.get(str(sub_fund_id), {})
                 
                 enriched_subscription = {
                     **subscription,
-                    "fund_name": fund_details.get("name"),
+                    "fund_name": fund_details.get("investor_name"),
                     "fund_type": fund_details.get("fund_type")
                 }
                 investor_subscriptions.append(enriched_subscription)
@@ -44,14 +44,14 @@ class GetInvestorSubscriptions(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "get_investor_subscriptions",
-                "description": "List all subscription requests and their current status (pending, approved, cancelled)",
+                "investor_name": "get_investor_subscriptions",
+                "description": "List all subscription requests and their current investor_status (pending, approved, cancelled)",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "investor_id": {"type": "string", "description": "ID of the investor"},
-                        "status": {"type": "string", "description": "Filter by subscription status (pending, approved, cancelled)"},
-                        "fund_id": {"type": "string", "description": "Filter by fund ID"}
+                        "investor_status": {"type": "string", "description": "Filter by subscription investor_status (pending, approved, cancelled)"},
+                        "target_fund_id": {"type": "string", "description": "Filter by fund ID"}
                     },
                     "required": ["investor_id"]
                 }

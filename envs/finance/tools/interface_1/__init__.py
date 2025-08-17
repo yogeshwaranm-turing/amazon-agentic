@@ -1,22 +1,22 @@
-from .add_audit_trail import AddAuditTrail
-from .add_new_trade_for_fund import AddNewTradeForFund
-from .calculate_future_value import CalculateFutureValue
-from .calculate_liabilities import CalculateLiabilities
-from .calculate_nav import CalculateNav
+from .add_fund_audit_trail import AddFundAuditTrail
+from .add_fund_trade import AddFundTrade
+from .calculate_fund_future_value import CalculateFundFutureValue
+from .calculate_fund_liabilities import CalculateFundLiabilities
+from .calculate_fund_nav import CalculateFundNav
 from .create_fund import CreateFund
-from .delete_fund import DeleteFund
-from .execute_trade import ExecuteTrade
-from .get_approval_by_code import GetApprovalByCode
+from .close_fund import CloseFund
+from .execute_fund_trade import ExecuteFundTrade
+from .validate_fund_manager_approval import ValidateFundManagerApproval
 from .get_available_funds import GetAvailableFunds
-from .get_daily_profit_loss_by_fund import GetDailyProfitLossByFund
+from .get_fund_daily_pnl import GetFundDailyPnL
 from .get_fund_instruments import GetFundInstruments
 from .get_fund_nav_history import GetFundNavHistory
 from .get_fund_trade_details import GetFundTradeDetails
-from .get_growth_rate import GetGrowthRate
-from .get_instruments import GetInstruments
+from .get_fund_growth_rate import GetFundGrowthRate
+from .get_tradable_instruments import GetTradableInstruments
 from .get_instruments_prices import GetInstrumentsPrices
 from .get_nav_records import GetNavRecords
-from .list_funds_with_filter import ListFundsWithFilter
+from .search_funds import SearchFunds
 from .update_fund import UpdateFund
 from .update_instrument import UpdateInstrument
 from .update_instrument_price import UpdateInstrumentPrice
@@ -24,25 +24,25 @@ from .update_nav_record_value import UpdateNavRecordValue
 from .update_trade import UpdateTrade
 
 ALL_TOOLS_INTERFACE_1 = [
-    AddAuditTrail,
-    AddNewTradeForFund,
-    CalculateFutureValue,
-    CalculateLiabilities,
-    CalculateNav,
+    AddFundAuditTrail,
+    AddFundTrade,
+    CalculateFundFutureValue,
+    CalculateFundLiabilities,
+    CalculateFundNav,
     CreateFund,
-    DeleteFund,
-    ExecuteTrade,
-    GetApprovalByCode,
+    CloseFund,
+    ExecuteFundTrade,
+    ValidateFundManagerApproval,
     GetAvailableFunds,
-    GetDailyProfitLossByFund,
+    GetFundDailyPnL,
     GetFundInstruments,
     GetFundNavHistory,
     GetFundTradeDetails,
-    GetGrowthRate,
-    GetInstruments,
+    GetFundGrowthRate,
+    GetTradableInstruments,
     GetInstrumentsPrices,
     GetNavRecords,
-    ListFundsWithFilter,
+    SearchFunds,
     UpdateFund,
     UpdateInstrument,
     UpdateInstrumentPrice,
