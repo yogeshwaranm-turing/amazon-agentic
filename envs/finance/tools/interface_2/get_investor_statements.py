@@ -41,8 +41,8 @@ class GetInvestorStatements(Tool):
                 for doc in documents.values():
                     if doc.get("report_id") == report_id:
                         associated_docs.append({
-                            "document_id": doc.get("document_id"),
-                            "name": doc.get("name"),
+                            "investor_document_id": doc.get("investor_document_id"),
+                            "investor_name": doc.get("investor_name"),
                             "format": doc.get("format"),
                             "size_bytes": doc.get("size_bytes"),
                             "upload_date": doc.get("upload_date")
@@ -50,7 +50,7 @@ class GetInvestorStatements(Tool):
                 
                 enriched_report = {
                     **report,
-                    "generator_name": f"{generator.get('first_name', '')} {generator.get('last_name', '')}".strip(),
+                    "generator_name": f"{generator.get('investor_first_name', '')} {generator.get('investor_last_name', '')}".strip(),
                     "documents": associated_docs
                 }
                 investor_statements.append(enriched_report)
@@ -62,7 +62,7 @@ class GetInvestorStatements(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "get_investor_statements",
+                "investor_name": "get_investor_statements",
                 "description": "Access periodic statements including performance, holdings, and transaction summaries",
                 "parameters": {
                     "type": "object",

@@ -1,40 +1,57 @@
-
 import json
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from tau_bench.envs.tool import Tool
 
 class GetFundInstruments(Tool):
     @staticmethod
-    def invoke(data: Dict[str, Any], fund_id: str) -> str:
-        funds = data.get("funds", {})
+    def invoke(data: Dict[str, Any], instrument_type: Optional[str] = None,
+               status: Optional[str] = None, ticker: Optional[str] = None) -> str:
         instruments = data.get("instruments", {})
-        trades = data.get("trades", {})
+        results = []
         
-        # Validate fund exists
-        if str(fund_id) not in funds:
-            return json.dumps({"success": False, "message": "Fund not found", "halt": True})
+        for instrument in instruments.values():
+            if instrument_type and instrument.get("instrument_type") != instrument_type:
+                continue
+            if status and instrument.get("status") != status:
+                continue
+            if ticker and instrument.get("ticker") != ticker:
+                continue
+            results.append(instrument)
         
-        fund_instruments = []
-        for trade_id, trade in trades.items():
-            if trade.get("fund_id") == fund_id:
-                instrument_id = trade.get("instrument_id")
-                fund_instruments.append(instruments.get(str(instrument_id), {}))
-        
-        return json.dumps({"fund_instruments": fund_instruments})
+        return json.dumps(results)
 
     @staticmethod
     def get_info() -> Dict[str, Any]:
         return {
             "type": "function",
             "function": {
-                "name": "get_fund_instruments",
-                "description": "Retrieve all instruments associated with a specific fund",
+                "name": "get_instruments",
+                "description": "Get instruments for investment universe management",
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "fund_id": {"type": "string", "description": "ID of the fund"}
+                        "instrument_type": {
+                            "type": "string",
+                            "description": "Filter by instrument type",
+                            "enum": [
+                                "equities",
+                                "bonds",
+                                "money_market_instruments",
+                                "hybrid_securities",
+                                "fund_units",
+                                "commodities",
+                                "derivatives",
+                                "real_estate",
+                                "private_equity",
+                                "financing_and_debt",
+                                "alternative_assets",
+                                "structured_products"
+                            ]
+                        },
+                        "status": {"type": "string", "description": "Filter by status (active, inactive)"},
+                        "ticker": {"type": "string", "description": "Filter by ticker symbol"}
                     },
-                    "required": ["fund_id"]
+                    "required": []
                 }
             }
         }

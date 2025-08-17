@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
 class GetInvestorPortfolioHoldings(Tool):
@@ -27,16 +27,16 @@ class GetInvestorPortfolioHoldings(Tool):
         # Get holdings for this portfolio
         holdings = []
         for holding in portfolio_holdings.values():
-            if holding.get("portfolio_id") == investor_portfolio.get("portfolio_id"):
+            if holding.get("investor_portfolio_id") == investor_portfolio.get("investor_portfolio_id"):
                 # Enrich with fund details
-                fund_id = holding.get("fund_id")
-                fund_details = funds.get(str(fund_id), {})
+                target_fund_id = holding.get("target_fund_id")
+                fund_details = funds.get(str(target_fund_id), {})
                 
                 enriched_holding = {
                     **holding,
-                    "fund_name": fund_details.get("name"),
+                    "fund_name": fund_details.get("investor_name"),
                     "fund_type": fund_details.get("fund_type"),
-                    "fund_status": fund_details.get("status")
+                    "fund_status": fund_details.get("investor_status")
                 }
                 holdings.append(enriched_holding)
         
@@ -47,7 +47,7 @@ class GetInvestorPortfolioHoldings(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "get_investor_portfolio_holdings",
+                "investor_name": "get_investor_portfolio_holdings",
                 "description": "Retrieve detailed breakdown of all fund holdings within the investor's portfolio",
                 "parameters": {
                     "type": "object",

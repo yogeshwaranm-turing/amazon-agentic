@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
 class GetInvestorProfile(Tool):
@@ -19,8 +19,8 @@ class GetInvestorProfile(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "get_investor_profile",
-                "description": "Retrieve complete investor profile information including KYC details, status, and contact information",
+                "investor_name": "get_investor_profile",
+                "description": "Retrieve complete investor profile information including KYC details, investor_status, and contact information",
                 "parameters": {
                     "type": "object",
                     "properties": {
