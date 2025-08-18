@@ -131,70 +131,72 @@ class GetFilteredInvestors(Tool):
                     "type": "object",
                     "properties": {
                         "accreditation_status": {
-                            "type": "string", 
-                            "description": "Filter by accreditation investor_status (accredited/non_accredited)",
+                            "type": "string",
+                            "description": "Filter by accreditation status",
                             "enum": ["accredited", "non_accredited"]
                         },
-                        "status": {
-                            "type": "string", 
-                            "description": "Filter by investor investor_status (onboarded/offboarded)",
+                        "investor_status": {
+                            "type": "string",
+                            "description": "Filter by investor status",
                             "enum": ["onboarded", "offboarded"]
                         },
-                        "country": {
-                            "type": "string", 
-                            "description": "Filter by specific investor_country"
+                        "investor_country": {
+                            "type": "string",
+                            "description": "Filter by a specific country"
                         },
                         "source_of_funds": {
-                            "type": "string", 
-                            "description": "Filter by specific source of funds",
-                            "enum": ["retained_earnings", "shareholder_capital", "asset_sale", "loan_facility", 
-                                   "external_investment", "government_grant", "merger_or_acquisition_proceeds", 
-                                   "royalty_or_licensing_income", "dividend_income", "other"]
+                            "type": "string",
+                            "description": "Filter by source of funds",
+                            "enum": [
+                                "retained_earnings", "shareholder_capital", "asset_sale", "loan_facility",
+                                "external_investment", "government_grant", "merger_or_acquisition_proceeds",
+                                "royalty_or_licensing_income", "dividend_income", "other"
+                            ]
                         },
                         "name_contains": {
-                            "type": "string", 
-                            "description": "Filter by partial investor_name match (case-insensitive)"
+                            "type": "string",
+                            "description": "Filter by partial name match (case-insensitive)"
                         },
                         "registration_number": {
-                            "type": "integer", 
+                            "type": "integer",
                             "description": "Filter by specific registration number"
                         },
                         "incorporation_date_from": {
-                            "type": "string", 
-                            "description": "Filter investors incorporated on or after this date (YYYY-MM-DD format)"
+                            "type": "string",
+                            "description": "Filter investors incorporated on or after this date (YYYY-MM-DD)"
                         },
                         "incorporation_date_to": {
-                            "type": "string", 
-                            "description": "Filter investors incorporated on or before this date (YYYY-MM-DD format)"
+                            "type": "string",
+                            "description": "Filter investors incorporated on or before this date (YYYY-MM-DD)"
                         },
                         "countries": {
                             "type": "array",
                             "items": {"type": "string"},
-                            "description": "Filter by multiple countries (returns investors from any of these countries)"
+                            "description": "Filter by multiple countries (match any)"
                         },
                         "has_tax_id": {
-                            "type": "boolean", 
-                            "description": "Filter by presence of tax ID (true for investors with tax ID, false for those without)"
+                            "type": "boolean",
+                            "description": "true = must have tax_id, false = must not have tax_id"
                         },
                         "has_registration_number": {
-                            "type": "boolean", 
-                            "description": "Filter by presence of registration number (true for investors with reg number, false for those without)"
+                            "type": "boolean",
+                            "description": "true = must have registration_number, false = must not have it"
                         },
                         "created_after": {
-                            "type": "string", 
-                            "description": "Filter investors created after this timestamp (ISO format) [ex: 2022-08-17T04:30:00]"
+                            "type": "string",
+                            "description": "Filter investors created after this timestamp (ISO 8601, e.g., 2022-08-17T04:30:00)"
                         },
                         "created_before": {
-                            "type": "string", 
-                            "description": "Filter investors created before this timestamp (ISO format) [ex: 2022-08-17T04:30:00]"
+                            "type": "string",
+                            "description": "Filter investors created before this timestamp (ISO 8601, e.g., 2022-08-17T04:30:00)"
                         },
                         "email_domain": {
-                            "type": "string", 
-                            "description": "Filter by investor_email domain (e.g., 'company.com' to find all @company.com emails)"
+                            "type": "string",
+                            "description": "Filter by email domain (e.g., 'company.com' -> matches *@company.com)"
                         },
                         "address_contains": {
-                            "type": "string", 
-                            "description": "Filter by partial investor_address match (case-insensitive)"
+                            "type": "string",
+                            "description": "Filter by partial address match (case-insensitive)"
                         }
                     },
                     "required": []
