@@ -2,6 +2,7 @@ from .add_portfolio_holding import AddPortfolioHolding
 from .cancel_investor_subscription import CancelInvestorSubscription
 from .create_investor_subscription import CreateInvestorSubscription
 from .create_new_user import CreateNewUser
+from .filter_funds import FilterFunds
 from .find_user import FindUser
 from .get_filtered_investors import GetFilteredInvestors
 from .get_investor_documents import GetInvestorDocuments
@@ -30,6 +31,7 @@ ALL_TOOLS_INTERFACE_2 = [
     CancelInvestorSubscription,
     CreateInvestorSubscription,
     CreateNewUser,
+    FilterFunds,
     FindUser,
     GetFilteredInvestors,
     GetInvestorDocuments,
