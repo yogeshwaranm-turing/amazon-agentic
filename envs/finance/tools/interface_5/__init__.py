@@ -25,7 +25,7 @@ from .remove_invoice import RemoveInvoice
 from .revise_investor_details import ReviseInvestorDetails
 from .revise_subscription import ReviseSubscription
 from .terminate_subscription import TerminateSubscription
-
+from .get_funds import GetFunds
 
 ALL_TOOLS_INTERFACE_5 = [
     AddCommitment,
@@ -54,5 +54,6 @@ ALL_TOOLS_INTERFACE_5 = [
     RemoveInvoice,
     ReviseInvestorDetails,
     ReviseSubscription,
-    TerminateSubscription
+    TerminateSubscription,
+    GetFunds
 ]
