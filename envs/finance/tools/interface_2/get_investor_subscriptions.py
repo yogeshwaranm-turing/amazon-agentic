@@ -5,29 +5,35 @@ from tau_bench.envs.tool import Tool
 class GetInvestorSubscriptions(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], investor_id: str, 
-               status: Optional[str] = None, target_fund_id: Optional[str] = None) -> str:
+               status: Optional[str] = None, fund_id: Optional[str] = None) -> str:
         investors = data.get("investors", {})
-        subscriptions = data.get("subscriptions", {})
+        subscriptions = data.get("subscriptions", {})  # Back to dictionary with default {}
         funds = data.get("funds", {})
-        
+
         # Validate investor exists
         if str(investor_id) not in investors:
             raise ValueError(f"Investor {investor_id} not found")
         
         # Get subscriptions for this investor
-        subscriptions = []
+        final_subscriptions = []
+        
+        # Debug: Check what type subscriptions actually is
+        if not isinstance(subscriptions, dict):
+            raise ValueError(f"Expected subscriptions to be a dict, but got {type(subscriptions)}")
+        
         for subscription in subscriptions.values():
-            if subscription.get("investor_id") == investor_id:
+            # Compare as strings to handle type mismatches
+            if str(subscription.get("investor_id")) == str(investor_id):
                 # Filter by status if specified
                 if status and subscription.get("status") != status:
                     continue
                 
                 # Filter by fund if specified
-                if target_fund_id and subscription.get("target_fund_id") != target_fund_id:
+                if fund_id and str(subscription.get("fund_id")) != str(fund_id):
                     continue
                 
                 # Enrich with fund details
-                sub_fund_id = subscription.get("target_fund_id")
+                sub_fund_id = subscription.get("fund_id")
                 fund_details = funds.get(str(sub_fund_id), {})
                 
                 enriched_subscription = {
@@ -35,9 +41,9 @@ class GetInvestorSubscriptions(Tool):
                     "fund_name": fund_details.get("name"),
                     "fund_type": fund_details.get("fund_type")
                 }
-                subscriptions.append(enriched_subscription)
-        
-        return json.dumps(subscriptions)
+                final_subscriptions.append(enriched_subscription)
+
+        return json.dumps(final_subscriptions)
 
     @staticmethod
     def get_info() -> Dict[str, Any]:
@@ -58,7 +64,7 @@ class GetInvestorSubscriptions(Tool):
                             "description": "Filter by subscription status",
                             "enum": ["pending", "approved", "cancelled"]
                         },
-                        "target_fund_id": {
+                        "fund_id": {
                             "type": "string",
                             "description": "Filter by fund ID"
                         }

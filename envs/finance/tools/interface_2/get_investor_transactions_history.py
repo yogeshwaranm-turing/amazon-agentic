@@ -23,23 +23,23 @@ class GetInvestorTransactionsHistory(Tool):
         # Get subscriptions
         if not transaction_type or transaction_type == "subscription":
             for subscription in subscriptions.values():
-                if subscription.get("investor_id") == investor_id:
+                if str(subscription.get("investor_id")) == str(investor_id):  # Added str() conversion
                     request_date = subscription.get("request_date")
                     
                     # Date filtering
-                    if start_date and request_date < start_date:
+                    if start_date and request_date and request_date < start_date:
                         continue
-                    if end_date and request_date > end_date:
+                    if end_date and request_date and request_date > end_date:
                         continue
                     
                     # Enrich with fund details
-                    target_fund_id = subscription.get("target_fund_id")
-                    fund_details = funds.get(str(target_fund_id), {})
+                    fund_id = subscription.get("fund_id")
+                    fund_details = funds.get(str(fund_id), {})
                     
                     transactions.append({
                         "transaction_id": subscription.get("subscription_id"),
                         "transaction_type": "subscription",
-                        "target_fund_id": target_fund_id,
+                        "fund_id": fund_id,
                         "fund_name": fund_details.get("name"),
                         "amount": subscription.get("amount"),
                         "status": subscription.get("status"),
@@ -53,23 +53,23 @@ class GetInvestorTransactionsHistory(Tool):
                 subscription_id = redemption.get("subscription_id")
                 subscription = subscriptions.get(str(subscription_id), {})
                 
-                if subscription.get("investor_id") == investor_id:
+                if str(subscription.get("investor_id")) == str(investor_id):  # Added str() conversion
                     request_date = redemption.get("request_date")
                     
                     # Date filtering
-                    if start_date and request_date < start_date:
+                    if start_date and request_date and request_date < start_date:
                         continue
-                    if end_date and request_date > end_date:
+                    if end_date and request_date and request_date > end_date:
                         continue
                     
                     # Enrich with fund details
-                    target_fund_id = subscription.get("target_fund_id")
-                    fund_details = funds.get(str(target_fund_id), {})
+                    fund_id = subscription.get("fund_id")
+                    fund_details = funds.get(str(fund_id), {})
                     
                     transactions.append({
                         "transaction_id": redemption.get("redemption_id"),
                         "transaction_type": "redemption",
-                        "target_fund_id": target_fund_id,
+                        "fund_id": fund_id,
                         "fund_name": fund_details.get("name"),
                         "amount": redemption.get("redemption_amount"),
                         "status": redemption.get("status"),
@@ -81,31 +81,31 @@ class GetInvestorTransactionsHistory(Tool):
         # Get commitments
         if not transaction_type or transaction_type == "commitment":
             for commitment in commitments.values():
-                if commitment.get("investor_id") == investor_id:
+                if str(commitment.get("investor_id")) == str(investor_id):  # Added str() conversion
                     commitment_date = commitment.get("commitment_date")
                     
                     # Date filtering
-                    if start_date and commitment_date < start_date:
+                    if start_date and commitment_date and commitment_date < start_date:
                         continue
-                    if end_date and commitment_date > end_date:
+                    if end_date and commitment_date and commitment_date > end_date:
                         continue
                     
                     # Enrich with fund details
-                    target_fund_id = commitment.get("target_fund_id")
-                    fund_details = funds.get(str(target_fund_id), {})
+                    fund_id = commitment.get("fund_id")
+                    fund_details = funds.get(str(fund_id), {})
                     
                     transactions.append({
                         "transaction_id": commitment.get("commitment_id"),
                         "transaction_type": "commitment",
-                        "target_fund_id": target_fund_id,
+                        "fund_id": fund_id,
                         "fund_name": fund_details.get("name"),
                         "amount": commitment.get("commitment_amount"),
                         "status": commitment.get("status"),
                         "date": commitment_date
                     })
         
-        # Sort by date (most recent first)
-        transactions.sort(key=lambda x: x.get("date", ""), reverse=True)
+        # Sort by date (most recent first) - handle None dates safely
+        transactions.sort(key=lambda x: x.get("date") or "", reverse=True)
         
         return json.dumps(transactions)
 
