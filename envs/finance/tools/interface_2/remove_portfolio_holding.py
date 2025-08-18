@@ -15,7 +15,7 @@ class RemovePortfolioHolding(Tool):
         deleted_holding = portfolio_holdings.pop(str(portfolio_holding_id))
         
         return json.dumps({
-            "investor_status": "removed",
+            "status": "removed",
             "removed_holding": deleted_holding
         })
 

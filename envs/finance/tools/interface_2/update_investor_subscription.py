@@ -23,7 +23,7 @@ class UpdateInvestorSubscription(Tool):
         timestamp = "2025-10-01T00:00:00"
         
         # Apply changes
-        if field_name in ["amount", "investor_status"]:
+        if field_name in ["amount", "status"]:
             subscription[field_name] = field_value
 
         subscription["updated_at"] = timestamp
@@ -40,10 +40,10 @@ class UpdateInvestorSubscription(Tool):
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "investor_subscription_id": {"type": "string", "description": "ID of the subscription to update"},
+                        "subscription_id": {"type": "string", "description": "ID of the subscription to update"},
                         "field_name": {
                             "type": "string",
-                            "description": "Field to update (e.g., 'amount', 'investor_status')"
+                            "description": "Field to update (e.g., 'amount', 'status')"
                         },
                         "field_value": {
                             "type": ["string", "number", "boolean"],
@@ -52,7 +52,7 @@ class UpdateInvestorSubscription(Tool):
                         "compliance_officer_approval": {"type": "boolean", "description": "Compliance Officer approval flag (True/False)"},
                         "finance_officer_approval": {"type": "boolean", "description": "Finance Officer approval flag (True/False)"}
                     },
-                    "required": ["investor_subscription_id", "field_name", "field_value", "compliance_officer_approval", "finance_officer_approval"]
+                    "required": ["subscription_id", "field_name", "field_value", "compliance_officer_approval", "finance_officer_approval"]
                 }
             }
         }
