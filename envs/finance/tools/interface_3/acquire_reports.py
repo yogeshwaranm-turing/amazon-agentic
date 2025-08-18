@@ -2,7 +2,7 @@ import json
 from typing import Any, Dict, Optional
 from tau_bench.envs.tool import Tool
 
-class GetReports(Tool):
+class AcquireReports(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], fund_id: Optional[str] = None, 
                investor_id: Optional[str] = None, report_type: Optional[str] = None,
@@ -28,8 +28,8 @@ class GetReports(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "get_reports",
-                "description": "Get reports with optional filters for distribution and access",
+                "name": "acquire_reports",
+                "description": "Acquire reports with optional filters for distribution and access",
                 "parameters": {
                     "type": "object",
                     "properties": {

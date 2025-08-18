@@ -18,7 +18,7 @@ from .get_investor_profile import GetInvestorProfile
 from .get_invoices import GetInvoices
 from .get_notifications import GetNotifications
 from .get_payment_history import GetPaymentHistory
-from .get_reports import GetReports
+from .acquire_reports import AcquireReports
 from .register_payment import RegisterPayment
 from .retrieve_invoices import RetrieveInvoices
 from .send_email_notification import SendEmailNotification
@@ -45,7 +45,7 @@ ALL_TOOLS_INTERFACE_3 = [
     GetInvoices,
     GetNotifications,
     GetPaymentHistory,
-    GetReports,
+    AcquireReports,
     RegisterPayment,
     RetrieveInvoices,
     SendEmailNotification,
