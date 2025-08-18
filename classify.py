@@ -134,6 +134,12 @@ with open("result.txt", "w", encoding="utf-8") as f:
     f.write(output_text.strip() + "\n\n")
     if fail_reason:
         f.write("\n".join(fail_reason) + "\n")
-        f.write("❌ One or more checks failed\n")
+        f.write("❌ One or more checks failed\n")   # <-- key marker
     else:
-        f.write("✅ All checks passed\n")
+        f.write("✅ All checks passed\n")           # <-- key marker
+
+print("Result written to result.txt")
+
+print("=== Final result.txt contents ===")
+with open("result.txt", "r", encoding="utf-8") as f:
+    print(f.read())
