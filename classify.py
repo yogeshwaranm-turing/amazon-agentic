@@ -122,7 +122,7 @@ if not user_facing or user_facing.group(1).lower() != "yes":
 if not goal_oriented or goal_oriented.group(1).lower() != "yes":
     fail_reason.append("❌ Not goal-oriented.")
 
-if not ambiguous_input or ambiguous_input.group(1).lower() != "yes":
+if not ambiguous_input or ambiguous_input.group(1).lower() != "no":
     fail_reason.append("❌ Ambiguous input.")
 
 if verdict and verdict.group(1).lower() == "fail":
