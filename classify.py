@@ -111,7 +111,7 @@ print("Classification Raw Output:\n", output_text)
 # --- Part 2 parsing ---
 user_facing = re.search(r"User-Facing:\s*(Yes|No)", output_text, re.IGNORECASE)
 goal_oriented = re.search(r"Goal-Oriented:\s*(Yes|No)", output_text, re.IGNORECASE)
-ambiguous_input = re.search(r"ambiguous input:\s*(Yes|No)", output_text, re.IGNORECASE)
+ambiguous_input = re.search(r"Ambiguous input:\s*(Yes|No)", output_text, re.IGNORECASE)
 verdict = re.search(r"Verdict:\s*(Pass|Fail)", output_text, re.IGNORECASE)
 
 fail_reason = []
