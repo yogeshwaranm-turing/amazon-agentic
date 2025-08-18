@@ -61,8 +61,7 @@ Your tasks are:
 
 ✅ Additional Pass/Fail Criteria:
 
-1. **User-facing** — The instruction must be directed toward a human user.  
-   If it is agent-facing or internal system instructions, fail.
+1. **User-facing** — User Facing means the user is not in control and dosent have direct access but the agent does
 
 2. **Goal/Output-oriented** — The instruction must be outcome-focused.  
    If it is process-oriented or step-by-step procedural, fail.
