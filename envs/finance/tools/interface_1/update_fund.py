@@ -4,7 +4,7 @@ from tau_bench.envs.tool import Tool
 
 class UpdateFund(Tool):
     @staticmethod
-    def invoke(data: Dict[str, Any], fund_id: str, field_name: str, field_value: Union[str, int, float],
+    def invoke(data: Dict[str, Any], fund_id: str, field_name: str, field_value: Union[str, int, float, bool],
                fund_manager_approval: bool, compliance_review_required: Optional[bool] = None,
                compliance_officer_approval: Optional[bool] = None) -> str:
 
