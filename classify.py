@@ -126,8 +126,6 @@ with open("result.txt", "w", encoding="utf-8") as f:
     else:
         f.write("✅ All checks passed\n")
 
-print("Result written to result.txt")
-
-print("=== Final result.txt contents ===")
+print("=== Final Output ===")
 with open("result.txt", "r", encoding="utf-8") as f:
     print(f.read())
