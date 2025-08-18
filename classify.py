@@ -130,11 +130,10 @@ if not ambiguous_input or ambiguous_input.group(1).lower() != "no":
 if verdict and verdict.group(1).lower() == "fail":
     fail_reason.append("❌ Claude marked as fail.")
 
-if fail_reason:
-    with open("result.txt", "w", encoding="utf-8") as f:
-        f.write(output_text + "\n")
+with open("result.txt", "w", encoding="utf-8") as f:
+    f.write(output_text.strip() + "\n\n")
+    if fail_reason:
         f.write("\n".join(fail_reason) + "\n")
-else:
-    with open("result.txt", "w", encoding="utf-8") as f:
-        f.write(output_text + "\n")
-        f.write("✅ All checks passed.\n")
+        f.write("❌ One or more checks failed\n")
+    else:
+        f.write("✅ All checks passed\n")
