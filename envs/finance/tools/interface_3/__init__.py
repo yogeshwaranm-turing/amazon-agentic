@@ -23,7 +23,7 @@ from .retrieve_filtered_investors import RetrieveFilteredInvestors
 from .retrieve_invoices import RetrieveInvoices
 from .send_email_notification import SendEmailNotification
 from .update_invoice import UpdateInvoice
-
+from .search_users import SearchUsers
 ALL_TOOLS_INTERFACE_3 = [
     CreateNewAuditTrail,
     AddNewUser,
@@ -49,5 +49,6 @@ ALL_TOOLS_INTERFACE_3 = [
     RetrieveFilteredInvestors,
     RetrieveInvoices,
     SendEmailNotification,
-    UpdateInvoice
+    UpdateInvoice,
+    SearchUsers
 ]
