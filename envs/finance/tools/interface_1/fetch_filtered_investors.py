@@ -3,12 +3,12 @@ from typing import Any, Dict, Optional, List
 from datetime import datetime
 from tau_bench.envs.tool import Tool
 
-class GetFilteredInvestors(Tool):
+class FetchFilteredInvestors(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], 
                accreditation_status: Optional[str] = None,
-               status: Optional[str] = None, 
-               country: Optional[str] = None,
+               investor_status: Optional[str] = None, 
+               investor_country: Optional[str] = None,
                source_of_funds: Optional[str] = None,
                name_contains: Optional[str] = None,
                registration_number: Optional[int] = None,
@@ -29,14 +29,14 @@ class GetFilteredInvestors(Tool):
             # Existing filters
             if accreditation_status and investor.get("accreditation_status") != accreditation_status:
                 continue
-            if status and investor.get("status") != status:
+            if investor_status and investor.get("status") != investor_status:
                 continue
-            if country and investor.get("country") != country:
+            if investor_country and investor.get("country") != investor_country:
                 continue
             if source_of_funds and investor.get("source_of_funds") != source_of_funds:
                 continue
             
-            # New name filter
+            # New investor_name filter
             if name_contains and name_contains.lower() not in investor.get("name", "").lower():
                 continue
             
@@ -106,14 +106,14 @@ class GetFilteredInvestors(Tool):
             
             # Email domain filter
             if email_domain:
-                email = investor.get("contact_email", "")
-                if not email or not email.endswith(f"@{email_domain}"):
+                investor_email = investor.get("contact_email", "")
+                if not investor_email or not investor_email.endswith(f"@{email_domain}"):
                     continue
             
             # Address contains filter
             if address_contains:
-                address = investor.get("address", "")
-                if address_contains.lower() not in address.lower():
+                investor_address = investor.get("address", "")
+                if address_contains.lower() not in investor_address.lower():
                     continue
             
             results.append(investor)
@@ -125,7 +125,7 @@ class GetFilteredInvestors(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "get_filtered_investors",
+                "name": "fetch_filtered_investors",
                 "description": "Get filtered investors for CRM and marketing segmentation with comprehensive filtering options",
                 "parameters": {
                     "type": "object",
@@ -135,12 +135,12 @@ class GetFilteredInvestors(Tool):
                             "description": "Filter by accreditation status",
                             "enum": ["accredited", "non_accredited"]
                         },
-                        "status": {
+                        "investor_status": {
                             "type": "string",
                             "description": "Filter by investor status",
                             "enum": ["onboarded", "offboarded"]
                         },
-                        "country": {
+                        "investor_country": {
                             "type": "string",
                             "description": "Filter by a specific country"
                         },

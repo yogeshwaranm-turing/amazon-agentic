@@ -22,6 +22,8 @@ from .update_instrument import UpdateInstrument
 from .update_instrument_price import UpdateInstrumentPrice
 from .update_nav_record_value import UpdateNavRecordValue
 from .update_trade import UpdateTrade
+from .query_users import QueryUsers
+from .fetch_filtered_investors import FetchFilteredInvestors
 
 ALL_TOOLS_INTERFACE_1 = [
     AddAuditTrail,
@@ -47,5 +49,7 @@ ALL_TOOLS_INTERFACE_1 = [
     UpdateInstrument,
     UpdateInstrumentPrice,
     UpdateNavRecordValue,
-    UpdateTrade
+    UpdateTrade,
+    QueryUsers,
+    FetchFilteredInvestors
 ]

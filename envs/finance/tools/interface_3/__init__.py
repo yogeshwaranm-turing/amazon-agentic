@@ -16,13 +16,14 @@ from .get_investor_commitments import GetInvestorCommitments
 from .get_invoices import GetInvoices
 from .get_notifications import GetNotifications
 from .get_payment_history import GetPaymentHistory
-from .obtain_investor_profile import ObtainInvestorProfile
 from .acquire_reports import AcquireReports
 from .register_payment import RegisterPayment
 from .retrieve_filtered_investors import RetrieveFilteredInvestors
 from .retrieve_invoices import RetrieveInvoices
 from .send_email_notification import SendEmailNotification
 from .update_invoice import UpdateInvoice
+from .search_users import SearchUsers
+from .obtain_investors import ObtainInvestors
 
 ALL_TOOLS_INTERFACE_3 = [
     CreateNewAuditTrail,
@@ -43,11 +44,12 @@ ALL_TOOLS_INTERFACE_3 = [
     GetInvoices,
     GetNotifications,
     GetPaymentHistory,
-    ObtainInvestorProfile,
+    ObtainInvestors,
     AcquireReports,
     RegisterPayment,
     RetrieveFilteredInvestors,
     RetrieveInvoices,
     SendEmailNotification,
-    UpdateInvoice
+    UpdateInvoice,
+    SearchUsers
 ]

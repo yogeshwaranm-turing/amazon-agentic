@@ -25,6 +25,8 @@ from .remove_invoice import RemoveInvoice
 from .revise_investor_details import ReviseInvestorDetails
 from .revise_subscription import ReviseSubscription
 from .terminate_subscription import TerminateSubscription
+from .get_funds import GetFunds
+from .search_investors import SearchInvestors
 
 
 ALL_TOOLS_INTERFACE_5 = [
@@ -54,5 +56,7 @@ ALL_TOOLS_INTERFACE_5 = [
     RemoveInvoice,
     ReviseInvestorDetails,
     ReviseSubscription,
-    TerminateSubscription
+    TerminateSubscription,
+    GetFunds,
+    SearchInvestors
 ]

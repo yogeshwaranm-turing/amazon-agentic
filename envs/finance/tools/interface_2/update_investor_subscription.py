@@ -4,7 +4,7 @@ from tau_bench.envs.tool import Tool
 
 class UpdateInvestorSubscription(Tool):
     @staticmethod
-    def invoke(data: Dict[str, Any], investor_subscription_id: str, field_name: str, field_value: Union[str, int, float, bool],
+    def invoke(data: Dict[str, Any], subscription_id: str, field_name: str, field_value: Union[str, int, float, bool],
                compliance_officer_approval: bool, finance_officer_approval: bool) -> str:
         
         if not compliance_officer_approval:
@@ -16,14 +16,14 @@ class UpdateInvestorSubscription(Tool):
         subscriptions = data.get("subscriptions", {})
         
         # Validate subscription exists
-        if str(investor_subscription_id) not in subscriptions:
-            return json.dumps({"error": f"Subscription {investor_subscription_id} not found"})
+        if str(subscription_id) not in subscriptions:
+            return json.dumps({"error": f"Subscription {subscription_id} not found"})
         
-        subscription = subscriptions[str(investor_subscription_id)]
+        subscription = subscriptions[str(subscription_id)]
         timestamp = "2025-10-01T00:00:00"
         
         # Apply changes
-        if field_name in ["amount", "investor_status"]:
+        if field_name in ["amount", "status"]:
             subscription[field_name] = field_value
 
         subscription["updated_at"] = timestamp
@@ -36,23 +36,39 @@ class UpdateInvestorSubscription(Tool):
             "type": "function",
             "function": {
                 "name": "update_investor_subscription",
-                "description": "Update subscription details with required approvals",
+                "description": "Update subscription details (supports 'amount' and 'status') with required approvals",
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "investor_subscription_id": {"type": "string", "description": "ID of the subscription to update"},
+                        "subscription_id": {
+                            "type": "string",
+                            "description": "ID of the investor subscription to update"
+                        },
                         "field_name": {
                             "type": "string",
-                            "description": "Field to update (e.g., 'amount', 'investor_status')"
+                            "description": "Field to update",
+                            "enum": ["amount", "status"]
                         },
                         "field_value": {
                             "type": ["string", "number", "boolean"],
                             "description": "New value for the field"
                         },
-                        "compliance_officer_approval": {"type": "boolean", "description": "Compliance Officer approval flag (True/False)"},
-                        "finance_officer_approval": {"type": "boolean", "description": "Finance Officer approval flag (True/False)"}
+                        "compliance_officer_approval": {
+                            "type": "boolean",
+                            "description": "Compliance Officer approval flag (True/False)"
+                        },
+                        "finance_officer_approval": {
+                            "type": "boolean",
+                            "description": "Finance Officer approval flag (True/False)"
+                        }
                     },
-                    "required": ["investor_subscription_id", "field_name", "field_value", "compliance_officer_approval", "finance_officer_approval"]
+                    "required": [
+                        "subscription_id",
+                        "field_name",
+                        "field_value",
+                        "compliance_officer_approval",
+                        "finance_officer_approval"
+                    ]
                 }
             }
         }
