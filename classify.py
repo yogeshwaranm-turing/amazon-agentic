@@ -1,30 +1,23 @@
 import json
-import sys
 import os
 import anthropic
 import re
 import sys
 
 
-# Get the file path from arguments
 file_path = sys.argv[1]
 
-# Read API key from environment variable
 api_key = os.getenv("ANTHROPIC_API_KEY")
 if not api_key:
     raise EnvironmentError("❌ Error: ANTHROPIC_API_KEY not found in environment variables.")
 
-# Initialize Anthropic client
 client = anthropic.Anthropic(api_key=api_key)
 
-# Load the full JSON file
 with open(file_path, "r", encoding="utf-8") as f:
     data = json.load(f)
 
-# Convert JSON to a formatted string
 json_str = json.dumps(data, indent=2)
 
-# Prompt for classification
 prompt = f"""
 You are an expert JSON interpreter and AI instruction evaluator.
 
@@ -94,7 +87,6 @@ Here is the JSON:
 {json_str}
 """
 
-# Call Claude 3.5 Sonnet
 response = client.messages.create(
     model="claude-sonnet-4-20250514",
     max_tokens=8000,
@@ -105,10 +97,6 @@ response = client.messages.create(
 
 output_text = response.content[0].text.strip()
 
-# Output the result
-print("Classification Raw Output:\n", output_text)
-
-# --- Part 2 parsing ---
 cleaned_text = re.sub(r"\*+", "", output_text)
 
 user_facing = re.search(r"User-Facing:\s*(Yes|No)", cleaned_text, re.IGNORECASE)
@@ -134,9 +122,9 @@ with open("result.txt", "w", encoding="utf-8") as f:
     f.write(output_text.strip() + "\n\n")
     if fail_reason:
         f.write("\n".join(fail_reason) + "\n")
-        f.write("❌ One or more checks failed\n")   # <-- key marker
+        f.write("❌ One or more checks failed\n")
     else:
-        f.write("✅ All checks passed\n")           # <-- key marker
+        f.write("✅ All checks passed\n")
 
 print("Result written to result.txt")
 
