@@ -24,7 +24,7 @@ class RemovePortfolioHolding(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "remove_holding",
+                "name": "remove_portfolio_holding",
                 "description": "Remove a holding from a portfolio",
                 "parameters": {
                     "type": "object",

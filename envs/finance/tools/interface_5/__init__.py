@@ -1,5 +1,5 @@
-from .add_audit_trail import AddAuditTrail
 from .add_commitment import AddCommitment
+from .append_audit_trail import AppendAuditTrail
 from .authenticate_approval import AuthenticateApproval
 from .deactivate_reactivate_instrument import DeactivateReactivateInstrument
 from .dispatch_email_notification import DispatchEmailNotification
@@ -28,8 +28,8 @@ from .terminate_subscription import TerminateSubscription
 
 
 ALL_TOOLS_INTERFACE_5 = [
-    AddAuditTrail,
     AddCommitment,
+    AppendAuditTrail,
     AuthenticateApproval,
     DeactivateReactivateInstrument,
     DispatchEmailNotification,

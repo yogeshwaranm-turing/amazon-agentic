@@ -106,6 +106,7 @@ class UpdateFund(Tool):
                             "enum": ["name", "fund_type", "manager_id", "size", "status"]
                         },
                         "field_value": {
+                            "type": ["string", "number", "boolean"],
                             "description": "New value for the field (string, number, or boolean depending on field type)"
                         },
                         "fund_manager_approval": {"type": "boolean", "description": "Fund manager approval required (True or False)"},

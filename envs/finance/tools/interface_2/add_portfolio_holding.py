@@ -50,11 +50,11 @@ class AddPortfolioHolding(Tool):
                     "type": "object",
                     "properties": {
                         "investor_portfolio_id": {"type": "string", "description": "ID of the portfolio"},
-                        "target_fund_id": {"type": "string", "description": "ID of the fund"},
-                        "quantity": {"type": "number", "description": "Quantity of holding"},
-                        "cost_basis": {"type": "number", "description": "Cost basis of holding"}
+                        "investor_fund_id": {"type": "string", "description": "ID of the fund"},
+                        "investor_quantity": {"type": "number", "description": "Quantity of holding"},
+                        "investor_cost_basis": {"type": "number", "description": "Cost basis of holding"}
                     },
-                    "required": ["investor_portfolio_id", "target_fund_id", "quantity", "cost_basis"]
+                    "required": ["investor_portfolio_id", "investor_fund_id", "investor_quantity", "investor_cost_basis"]
                 }
             }
         }
