@@ -7,7 +7,7 @@ class GetInvestorRedemptions(Tool):
     def invoke(data: Dict[str, Any], investor_id: str, 
                status: Optional[str] = None) -> str:
         investors = data.get("investors", {})
-        redemptions = data.get("redemptions", {})
+        redemptions_data = data.get("redemptions", {})  # Renamed to avoid conflict
         subscriptions = data.get("subscriptions", {})
         funds = data.get("funds", {})
         
@@ -16,32 +16,32 @@ class GetInvestorRedemptions(Tool):
             raise ValueError(f"Investor {investor_id} not found")
         
         # Get redemptions for this investor
-        redemptions = []
-        for redemption in redemptions.values():
+        result_redemptions = []  # Renamed to avoid conflict
+        for redemption in redemptions_data.values():  # Using renamed variable
             # Find the subscription this redemption relates to
             subscription_id = redemption.get("subscription_id")
             subscription = subscriptions.get(str(subscription_id), {})
             
-            # Check if this subscription belongs to our investor
-            if subscription.get("investor_id") == investor_id:
+            # Check if this subscription belongs to our investor (with string conversion)
+            if str(subscription.get("investor_id")) == str(investor_id):
                 # Filter by status if specified
                 if status and redemption.get("status") != status:
                     continue
                 
                 # Enrich with fund details
-                target_fund_id = subscription.get("target_fund_id")
-                fund_details = funds.get(str(target_fund_id), {})
+                fund_id = subscription.get("fund_id")
+                fund_details = funds.get(str(fund_id), {})
                 
                 enriched_redemption = {
                     **redemption,
-                    "target_fund_id": target_fund_id,
+                    "fund_id": fund_id,
                     "fund_name": fund_details.get("name"),
                     "fund_type": fund_details.get("fund_type"),
                     "original_subscription_amount": subscription.get("amount")
                 }
-                redemptions.append(enriched_redemption)
+                result_redemptions.append(enriched_redemption)  # Using renamed variable
         
-        return json.dumps(redemptions)
+        return json.dumps(result_redemptions)  # Using renamed variable
 
     @staticmethod
     def get_info() -> Dict[str, Any]:
