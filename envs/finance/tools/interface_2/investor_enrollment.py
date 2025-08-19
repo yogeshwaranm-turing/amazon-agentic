@@ -31,7 +31,7 @@ class InvestorEnrollment(Tool):
         new_investor = {
             "investor_id": str(investor_id),
             "name": legal_entity_name,
-            "registration_number": incorporation_registration_number,
+            "registration_number": int(incorporation_registration_number),
             "date_of_incorporation": date_of_incorporation,
             "country": country_of_incorporation,
             "address": registered_business_address,
