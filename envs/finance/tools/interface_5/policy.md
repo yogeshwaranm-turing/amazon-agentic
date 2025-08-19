@@ -36,50 +36,52 @@ This policy defines responsibilities, principles, and procedures for agents oper
 
 - **investor_onboarding**: Create new investor with legal entity details, incorporation data, compliance approval
 - **investor_offboarding**: Remove investor with dependency validation and portfolio closure
-- **update_investor_details**: Modify investor information with validation and audit trail
-- **get_investor_profile**: Retrieve comprehensive investor information and status
-- **get_filtered_investors**: Search and filter investors by criteria with access controls
+- **revise_investor_details**: Modify investor information with validation and audit trail
+- **fetch_investor_profile**: Retrieve comprehensive investor information and status
+- **query_investors**: Search and filter investors by criteria with access controls
+- **search_investors**: Advanced search functionality for investor records
+- **locate_user**: User management and verification for access controls
 
 ### Portfolio Operations
 
-- **get_investor_portfolio**: Retrieve investor-specific portfolio information and allocations
-- **get_investor_portfolio_holdings**: Access detailed holding positions and valuations
-- **get_portfolio_holdings**: General portfolio holdings analysis with fund mapping
-- **get_investor_statements**: Generate investor financial statements and reports
-- **get_investor_transactions_history**: Comprehensive transaction history and audit trail
+- **fetch_investor_portfolio**: Retrieve investor-specific portfolio information and allocations
+- **fetch_investor_portfolio_holdings**: Access detailed holding positions and valuations
+- **fetch_portfolio_holdings**: General portfolio holdings analysis with fund mapping
+- **fetch_investor_statements**: Generate investor financial statements and reports
+- **fetch_investor_transactions_history**: Comprehensive transaction history and audit trail
 
 ### Subscription Management
 
-- **create_subscription**: Link investors to funds with amount validation and compliance approval
-- **update_subscription**: Modify existing subscription details with authorization
-- **cancel_subscription**: Remove subscription with dependency validation and holdings adjustment
-- **get_subscriptions**: Retrieve subscription data with filtering and access controls
+- **register_subscription**: Link investors to funds with amount validation and compliance approval
+- **revise_subscription**: Modify existing subscription details with authorization
+- **terminate_subscription**: Remove subscription with dependency validation and holdings adjustment
+- **fetch_subscriptions**: Retrieve subscription data with filtering and access controls
 
 ### Financial Operations
 
-- **create_commitment**: Generate investment commitments with compliance validation
-- **create_invoice**: Invoice generation with configuration and payment tracking
+- **add_commitment**: Generate investment commitments with compliance validation
+- **generate_invoice**: Invoice generation with configuration and payment tracking
 - **modify_invoice_config**: Update invoice settings and parameters
-- **delete_invoice**: Remove invoices with validation and audit requirements
-- **get_payment_history**: Track payment records and transaction history
+- **remove_invoice**: Remove invoices with validation and audit requirements
+- **fetch_payment_history**: Track payment records and transaction history
+- **get_funds**: Retrieve fund information and details
 
 ### Communication & Reporting
 
-- **send_email_notification**: Automated notification system with classification and targeting
-- **get_notifications**: Retrieve notification history with filtering capabilities
-- **get_investor_documents**: Access investor-specific document repository
+- **dispatch_email_notification**: Automated notification system with classification and targeting
+- **fetch_notifications**: Retrieve notification history with filtering capabilities
+- **fetch_investor_documents**: Access investor-specific document repository
 - **get_reports**: Generate comprehensive investor and portfolio reports
 
 ### Compliance & Audit
 
-- **add_audit_trail**: Mandatory logging for all operations (user_id, action_type, entity_id, timestamp)
-- **get_approval_by_code**: Verify authorization for operations requiring approval
-- **find_user**: User management and verification for access controls
+- **append_audit_trail**: Mandatory logging for all operations (user_id, action_type, entity_id, timestamp)
+- **authenticate_approval**: Verify authorization for operations requiring approval
 - **deactivate_reactivate_instrument**: Instrument status management with compliance validation
 
 ## Standard Operating Procedures
 
-All operations execute in single-turn with comprehensive input validation. Halt with specific error if validation fails. Log all operations using add_audit_trail for regulatory compliance.
+All operations execute in single-turn with comprehensive input validation. Halt with specific error if validation fails. Log all operations using append_audit_trail for regulatory compliance.
 
 ### Investor Onboarding SOP
 
@@ -201,9 +203,9 @@ All operations execute in single-turn with comprehensive input validation. Halt 
 
 **Regulatory**: SEC rules (Reg FD, Reg S-P, Rule 17a-4), KYC/AML requirements, Investment Advisers Act 1940, Privacy regulations.
 
-**Approvals**: Investor onboarding/offboarding requires compliance_officer_approval. Subscription creation requires compliance_officer_approval. Use get_approval_by_code tool.
+**Approvals**: Investor onboarding/offboarding requires compliance_officer_approval. Subscription creation requires compliance_officer_approval. Use authenticate_approval tool.
 
-**Audit Trail**: Log all operations using add_audit_trail. Valid reference_types: user, investor, portfolio, subscription, commitment, document, notification, invoice. Valid actions: create, update, delete, approve, cancel, process, send, generate.
+**Audit Trail**: Log all operations using append_audit_trail. Valid reference_types: user, investor, portfolio, subscription, commitment, document, notification, invoice. Valid actions: create, update, delete, approve, cancel, process, send, generate.
 
 **Role Permissions**: Portfolio access restricted by investor ownership. Document access based on confidentiality levels. Subscription management requires appropriate approvals.
 
