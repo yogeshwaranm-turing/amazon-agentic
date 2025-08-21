@@ -1,6 +1,6 @@
 # Investor Relations & Portfolio Management Policy
 
-This policy defines responsibilities, principles, and procedures for agents operating within the Investor Relations & Portfolio Management context. Covers investor onboarding/offboarding, portfolio management, subscription management, financial reporting, and communication services.
+This policy defines responsibilities, principles, and procedures for agents operating within the Investor Relations & Portfolio Management context. Covers investor onboarding/offboarding, portfolio management, subscription management, financial reporting, and communication services. It is written in the perspective of allowing global investors, however, their investments will be in USD.
 
 ## General Principles
 

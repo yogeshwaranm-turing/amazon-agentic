@@ -1,6 +1,6 @@
 # Commitment Management & Financial Operations Policy
 
-This policy defines responsibilities, principles, and procedures for commitment management, invoice processing, payment handling, report generation, and document management.
+This policy defines responsibilities, principles, and procedures for commitment management, invoice processing, payment handling, report generation, and document management. It is written in the perspective of allowing global investors, however, their investments will be in USD.
 
 ## General Principles
 

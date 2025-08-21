@@ -1,6 +1,6 @@
-# Fund Management & Trading Operations Policy - Interface 1
+# Fund Management & Trading Operations Policy
 
-This policy defines responsibilities, principles, and procedures for fund management and trading operations.
+This policy defines responsibilities, principles, and procedures for fund management and trading operations. It is written in the perspective of allowing global investors, however, their investments will be in USD.
 
 ## General Principles
 
