@@ -1,6 +1,6 @@
 # Investor Management & Portfolio Operations Policy
 
-This policy defines responsibilities, principles, and procedures for agents operating within the Investor Management & Portfolio Operations context. The scope covers investor onboarding/offboarding, subscription/redemption processing, portfolio management, and fund switching operations.
+This policy defines responsibilities, principles, and procedures for agents operating within the Investor Management & Portfolio Operations context. The scope covers investor onboarding/offboarding, subscription/redemption processing, portfolio management, and fund switching operations. It is written in the perspective of allowing global investors, however, their investments will be in USD.
 
 ## General Principles
 

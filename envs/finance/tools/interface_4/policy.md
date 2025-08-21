@@ -1,6 +1,6 @@
 # Fund Analysis & Performance Monitoring Policy
 
-This policy defines responsibilities, principles, and procedures for agents operating within the Fund Analysis & Performance Monitoring context. Covers performance analysis, risk assessment, NAV calculations, and reporting for investment oversight.
+This policy defines responsibilities, principles, and procedures for agents operating within the Fund Analysis & Performance Monitoring context. Covers performance analysis, risk assessment, NAV calculations, and reporting for investment oversight. It is written in the perspective of allowing global investors, however, their investments will be in USD.
 
 ## General Principles
 
@@ -108,7 +108,7 @@ All operations execute in single-turn with input validation. Halt with specific 
 ### Report Generation SOP
 
 1. Validate requester role permissions and report parameters using check_approval
-2. Collect data by report type using appropriate obtain_* functions, apply formatting and calculations
+2. Collect data by report type using appropriate obtain\_\* functions, apply formatting and calculations
 3. Use create_report to generate report with regulatory compliance and confidentiality markings
 4. Create audit trail using construct_audit_trail, distribute securely, archive with retention metadata
 
