@@ -87,8 +87,6 @@ This policy defines responsibilities, principles, and procedures for fund manage
 
 - **Deleting/Closing a Fund**:
   - Requires both compliance_officer_approval=True and fund_manager_approval=True
-  - Must verify no active subscriptions exist
-  - If active items prevent deletion, halt with specific error listing active items
 
 ### Trading Operations
 
