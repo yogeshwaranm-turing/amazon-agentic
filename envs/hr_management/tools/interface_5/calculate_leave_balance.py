@@ -38,15 +38,15 @@ class CalculateLeaveBalance(Tool):
             "type": "function",
             "function": {
                 "name": "calculate_leave_balance",
-                "description": "Calculate remaining leave balance for an employee",
+                "description": "Calculate remaining leave balance for an employee. It can be used to calculate remaining balance without creating a request.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "employee_id": {"type": "string", "description": "ID of the employee"},
                         "leave_type": {"type": "string", "description": "Type of leave to calculate"},
-                        "annual_allocation": {"type": "number", "description": "Annual leave allocation for this type"}
+                        "annual_allocation": {"type": "number", "description": "Annual leave allocation for this type for this employee (15 by default)"}
                     },
-                    "required": ["employee_id", "leave_type", "annual_allocation"]
+                    "required": ["employee_id", "leave_type"]
                 }
             }
         }
