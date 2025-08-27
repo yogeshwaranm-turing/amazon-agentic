@@ -1,15 +1,15 @@
 # Copyright Sierra
 
-from tau_bench.envs.hr_payroll.data import load_data
-from tau_bench.envs.hr_payroll.rules import RULES
-from tau_bench.envs.hr_payroll.tools import ALL_TOOLS_INTERFACE_1, ALL_TOOLS_INTERFACE_2, ALL_TOOLS_INTERFACE_3, ALL_TOOLS_INTERFACE_4, ALL_TOOLS_INTERFACE_5
-from tau_bench.envs.hr_payroll.wiki import WIKI
+from tau_bench.envs.hr_management.data import load_data
+from tau_bench.envs.hr_management.rules import RULES
+from tau_bench.envs.hr_management.tools import ALL_TOOLS_INTERFACE_1, ALL_TOOLS_INTERFACE_2, ALL_TOOLS_INTERFACE_3, ALL_TOOLS_INTERFACE_4, ALL_TOOLS_INTERFACE_5
+from tau_bench.envs.hr_management.wiki import WIKI
 from tau_bench.envs.base import Env
 from typing import Optional, Union
 from tau_bench.envs.user import UserStrategy
 
 
-class MockHRPayrollDomainEnv(Env):
+class MockHRManagementDomainEnv(Env):
     def __init__(
         self,
         user_strategy: Union[str, UserStrategy] = UserStrategy.LLM,
@@ -20,17 +20,17 @@ class MockHRPayrollDomainEnv(Env):
     ):
         match task_split:
             case "test":
-                from tau_bench.envs.hr_payroll.tasks_test import TASKS_TEST as tasks
+                from tau_bench.envs.hr_management.tasks_test import TASKS_TEST as tasks
             case "test_interface_1":
-                from tau_bench.envs.hr_payroll.interface_1_tasks import INTERFACE_1_TEST as tasks
+                from tau_bench.envs.hr_management.interface_1_tasks import INTERFACE_1_TEST as tasks
             case "test_interface_2":
-                from tau_bench.envs.hr_payroll.interface_2_tasks import INTERFACE_2_TEST as tasks
+                from tau_bench.envs.hr_management.interface_2_tasks import INTERFACE_2_TEST as tasks
             case "test_interface_3":
-                from tau_bench.envs.hr_payroll.interface_3_tasks import INTERFACE_3_TEST as tasks
+                from tau_bench.envs.hr_management.interface_3_tasks import INTERFACE_3_TEST as tasks
             case "test_interface_4":
-                from tau_bench.envs.hr_payroll.interface_4_tasks import INTERFACE_4_TEST as tasks
+                from tau_bench.envs.hr_management.interface_4_tasks import INTERFACE_4_TEST as tasks
             case "test_interface_5":
-                from tau_bench.envs.hr_payroll.interface_5_tasks import INTERFACE_5_TEST as tasks
+                from tau_bench.envs.hr_management.interface_5_tasks import INTERFACE_5_TEST as tasks
             case _:
                 raise ValueError(f"Unknown task split: {task_split}")
         super().__init__(
