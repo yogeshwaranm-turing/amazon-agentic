@@ -1,98 +1,71 @@
-# Policy: Invoices, Reimbursements, Roles, and Worker Access Control
+# HR Policy - Benefits and Leave
 
-**Effective Date: July 1, 2025**
+## Introduction
+This document defines the operational guide for an HR Payroll automation agent. It is designed for single-turn execution: each procedure must be self-contained and completed in one interaction.
 
----
+- **Validation first**: All inputs must be validated. If any required element is missing or invalid, the process halts with a clear error message. Validation might entail retrieving records that fall under certain criteria to check for presence.
+- **Halt conditions**: If approvals are missing, compliance not satisfied, or external systems fail, the process halts with explicit instructions.
+- **Logging**: All steps must be logged. Every create, update, approve, reject, delete, or execute action must generate an audit log entry.
+- **Role-based permissions**: Only the defined roles can perform specified actions.
+- **The elevated roles are**: HR director, payroll_administrator, finance_officer, it_administrator, compliance_officer
 
-### Scope and Responsibilities
+## Roles & Responsibilities
 
-This policy is responsible for managing key operational activities such as invoice handling, reimbursement tracking, role assignments, time entry processing, and access control for workers. It also covers workflows around team assignments, logging bonuses, issuing or modifying virtual cards, and secure offboarding processes. All actions must respect organizational boundaries and user permissions.
+**HR Director**
+- Create and update benefits plans
 
----
+**HR Manager**
+- Process leave requests
 
-### General Operational Rules
+**Finance Officer**
+- Create and update benefits plans
 
-- Before performing any operation, the system must verify the existence and validity of referenced entities—this includes workers, users, teams, cards, invoices, and reimbursements.
+**Compliance Officer**
+- Approve or reject compliance-sensitive actions (tax filings, terminations, incidents)
+- Halt operations if legal or regulatory violations are detected
 
-- Contracts, payroll items, and reimbursements must only be created or modified if there is an active and valid relationship linking the involved user, worker, and organization.
+**Employee**
+- Submit leave requests with proper documentation
 
-- All financial transactions must remain within their appropriate contract scopes and valid timeframes. The system should enforce these boundaries to prevent misuse or misallocation.
+## Standard Operating Procedures
 
----
+### Creating Benefits Plan
+- Validate that the plan type is valid and dates are consistent. If plan type is invalid or dates are inconsistent, then output 'Halt: Invalid benefits plan details'
+- Check that HR Director or Finance Officer approval is obtained. If approval is missing, then output 'Halt: HR Director or Finance Officer approval required'
+- Create or update benefits plans with appropriate lifecycle status (active/inactive)
+- Log the benefits plan action in the audit trail
 
-### Conditional Logic and Behavior
-- Workers may only be added to teams within the same organization. Cross-org assignments must be blocked.
+### Employee Benefits Enrollment & Update
+- Validate that the plan and employee are valid and contribution is within allowed limits. If plan or employee is invalid, or contribution is outside limits, then output 'Halt: Invalid enrollment details: [list]'
+- Create or update employee benefits record, set status to 'active' or 'pending', and record beneficiary information where required
+- Log the benefits enrollment change in the audit trail
 
-- User role assignments must validate role eligibility and ensure the user is part of the relevant organization.
+### Leave Request Processing
+- Validate that the employee exists, leave type is valid, start and end dates are provided and logical. If employee is not found, leave type is invalid, or dates are missing/illogical, then output 'Halt: Invalid leave request details: [list]'
+- Retrieve all leave requests for the employee in the current year (2025) for the requested leave type to calculate used days. If no previous requests exist for that leave type, then set default allocation to 15 days unless specified otherwise.
+- Calculate available balance by subtracting used days from remaining balance. If requested days exceed available balance, then output 'Halt: Insufficient leave balance: [remaining days available]'
+- Create new leave request record with calculated remaining balance and set status to 'pending'
+- Log the leave request submission in the audit trail
 
-- Invoice details may only be changed before the invoice is marked as paid or approved.
+### Leave Request Input Validation
+- Validate that the employee exists. If employee is not found, then output 'Halt: Invalid leave request details: [employee not found]'
+- Validate that leave type is valid (annual, sick, fmla, personal, bereavement, jury_duty). If leave type is invalid, then output 'Halt: Invalid leave request details: [invalid leave type]'
+- Validate that start and end dates are provided and logical (start date before end date, not in past). If dates are missing or illogical, then output 'Halt: Invalid leave request details: [invalid dates]'
 
-- Contracts created for workers must validate that the worker belongs to the specified organization and is not terminated.
+### Leave Request Balance Calculation
+- Retrieve all leave requests for the employee in the current year (2025) for the requested leave type where status is 'approved' or 'pending'
+- Calculate total used days from retrieved requests
+- Set default allocation to 15 days for the leave type if no allocation record exists
+- Calculate available balance by subtracting used days from total allocation
 
-- Virtual cards may only be enabled if the worker is active and the linked contract supports virtual payments.
+### Leave Request Availability Checks
+- Compare requested days against available balance. If requested days exceed available balance, then output 'Halt: Insufficient leave balance: [X days available]'
 
-- Fetching time entries by period must respect date limits and may exclude unapproved entries unless explicitly included.
+### Leave Request Record Creation
+- Calculate remaining balance after this request (available balance minus requested days)
+- Create new leave request record with calculated remaining balance and set status to 'pending'
 
-- Freezing worker access should disable both card use and contract activity while maintaining audit trail.
-
-- Reimbursement total queries must include only those reimbursements with status 'paid' or 'approved'.
-
-- Bonuses logged must cite a contract, a justification, and must not exceed configured caps without override approval.
-
-- Submitting invoice payments must confirm invoice approval status and must attach a payment method.
-
-- Contract updates must not change the associated organization and should preserve historical rate tracking.
-
-- Reimbursement status can only move forward in flow (e.g., submitted → approved → paid) unless explicitly overridden.
-
-- Virtual card status changes must log the actor and justification if disabling or reactivating a card.
-
-- User document lists must be scoped to the requesting user or include admin override credentials.
-
-- Only workers with at least one active virtual card should appear in this listing unless status filters are used.
-
-- Working detail views for users with cards must include only currently linked and active user–card associations.
-
-- Invoice summaries must group by status and may optionally filter by due date or amount thresholds.
-
-- If a user tries to assign a worker to a team that belongs to a different organization, the system must block the operation and inform the user that cross-organization assignments are not permitted.
-
-- When marking an invoice as paid, the system must verify that both the invoice and the payment record exist, and that the payment correctly references the intended invoice. If any part of this linkage fails, the action must be rejected.
-
-- Reimbursements that are already in a 'paid' status must not be altered in any way. The system should treat them as final and immutable from this interface.
-
-- A worker must not be removed from the system if they are associated with active contracts or ongoing payroll entries. Any such removal attempt should be blocked until those links are resolved.
-
-- Virtual cards that are marked as revoked or expired must not be reactivated unless their status explicitly supports re-enablement. The system should not allow any changes otherwise.
-
-- If a worker's access is frozen, their user account must be transitioned to a 'suspended' status. Additionally, all virtual cards still marked as active for that worker must be blocked immediately to secure payment systems.
-
----
-
-### Best Practices and Recommendations
-
-- Validation messages should be clear and specific, helping users understand exactly why an action was denied. For example: “Worker not found,” “Card already revoked,” or “Cannot remove worker with active payroll.”
-
-- Virtual card status transitions must be tightly controlled. The system should allow reactivation only for cards in 'blocked' or 'expired' status. Cards marked as 'revoked' should be treated as permanently deactivated.
-
-- When logging bonuses or creating contracts, the system must always link them to the worker’s current, active contract and associated organization. Duplication or orphaned records should be avoided.
-
-- Responses to document and reimbursement queries should be filtered to highlight active records and sorted by relevant dates to ensure users can quickly access recent and relevant information.
-
-- Submitted dates—such as contract starts—and financial values—like bonuses—must be validated for realism and policy compliance. The system should enforce that all monetary amounts are positive and within expected limits.
-
-- All dates should follow ISO 8601 format. If a static date is needed, it should default to `2025-07-01`.
-
----
-
-### Security and Limitations
-
-- Only users with authorized roles—such as HR or admin—should be allowed to assign roles, create contracts, or adjust financial elements like payroll bonuses or invoice payments.
-
-- Time entry queries over a date range must include a valid start and end date. The system should restrict such queries to no more than one full calendar year to reduce excessive data loads.
-
-- Contracts should not be created for workers who do not exist or who have been offboarded. The system must block any such creation attempts.
-
-- Users whose status is marked as 'suspended' or 'inactive' must not be allowed to undergo role changes.
-
-- Invoices and reimbursements must only be linked to valid, existing workers and organizations. If the target records do not exist, the system must reject the operation gracefully and return a clear explanation.
+### Audit Trail Logging (Global)
+- Validate that the audit log write operation is successful. If audit log write fails, then output 'Halt: Audit trail failure'
+- Insert audit log entry with user ID, table name, action type (create, read, update, delete, approve, reject, login, logout, export), record ID, field name (if applicable), old value, new value, and timestamp
+- In case of creating/deleting a record, field name, old value and new value would be null in the record since the operation is on the whole record and not a specific column

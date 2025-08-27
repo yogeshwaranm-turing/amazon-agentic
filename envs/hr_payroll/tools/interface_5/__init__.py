@@ -1,41 +1,45 @@
-from .list_workers_with_virtual_cards import ListWorkersWithVirtualCards
-from .retrieve_invoice_summary import RetrieveInvoiceSummary
-from .get_reimbursement_totals_by_worker import GetReimbursementTotalsByWorker
-from .fetch_time_entries_by_period import FetchTimeEntriesByPeriod
-from .list_documents_by_user import ListDocumentsByUser
-from .create_contract_for_worker import CreateContractForWorker
-from .update_virtual_card_status import UpdateVirtualCardStatus
-from .add_worker_to_team import AddWorkerToTeam
-from .submit_invoice_payment import SubmitInvoicePayment
-from .update_reimbursement_status import UpdateReimbursementStatus
-from .assign_role_to_user import AssignRoleToUser
-from .remove_worker_from_org import RemoveWorkerFromOrg
-from .log_bonus_payroll_item import LogBonusPayrollItem
-from .freeze_worker_access import FreezeWorkerAccess
-from .enable_virtual_card_for_payment import EnableVirtualCardForPayment
-from .update_invoice_details import UpdateInvoiceDetails
-from .update_contract_details import UpdateContractDetails
-from .list_users_working_details_with_cards import FetchWorkingDetailsUsersWithCards
-from .list_invoices import ListInvoices
+from .lookup_benefits_plans import LookupBenefitsPlans
+from .lookup_employee_benefits import LookupEmployeeBenefits
+from .lookup_leave_requests import LookupLeaveRequests
+from .calculate_leave_balance import CalculateLeaveBalance
+from .lookup_employees import LookupEmployees
+from .lookup_users import LookupUsers
+from .lookup_documents import LookupDocuments
+from .lookup_audit_logs import LookupAuditLogs
+from .lookup_payroll_records import LookupPayrollRecords
+from .lookup_departments import LookupDepartments
+from .lookup_expense_reimbursements import LookupExpenseReimbursements
+from .create_benefits_plan import CreateBenefitsPlan
+from .update_benefits_plan import UpdateBenefitsPlan
+from .enroll_employee_benefits import EnrollEmployeeBenefits
+from .update_employee_benefits import UpdateEmployeeBenefits
+from .create_leave_request import CreateLeaveRequest
+from .update_leave_request import UpdateLeaveRequest
+from .process_leave_request import ProcessLeaveRequest
+from .insert_document import InsertDocument
+from .adjust_document import AdjustDocument
+from .log_audit_event import LogAuditEvent
 
 ALL_TOOLS_INTERFACE_5 = [
-ListWorkersWithVirtualCards,
-RetrieveInvoiceSummary,
-GetReimbursementTotalsByWorker,
-FetchTimeEntriesByPeriod,
-ListDocumentsByUser,
-CreateContractForWorker,
-UpdateVirtualCardStatus,
-AddWorkerToTeam,
-SubmitInvoicePayment,
-UpdateReimbursementStatus,
-AssignRoleToUser,
-RemoveWorkerFromOrg,
-LogBonusPayrollItem,
-FreezeWorkerAccess,
-EnableVirtualCardForPayment,
-UpdateInvoiceDetails,
-UpdateContractDetails,
-FetchWorkingDetailsUsersWithCards,
-ListInvoices
+    LookupBenefitsPlans,
+    LookupEmployeeBenefits,
+    LookupLeaveRequests,
+    CalculateLeaveBalance,
+    LookupEmployees,
+    LookupUsers,
+    LookupDocuments,
+    LookupAuditLogs,
+    LookupPayrollRecords,
+    LookupDepartments,
+    LookupExpenseReimbursements,
+    CreateBenefitsPlan,
+    UpdateBenefitsPlan,
+    EnrollEmployeeBenefits,
+    UpdateEmployeeBenefits,
+    CreateLeaveRequest,
+    UpdateLeaveRequest,
+    ProcessLeaveRequest,
+    InsertDocument,
+    AdjustDocument,
+    LogAuditEvent,
 ]

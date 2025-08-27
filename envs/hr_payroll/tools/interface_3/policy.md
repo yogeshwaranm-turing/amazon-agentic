@@ -1,81 +1,84 @@
-# Policy: Contracts, Invoices, Reimbursements, and Payroll Access
+# HR Policy - Time, Attendance, Payroll & Expenses
 
-**Effective Date: July 1, 2025**
+## Introduction
+This document defines the operational guide for an HR Payroll automation agent. It is designed for single-turn execution: each procedure must be self-contained and completed in one interaction.
 
----
+- **Validation first**: All inputs must be validated. If any required element is missing or invalid, the process halts with a clear error message. Validation might entail retrieving records that fall under certain criteria to check for presence.
+- **Halt conditions**: If approvals are missing, compliance not satisfied, or external systems fail, the process halts with explicit instructions.
+- **Logging**: All steps must be logged. Every create, update, approve, reject, delete, or execute action must generate an audit log entry.
+- **Role-based permissions**: Only the defined roles can perform specified actions.
+- **The elevated roles are**: HR director, payroll_administrator, finance_officer, it_administrator, compliance_officer
 
-### Overview
+## Roles & Responsibilities
 
-This policy governs operations related to invoices, contracts, reimbursements, payroll summaries, and virtual card assignment. It handles both data management and query access at an operational level. All actions must respect record status, organizational policy, and system-defined relationships to ensure consistency and compliance across financial workflows.
+**Payroll Administrator**
+- Create, update, and process payroll records, bonuses, and deductions
+- Cannot approve their own payroll runs
+- Submit and manage timesheet entries
+- Process payroll runs and calculations
+- Process payroll corrections
+- Aggregate hours and compute gross pay, deductions, and net pay
+- Process timesheet submissions and corrections
 
----
+**Finance Officer**
+- Validate payroll accuracy and statutory deductions; approve or reject payroll runs
+- Reconcile payroll with finance ledgers; authorize reimbursements and payouts
+- Process expense reimbursements
+- Validate payroll calculations and reconciliation
+- Update expense reimbursement records
 
-### General Rules
+**Hiring Manager**
+- Can approve timesheet entries
 
-- Every operation must validate that it references existing, valid records—such as workers, contracts, invoices, or payments—before execution. The system should not allow actions on missing or invalid entities.
+**Employee**
+- Provide accurate personal information; submit timesheets promptly
+- Submit timesheet entries with accurate work dates and hours
+- Submit expense reimbursement requests
 
-- The system should not allow new invoices or reimbursements to be created for workers who are marked as terminated or suspended.
+## Standard Operating Procedures
 
-- Virtual cards should only be issued to workers who are currently active. Each card must be associated with a valid financial provider and linked user account.
+### Timesheet Submission
+- Validate that work date is provided and does not overlap with existing approved entries. To do so, get all approved entries before proceeding. If work date is missing or overlaps an existing approved entry, then output 'Halt: Invalid timesheet entry'
+- Create new employee timesheet record with status set to 'submitted' and calculate total hours worked based on the difference between the clock in and clock out timestamps
+- Log the timesheet submission in the audit logs
 
-- Any update that involves currency—such as invoicing, reimbursements, or payments—must verify that the currencies are compatible and align with organizational financial policies.
+### Timesheet Approval/Correction
+- If approver is not an authorized manager (Payroll Admin/hiring administrator) → Halt: Unauthorized access.
+- If that is ok, then update employee timesheets approver and change the status to approved.
+- You may adjust fields if correction requested.
+- Log approval/corrections.
 
----
+### Process Payroll Run
+- Validate that all required inputs are provided (hours, deductions). If required inputs are missing, then output 'Halt: Invalid payroll input: [list]'
+- Check that Finance Officer approval is obtained. If approval is missing, then output 'Halt: Finance Officer approval required'
+- Aggregate hours from employee timesheets, compute gross pay, deductions, and net pay, then set payroll records status to 'approved' or 'paid'
+- Log all payroll transactions and reconciliation in the audit trail
 
-### Key Behaviors and Conditions
-- Invoices must be associated with a valid worker, a linked contract, and a positive due amount. Issued invoices may be allowed but require confirmation before marking as paid.
+### Payroll Correction
+- Validate that the payroll record exists. If payroll record is not found, then output 'Halt: Payroll record not found'
+- Check that Finance Officer approval is obtained. If approval is missing, then output 'Halt: Finance Officer approval required'
+- Adjust the payroll records fields with the correction details
+- Log the payroll correction in the audit trail
 
-- Invoices may only be marked as paid if their current status is 'issued' or ‘unpaid’. Payment confirmation should include timestamp and method.
+### Update Expense Reimbursement Input Validation
+- Validate that the reimbursement exists in the system. If reimbursement is not found, then output 'Halt: Invalid reimbursement details: [reimbursement not found]'
+- Validate that the reimbursement status is 'submitted'. If status is not 'submitted', then output 'Halt: Invalid reimbursement update: [cannot update non-submitted reimbursement]'
 
-- Invoice status queries by organization should filter based on org ID and time range where applicable.
+### Update Expense Reimbursement Record Modification
+- Update specified fields (amount, description, receipt_file_path) if provided
+- Return confirmation message upon successful update
 
-- Reimbursements must only be processed if linked to a valid worker and fall within allowable expense categories defined by the organization or default policy.
+### Process Expense Reimbursement Input Validation
+- Validate that the reimbursement exists in the system. If reimbursement is not found, then output 'Halt: Invalid reimbursement details: [reimbursement not found]'
+- Validate that the approving user exists. If the approving user is not found, then output 'Halt: Invalid reimbursement processing: [approver user not found]'
+- Validate that status is valid (approved, rejected, paid). If status is invalid, then output 'Halt: Invalid reimbursement processing: [invalid status]'
 
-- Payroll breakdown views should be restricted to confirmed or completed runs, not draft or partial computations.
+### Process Expense Reimbursement Record Modification
+- Update reimbursement status to the specified value
+- Set the approved by field to the approving user ID in case the reimbursement is approved
+- If status is 'paid' and payment date is provided, set the payment date field
 
-- Virtual card issuance requires a currently active worker and a valid financial provider. Issuance should be blocked for suspended or terminated users.
-
-- Contract termination should only occur if the worker is not already terminated, and the system must capture a clear reason or source for the action.
-
-- Updates to worker bank information must include a valid account number, IFSC code, and verified user identity. Previous bank details should be archived.
-
-- Team assignment lookups should only return active users and explicitly exclude any suspended or inactive memberships.
-
-- User working details should reflect only users currently linked to active organizations or contracts, and may exclude historical records unless explicitly requested.
-
-
-- A worker should be considered active only if their employment status is active and they have at least one ongoing contract with a status of active or signed. The system should enforce both conditions.
-
-- Contracts that have been marked as ended or terminated must not be available for invoice generation or editing. The system should block any such attempts.
-
-- The system should only allow a reimbursement to be processed if the worker is active and correctly linked to both a user and an organization.
-
-- When marking an invoice as paid, the system must ensure the referenced payment record exists and correctly links to that invoice. If the linkage is invalid, the operation should be blocked.
-
-- When fetching team assignments, the system should always return a list—even if the worker has no associated team—to ensure consistent API responses.
-
----
-
-### Best Practices to Follow
-
-- When creating new records such as invoices, virtual cards, or reimbursements, the system should return a fully populated response, including all relevant details and generated IDs.
-
-- If a request is rejected due to a mismatch in state—like trying to pay a cancelled invoice—the system should return a clear, readable message explaining the reason.
-
-- Summaries for payroll or contracts should be categorized for readability and ease of analysis.
-
-- All dates should follow ISO 8601 format. If a static date is needed, it should default to `2025-07-01`.
-
----
-
-### What the System Should Not Allow
-
-- Workers who do not have any active contracts must not appear in the list of active workers.
-
-- If a virtual card is already active for a user, the system should not allow another card to be issued for the same user.
-
-- Invoices that are marked as paid should not be modified again. The system must block any further edits or attempts to re-pay these invoices.
-
-- Contracts that are ended or terminated should not be reactivated or extended under any condition.
-
-- When updating bank account information, the system must not overwrite the currency unless explicitly directed to do so by policy or the user.
+### Audit Trail Logging (Global)
+- Validate that the audit log write operation is successful. If audit log write fails, then output 'Halt: Audit trail failure'
+- Insert audit log entry with user ID, table name, action type (create, read, update, delete, approve, reject, login, logout, export), record ID, field name (if applicable), old value, new value, and timestamp
+- In case of creating/deleting a record, field name, old value and new value would be null in the record since the operation is on the whole record and not a specific column

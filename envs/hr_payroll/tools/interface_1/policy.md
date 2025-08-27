@@ -1,57 +1,92 @@
-# Policy: User, Worker, Time, and Reimbursement Management
+# HR Policy - Talent Acquisition & Recruiting
 
-**Effective Date: July 1, 2025**
+## Introduction
+This document defines the operational guide for an HR Payroll automation agent. It is designed for single-turn execution: each procedure must be self-contained and completed in one interaction.
 
----
+- **Validation first**: All inputs must be validated. If any required element is missing or invalid, the process halts with a clear error message. Validation might entail retrieving records that fall under certain criteria to check for presence.
+- **Halt conditions**: If approvals are missing, compliance not satisfied, or external systems fail, the process halts with explicit instructions.
+- **Logging**: All steps must be logged. Every create, update, approve, reject, delete, or execute action must generate an audit log entry.
+- **Role-based permissions**: Only the defined roles can perform specified actions.
+- **The elevated roles are**: HR director, payroll administrator, finance officer, IT administrator and compliance officer
 
-### Overview
+## Roles & Responsibilities
 
-This policy is responsible for managing day-to-day organizational workflows involving users, workers, time tracking, reimbursements, and virtual cards. Every operation should happen within the boundaries of a known and authenticated organization or user context. The system should not allow any action that is unscoped or improperly linked.
+**Hiring Manager**
+- Raise requisitions, participate in interviews, provide hiring decisions
+- Cannot access payroll or benefits data unless explicitly granted
+- Participate in interview scheduling and outcome recording
+- Manage application stage transitions per workflow
+- Create job positions
+- Post and close job openings
+- Schedule interviews and record outcomes
 
----
+**Recruiter**
+- Manage candidates and applications, schedule interviews, record outcomes
+- Cannot approve compensation, payroll, or benefits
+- Create and manage candidate records
+- Create job applications and manage application stages
+- Schedule interviews and record interview outcomes
+- Manage application stage transitions per workflow
+- Add candidate records to the system
+- Create job positions
+- Post and close job openings
 
-### General Rules
+**HR Director**
+- Create job positions
+- Post and close job openings
 
-Every worker must be associated with both a valid user account and an organization. The system should not allow actions on workers who are not properly linked. Whenever the system fetches, creates, or updates a record—whether it is a user, time log, or reimbursement—it must ensure the structure strictly follows the defined schema.
+**HR Manager**
+- Create job positions
+- Post and close job openings
 
-For any action involving monetary amounts—such as updating card limits or reimbursing expenses—the system must validate that the values are within expected bounds and formatted in valid currency before proceeding.
+## Standard Operating Procedures
 
----
+### Create Job Position
+- Validate that the department ID is valid and salary range is consistent. If department ID is invalid or salary range is inconsistent, then output 'Halt: Invalid position details: [list]'
+- Check that HR Director or Hiring Manager approval is obtained for publishable positions. If approval is missing, then output 'Halt: Approval missing for publishable position'
+- Create or update the job position record with appropriate status (draft, open, or closed)
+- Log the position management action in the audit log
 
-### Key Behaviors and Conditions
+### Post Job Opening
+- Validate that the position is in draft status and has all required information. If position is not in draft or missing requirements, then output 'Halt: Missing job posting details: [list]'
+- Update the job position status to 'open'
+- Log the job posting action in the audit log
 
-- If a worker does not have any reimbursements submitted or recorded, the system should return an empty list rather than a null value or error.
+### Close Job Opening
+- Validate that the position ID exists and is not already closed. If position ID is not found or already closed, then output 'Halt: Job not found or already closed'
+- Update the job position status to 'closed'
+- Log the job closing event in the audit log
 
-- The system should allow updates to virtual card limits only when the card status is active. It should not permit such updates if the card is revoked, blocked, or expired. A clear explanation must be returned.
+### Adding Candidate Record
+- Validate that the email is valid and source is provided. If email is invalid or source is missing, then output 'Halt: Invalid candidate details: [list]'
+- Create a new candidate record and store resume in the document storage system if needed
+- Log the candidate creation in the audit log
 
-- Time entries should only be allowed for workers who are marked as active. The system should reject any logging attempt made for suspended or terminated workers and return an informative message.
+### Create Job Application
+- Validate that the candidate ID and position ID are valid. If candidate ID or position ID is invalid, then output 'Halt: Invalid application details: [list]'
+- Create a new job application record with status set to 'submitted' and assign recruiter ID
+- Link any provided documents (such as cover letter) to the application
+- Log the application creation in the audit log
 
-- Once a reimbursement is marked as paid, the system must treat it as immutable. It should not allow any further editing or reprocessing through any method.
+### Manage Application Stage
+- Validate that the application exists and the stage transition is valid. If application is not found or stage transition is invalid, then output 'Halt: Invalid application status change'
+- Check that Recruiter or Hiring Manager approval is obtained per workflow. If automated screening is used for adverse action, then verify Compliance review is required and obtained
+- Update the job application status and AI screening score
+- Log the stage change
+- If adverse action is taken due to AI screening, then create a compliance records entry for audit purposes
 
-- The system should not permit suspended workers to be assigned or reassigned to departments or organizations, regardless of the user's role attempting the action.
+### Schedule Interview
+- Validate that the application and interviewer exist. If application or interviewer is missing → output 'Halt: Invalid interview scheduling details'
+- Create a new interview record with all required fields (application ID, interviewer, date, time, duration) and set status to 'scheduled'
+- Log the interview scheduling in the audit log
 
----
+### Record Interview Outcome
+- Validate that the interview is in scheduled/completed state. If not found or in invalid state, then output 'Halt: Interview not found or invalid state'
+- Collect and record the ratings for the interview when logging the outcome and update the status for the interview based on the result
+- Update the job application status in accordance to the interview outcome
+- Log the outcome of the interview in the end in the audit log
 
-### Best Practices to Follow
-
-- Error messages should be user-friendly and abstracted. For instance, instead of returning a technical error, the system should say, “This worker is no longer eligible for assignment.”
-
-- The system must check roles before performing sensitive actions. Only users with roles like HR manager or admin should be allowed to deactivate users or assign workers.
-
-- The system should avoid over-fetching data. Summaries, such as those for payroll totals or time aggregates, should return only the most relevant fields.
-
-- All dates should follow ISO 8601 format. If a static date is needed, it should default to `2025-07-01`.
-
----
-
-### What the System Should Not Allow
-
-- The system should not allow creation of users with duplicate email addresses. If the email already exists, the operation must fail with a clear message indicating the conflict.
-
-- No time entry should exceed 24 hours in duration. The system should either cap or reject any entry above this limit.
-
-- Virtual card spending limits must be positive and must not exceed 100,000 units in their configured currency. Any value outside this range should be rejected.
-
-- The system should not allow a user to be deactivated if they are currently linked to any reimbursements or payroll records that are pending or ongoing.
-
-- Reassigning a worker across organizations or departments should only be allowed for users with elevated roles, such as admins or HR managers. All others must be restricted from doing so.
+### Audit Trail Logging (Global)
+- Validate that the audit log write operation is successful. If audit log write fails, then output 'Halt: Audit trail failure'
+- Insert audit log entry with user ID, table name, action type (create, read, update, delete, approve, reject, login, logout, export), record ID, field name (if applicable), old value, new value, and timestamp
+- In case of creating/deleting a record, field name, old value and new value would be null in the record since the operation is on the whole record and not a specific column
