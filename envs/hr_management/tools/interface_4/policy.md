@@ -58,3 +58,4 @@ This document defines the operational guide for an HR management automation agen
 
 ### Approvals
 - When an action requires authorization, a verification code must be supplied to confirm that approval has been given. The system should validate that the person providing this approval has the appropriate user permissions or authority level to grant such authorization.
+- Self-Approval Restriction: If an action requires approval from an individual with a certain role, and the person requesting the action has that same role, they cannot grant the approval to themselves and must obtain approval from another individual with the required role or authority level.
