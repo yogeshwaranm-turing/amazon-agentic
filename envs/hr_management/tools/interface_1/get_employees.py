@@ -2,7 +2,7 @@ import json
 from typing import Any, Dict, Optional
 from tau_bench.envs.tool import Tool
 
-class LookupEmployees(Tool):
+class GetEmployees(Tool):
     @staticmethod
     def invoke(
         data: Dict[str, Any],
@@ -39,7 +39,7 @@ class LookupEmployees(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "lookup_employees",
+                "name": "get_employees",
                 "description": "Get employees with optional filters",
                 "parameters": {
                     "type": "object",
