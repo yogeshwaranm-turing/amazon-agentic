@@ -1,5 +1,3 @@
-# Copyright Sierra
-
 from tau_bench.envs.hr_management.data import load_data
 from tau_bench.envs.hr_management.rules import RULES
 from tau_bench.envs.hr_management.tools import ALL_TOOLS_INTERFACE_1, ALL_TOOLS_INTERFACE_2, ALL_TOOLS_INTERFACE_3, ALL_TOOLS_INTERFACE_4, ALL_TOOLS_INTERFACE_5
@@ -17,6 +15,7 @@ class MockHRManagementDomainEnv(Env):
         user_provider: Optional[str] = None,
         task_split: str = "test",
         task_index: Optional[int] = None,
+        interface_num: Optional[int] = None,
     ):
         match task_split:
             case "test":
@@ -33,9 +32,25 @@ class MockHRManagementDomainEnv(Env):
                 from tau_bench.envs.hr_management.interface_5_tasks import INTERFACE_5_TEST as tasks
             case _:
                 raise ValueError(f"Unknown task split: {task_split}")
+        
+        # Select tools based on interface_num
+        match interface_num:
+            case 1:
+                tools = ALL_TOOLS_INTERFACE_1
+            case 2:
+                tools = ALL_TOOLS_INTERFACE_2
+            case 3:
+                tools = ALL_TOOLS_INTERFACE_3
+            case 4:
+                tools = ALL_TOOLS_INTERFACE_4
+            case 5:
+                tools = ALL_TOOLS_INTERFACE_5
+            case _:
+                raise ValueError(f"Unknown interface_num: {interface_num}")
+        
         super().__init__(
             data_load_func=load_data,
-            tools=ALL_TOOLS_INTERFACE_1,
+            tools=tools,
             tasks=tasks,
             wiki=WIKI,
             rules=RULES,
