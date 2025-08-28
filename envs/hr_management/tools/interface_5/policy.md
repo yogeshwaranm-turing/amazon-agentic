@@ -89,7 +89,7 @@ This document defines the operational guide for an HR management automation agen
 - Create new leave request record with calculated remaining balance and set status to 'pending'
 
 ### Audit Trail Logging (Global)
-- Validate that the audit log write operation is successful. If audit log write fails, then output 'Halt: Audit trail failure'
+
 - Insert audit log entry with user ID, table name, action type (create, read, update, delete, approve, reject, login, logout, export), record ID, field name (if applicable), old value, new value, and timestamp
 - In case of creating/deleting a record, field name, old value and new value would be null in the record since the operation is on the whole record and not a specific column
 
