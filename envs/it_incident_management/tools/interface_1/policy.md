@@ -1,4 +1,5 @@
 # Incident Management Policy
+Current Date: September 02, 2025
 
 ## Introduction
 This document defines the operational guide for an incident management automation agent.  
@@ -114,6 +115,9 @@ Resolution times:
 
 Availability guarantee: 99.0% uptime
 Support coverage: Business hours only
+
+**SLA Breach Detection and Logging:**
+When marking an incident as resolved, the system should automatically check if the total resolution time exceeded the SLA targets defined for the customer's subscription tier and incident severity level. If the actual resolution time was longer than the guaranteed resolution target, this constitutes an SLA breach that must be recorded and logged for tracking and reporting purposes.
 
 ## Client Management Operations
 
