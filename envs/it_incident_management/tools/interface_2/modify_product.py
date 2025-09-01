@@ -36,7 +36,7 @@ class ModifyProduct(Tool):
             if vendor_support_id is not None: p["vendor_support_id"] = vendor_support_id
             if status is not None: p["status"] = status
 
-            p["updated_at"] = "2025-10-01T00:00:00"
+            p["updated_at"] = "2025-09-02T23:59:59"
             return json.dumps(p)
         except Exception as e:
             return json.dumps({"success": False, "error": str(e)})
