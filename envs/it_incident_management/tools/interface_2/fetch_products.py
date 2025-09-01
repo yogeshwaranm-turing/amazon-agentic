@@ -11,8 +11,7 @@ class FetchProducts(Tool):
         product_name_contains: str = None,
         product_type: str = None,
         vendor_support_id: str = None,
-        status: str = None,
-        internal_team_lead_id: str = None,  # new
+        status: str = None
     ) -> str:
         products = data.get("products", {})
         results = []
@@ -29,8 +28,6 @@ class FetchProducts(Tool):
             if vendor_support_id and prod.get("vendor_support_id") != vendor_support_id:
                 continue
             if status and prod.get("status") != status:
-                continue
-            if internal_team_lead_id and prod.get("internal_team_lead_id") != internal_team_lead_id:
                 continue
             results.append(prod)
 
@@ -54,11 +51,7 @@ class FetchProducts(Tool):
                             "description": "payment_processing|banking_system|api_gateway|data_integration|reporting_platform|security_service|backup_service|monitoring_tool"
                         },
                         "vendor_support_id": {"type": "string"},
-                        "status": {"type": "string", "description": "active|deprecated|maintenance"},
-                        "internal_team_lead_id": {
-                            "type": "string",
-                            "description": "Filter by the internal team lead responsible for the product (exact match)"
-                        }
+                        "status": {"type": "string", "description": "active|deprecated|maintenance"}
                     },
                     "required": []
                 }

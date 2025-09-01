@@ -11,7 +11,6 @@ class ModifyProduct(Tool):
         product_type: str = None,   # payment_processing|banking_system|api_gateway|data_integration|reporting_platform|security_service|backup_service|monitoring_tool
         version: str = None,
         vendor_support_id: str = None,
-        internal_team_lead_id: str = None,
         status: str = None          # active|deprecated|maintenance
     ) -> str:
         try:
@@ -35,7 +34,6 @@ class ModifyProduct(Tool):
             if product_type is not None: p["product_type"] = product_type
             if version is not None: p["version"] = version
             if vendor_support_id is not None: p["vendor_support_id"] = vendor_support_id
-            if internal_team_lead_id is not None: p["internal_team_lead_id"] = internal_team_lead_id
             if status is not None: p["status"] = status
 
             p["updated_at"] = "2025-10-01T00:00:00"
@@ -58,7 +56,6 @@ class ModifyProduct(Tool):
                         "product_type":{"type":"string","description":"payment_processing|banking_system|api_gateway|data_integration|reporting_platform|security_service|backup_service|monitoring_tool"},
                         "version":{"type":"string"},
                         "vendor_support_id":{"type":"string"},
-                        "internal_team_lead_id":{"type":"string"},
                         "status":{"type":"string","description":"active|deprecated|maintenance"}
                     },
                     "required":["product_id"]
