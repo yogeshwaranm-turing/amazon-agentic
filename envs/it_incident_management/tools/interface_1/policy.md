@@ -9,6 +9,46 @@ These Standard Operating Procedures provide structured workflows for managing in
 Each procedure defines clear steps, role-based permissions, and validation requirements to ensure consistent incident handling and resolution.
 
 ---
+## Incident Operations
+
+### Creating Incidents
+When to use: When service impacts are detected requiring formal incident management response.  
+Who can perform: Incident managers, technical support, and system administrators, 3rd party vendors (vendor_contact), executive  
+Pre-checks:
+- Check that reporter user exists and has active status
+- Verify client exists
+- Check that component exists if specified
+
+Steps:
+- Collect incident title, category, severity, and impact level
+- Set detection timestamp
+- Associate with specified client and infrastructure component records
+- Create incident record and return incident identifier
+
+#### Severity Classification Process during Incident Creation:  
+Evaluate the following conditions and set the corresponding boolean flags (`p1_*`, `p2_*`, `p3_*`) to **True** for every condition that applies based on the available data. Compute severity as **P1** if any P1 condition is `True`; otherwise **P2** if any P2 condition is `True`; otherwise **P3** if any P3 condition is `True`; otherwise **P4**.
+
+**P1 Evaluation:**
+- Evaluate whether the incident causes complete outage of business-critical service with no workaround available.
+- Evaluate whether the incident impacts the entire enterprise or multiple customers with 5 or more affected parties.
+- Evaluate whether the incident has significant regulatory, safety, or financial implications.
+- Evaluate whether the incident involves a high-priority customer with contractual P1 requirements or is a recurrent incident.
+
+**P2 Evaluation:**
+- Evaluate whether the incident causes major degradation of business-critical services with a workaround available.
+- Evaluate whether the incident impacts multiple departments, sites, or critical business functions.
+- Evaluate whether the incident risks breaching a high-priority SLA with significant impact.
+
+**P3 Evaluation:**
+- Evaluate whether the incident impacts a single department, localized users, or a non-critical function.
+- Evaluate whether the incident causes moderate degradation with operations continuing using a minimal workaround.
+
+If none of the P1/P2/P3 conditions apply, set severity as **P4**.
+
+- Set detection timestamp and initial status as open  
+- Associate with specified client and reporter.  
+- Create incident record with determined severity level and return incident identifier
+
 
 ## Client Management Operations
 
@@ -23,8 +63,8 @@ Steps:
 - Collect complete client information including name, registration number, contact details, and client type
 - Check for existing records with same registration number or email
 - Set initial status as active unless user specifies otherwise
-- Create client record with the timestamp "2025-10-01T00:00:00"
-- Returned client identifier and successful creation flag if client was created 
+- Create client record
+- Return client identifier and successful creation flag if client was created 
 
 ### Updating Client Information
 When to use: When client details change or status modifications are required.  
@@ -37,8 +77,8 @@ Pre-checks:
 Steps:
 - Retrieve current client record
 - Collect specific fields requiring updates
-- Apply changes with the timestamp "2025-10-01T00:00:00"
-- Returned successful creation flag if client information was updated
+- Apply the changes requested
+- Return successful creation flag if client information was updated
 
 ## User Management Operations
 
@@ -55,7 +95,7 @@ Steps:
 - Check for existing records with same email address, users should have unique email
 - Associate user with specified client or vendor if provided
 - Set status as active 
-- Create user record with the timestamp "2025-10-01T00:00:00" and return user identifier
+- Create user record and return user identifier
 
 ### Managing User Permissions
 When to use: When modifying user access levels or role assignments.  
@@ -86,7 +126,7 @@ Steps:
 - Acquire vendor details including name, type, and contact information
 - Check for existing records with same vendor name
 - Set status as active unless user specifies otherwise
-- Create vendor record with the timestamp "2025-10-01T00:00:00"
+- Create vendor record
 - Return vendor identifier and confirm successful creation
 
 ## Authority and Access Controls
