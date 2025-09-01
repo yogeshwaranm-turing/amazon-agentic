@@ -24,6 +24,8 @@ from .modify_component import ModifyComponent
 from .modify_product import ModifyProduct
 from .modify_sla_agreement import ModifySlaAgreement
 from .log_incident import LogIncident
+from .modify_incident import ModifyIncident
+from .add_incident_update_record import AddIncidentUpdateRecord
 
 ALL_TOOLS_INTERFACE_2 = [
     # GET
@@ -50,5 +52,7 @@ ALL_TOOLS_INTERFACE_2 = [
     ModifyComponent,
     ModifyProduct,
     ModifySlaAgreement,
-    LogIncident
+    LogIncident,
+    ModifyIncident,
+    AddIncidentUpdateRecord
 ]

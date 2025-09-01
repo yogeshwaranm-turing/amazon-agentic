@@ -11,6 +11,7 @@ from .retrieve_root_cause_analyses import RetrieveRootCauseAnalyses
 from .retrieve_change_requests import RetrieveChangeRequests
 from .retrieve_incident_reports import RetrieveIncidentReports
 from .retrieve_sla_agreements import RetrieveSlaAgreements
+from .retrieve_products import RetrieveProducts
 
 from .register_incident import RegisterIncident
 from .amend_incident import AmendIncident
@@ -38,6 +39,7 @@ ALL_TOOLS_INTERFACE_3 = [
     RetrieveChangeRequests,
     RetrieveIncidentReports,
     RetrieveSlaAgreements,
+    RetrieveProducts,
     # SET
     RegisterIncident,
     AmendIncident,

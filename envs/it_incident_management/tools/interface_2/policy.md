@@ -1,4 +1,5 @@
 # Incident Management Policy
+Current Date: September 02, 2025
 
 ## Introduction
 This document defines the operational guide for an incident management automation agent.  
@@ -49,6 +50,75 @@ If none of the P1/P2/P3 conditions apply, set severity as **P4**.
 - Associate with specified client and reporter.  
 - Create incident record with determined severity level and return incident identifier
 
+### Updating Incident Status
+When to use: When incident conditions change requiring status modifications or progress updates.  
+Who can perform: Incident managers, technical support, executive  
+Pre-checks:
+- Verify incident exists and is accessible to user
+- Check user's role allows incident modifications
+
+Steps:
+- Retrieve current incident record
+- Collect specific status changes or field updates needed
+- Check that new status value matches allowed enum values (if there is any)
+- Create incident update record(s) documenting the change(s) along with logging the user who conducted the change
+- Apply changes to incident with the user identifier
+- Return updated incident information
+
+#### subscription tier values and metrics
+**Premium Tier**
+Target clients: Enterprise customers with mission-critical operations
+Response times by severity:
+- P1 (Critical): 15-30 minutes initial response
+- P2 (High): 1-2 hours initial response
+- P3 (Medium): 4-8 hours initial response
+- P4 (Low): 24-48 hours initial response
+
+Resolution times:
+- P1: 2-4 hours resolution target
+- P2: 8-24 hours resolution target
+- P3: 48-72 hours resolution target
+- P4: 128 hours resolution target
+Availability guarantee: 99.9% uptime
+Support coverage: 24/7/365
+
+**Standard Tier**
+Target clients: Mid-market businesses with important but less critical operations
+Response times by severity:
+- P1: 1-2 hours initial response
+- P2: 4-8 hours initial response
+- P3: 24 hours initial response
+- P4: 48-72 hours initial response
+
+Resolution times:
+- P1: 8-24 hours resolution target
+- P2: 24-48 hours resolution target
+- P3: 72-120 hours resolution target
+- P4: 168 hours resolution target
+Availability guarantee: 99.5% uptime
+Support coverage: Business hours with on-call for critical issues
+
+**Basic Tier**
+
+Target clients: Small businesses and startups with standard operational needs
+Response times by severity:
+- P1: 4-8 hours initial response
+- P2: 24 hours initial response
+- P3: 48-72 hours initial response
+- P4: 5-7 business days initial response
+
+Resolution times:
+- P1: 24-48 hours resolution target
+- P2: 72-120 hours resolution target
+- P3: 5-10 business days resolution target
+- P4: 2 weeks
+
+Availability guarantee: 99.0% uptime
+Support coverage: Business hours only
+
+**SLA Breach Detection and Logging:**
+When marking an incident as resolved, the system should automatically check if the total resolution time exceeded the SLA targets defined for the customer's subscription tier and incident severity level. If the actual resolution time was longer than the guaranteed resolution target, this constitutes an SLA breach that must be recorded and logged for tracking and reporting purposes.
+
 ## Product and Infrastructure Operations
 
 ### Creating Product Records
@@ -94,6 +164,17 @@ Steps:
 - Define start and end dates as specified
 - Link subscription to specified client and product records
 - Create subscription record with active status
+
+### Creating SLA agreement
+Who can perform: Account managers, system administrators, executives
+Pre-checks:
+- Verify subscription exists and is active
+- Check user has authority to create SLA agreements for this client
+- Validate response/resolution times align with subscription tier
+
+Use case: When defining specific SLA metrics for client subscriptions
+
+
 
 ### Managing Service Level Agreements
 When to use: When defining response and resolution requirements for different incident severities.  
