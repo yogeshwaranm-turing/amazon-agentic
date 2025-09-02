@@ -11,6 +11,8 @@ from .query_components import QueryComponents
 from .query_post_incident_reviews import QueryPostIncidentReviews
 from .query_incident_reports import QueryIncidentReports
 from .query_knowledge_base_articles import QueryKnowledgeBaseArticles
+from .query_products import QueryProducts
+from .query_sla_agreements import QuerySlaAgreements
 
 from .record_change_request import RecordChangeRequest
 from .edit_change_request import EditChangeRequest
@@ -24,6 +26,8 @@ from .record_communication import RecordCommunication
 from .edit_communication import EditCommunication
 from .record_post_incident_review import RecordPostIncidentReview
 from .create_incident import CreateIncident
+from .record_incident_update_record import RecordIncidentUpdateRecord
+from .edit_incident import EditIncident
 
 ALL_TOOLS_INTERFACE_4 = [
     # GET
@@ -38,6 +42,8 @@ ALL_TOOLS_INTERFACE_4 = [
     QueryPostIncidentReviews,
     QueryIncidentReports,
     QueryKnowledgeBaseArticles,
+    QueryProducts,
+    QuerySlaAgreements,
     # SET
     RecordChangeRequest,
     EditChangeRequest,
@@ -50,5 +56,7 @@ ALL_TOOLS_INTERFACE_4 = [
     RecordCommunication,
     EditCommunication,
     RecordPostIncidentReview,
-    CreateIncident
+    CreateIncident,
+    RecordIncidentUpdateRecord,
+    EditIncident
 ]

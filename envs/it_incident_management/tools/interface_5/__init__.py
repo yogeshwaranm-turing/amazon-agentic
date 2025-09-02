@@ -11,6 +11,9 @@ from .list_vendors import ListVendors
 from .list_root_cause_analyses import ListRootCauseAnalyses
 from .list_change_requests import ListChangeRequests
 from .list_workarounds import ListWorkarounds
+from .list_components import ListComponents
+from .list_products import ListProducts
+from .list_sla_agreements import ListSlaAgreements
 
 from .log_metric import LogMetric
 from .revise_metric import ReviseMetric
@@ -24,6 +27,9 @@ from .log_communication import LogCommunication
 from .log_root_cause_analysis import LogRootCauseAnalysis
 from .log_workaround import LogWorkaround
 from .add_incident import AddIncident
+from .revise_incident import ReviseIncident
+from .log_incident_update_record import LogIncidentUpdateRecord
+
 
 ALL_TOOLS_INTERFACE_5 = [
     # GET
@@ -38,6 +44,9 @@ ALL_TOOLS_INTERFACE_5 = [
     ListRootCauseAnalyses,
     ListChangeRequests,
     ListWorkarounds,
+    ListComponents,
+    ListProducts,
+    ListSlaAgreements,
     # SET
     LogMetric,
     ReviseMetric,
@@ -50,5 +59,7 @@ ALL_TOOLS_INTERFACE_5 = [
     LogCommunication,
     LogRootCauseAnalysis,
     LogWorkaround,
-    AddIncident
+    AddIncident,
+    ReviseIncident,
+    LogIncidentUpdateRecord
 ]
