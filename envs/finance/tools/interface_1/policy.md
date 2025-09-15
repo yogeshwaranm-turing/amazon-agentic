@@ -15,7 +15,7 @@ This policy defines responsibilities, principles, and procedures for fund manage
 5. **Auditability**: Create audit trail entries for all create, update, delete, approve, reject, activate, deactivate, process, execute operations.
 
 6. **Approval System Logic**:
-   - Use `validate_fund_manager_approval` tool to verify fund manager approval codes
+   - Use `validate_approval` tool to verify fund manager approval codes
    - The tool returns `{"approval_valid": true}` if the approval code exists and has `approver_role: "fund_manager"`
    - The tool returns `{"approval_valid": false}` if the approval code is invalid or not found
    - All fund creation and trading operations require valid fund manager approval codes
