@@ -13,8 +13,8 @@ from .get_system_entities import GetSystemEntities
 from .get_trading_entities import GetTradingEntities
 from .get_user_entities import GetUserEntities
 from .get_valuation_entities import GetValuationEntities
-from .execute_trade import ExecuteTrade
-from .fulfill_commitment import FulfillCommitment
+from .complete_trade import CompleteTrade
+from .execute_commitment import ExecuteCommitment
 from .generate_report import GenerateReport
 from .process_fund import ProcessFund
 from .process_instrument import ProcessInstrument
@@ -28,10 +28,10 @@ from .process_portfolio_holdings import ProcessPortfolioHoldings
 from .process_subscription import ProcessSubscription
 from .offboard_investor import OffboardInvestor
 from .process_redemption import ProcessRedemption
-from .transfer_to_human_agents import TransferToHumanAgents
-from .upload_document import UploadDocument
+from .route_to_human import RouteToHuman
+from .store_document import StoreDocument
 
-ALL_TOOLS_INTERFACE_1 = [
+ALL_TOOLS_INTERFACE_5 = [
     ApprovalLookup,
     GenerateCommitment,
     GenerateInvestor,
@@ -47,8 +47,8 @@ ALL_TOOLS_INTERFACE_1 = [
     GetTradingEntities,
     GetUserEntities,
     GetValuationEntities,
-    ExecuteTrade,
-    FulfillCommitment,
+    CompleteTrade,
+    ExecuteCommitment,
     GenerateReport,
     ProcessFund,
     ProcessInstrument,
@@ -62,6 +62,6 @@ ALL_TOOLS_INTERFACE_1 = [
     ProcessSubscription,
     OffboardInvestor,
     ProcessRedemption,
-    TransferToHumanAgents,
-    UploadDocument
+    RouteToHuman,
+    StoreDocument
 ]

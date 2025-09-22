@@ -31,7 +31,7 @@ from .process_redemption import ProcessRedemption
 from .escalate_to_human import EscalateToHuman
 from .upload_document import UploadDocument
 
-ALL_TOOLS_INTERFACE_1 = [
+ALL_TOOLS_INTERFACE_3 = [
     ValidateApproval,
     RegisterCommitment,
     RegisterInvestor,

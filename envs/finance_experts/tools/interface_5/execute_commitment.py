@@ -2,7 +2,7 @@ import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
-class FulfillCommitment(Tool):
+class ExecuteCommitment(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], commitment_id: str) -> str:
         
@@ -30,7 +30,7 @@ class FulfillCommitment(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "fulfill_commitment",
+                "name": "execute_commitment",
                 "description": "Mark a commitment as fulfilled",
                 "parameters": {
                     "type": "object",

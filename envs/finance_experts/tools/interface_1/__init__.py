@@ -28,7 +28,7 @@ from .manage_portfolio_holdings import ManagePortfolioHoldings
 from .manage_subscription import ManageSubscription
 from .offboard_investor import OffboardInvestor
 from .process_redemption import ProcessRedemption
-from .transfer_to_human_agents import TransferToHumanAgents
+from .transfer_to_human import TransferToHuman
 from .upload_document import UploadDocument
 
 ALL_TOOLS_INTERFACE_1 = [
@@ -62,6 +62,6 @@ ALL_TOOLS_INTERFACE_1 = [
     ManageSubscription,
     OffboardInvestor,
     ProcessRedemption,
-    TransferToHumanAgents,
+    TransferToHuman,
     UploadDocument
 ]

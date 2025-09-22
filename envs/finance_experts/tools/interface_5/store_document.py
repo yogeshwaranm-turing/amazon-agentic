@@ -2,7 +2,7 @@ import json
 from typing import Any, Dict, Optional
 from tau_bench.envs.tool import Tool
 
-class UploadDocument(Tool):
+class StoreDocument(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], name: str, format: str, uploaded_by: str,
                size_bytes: Optional[int] = None, report_id: Optional[str] = None,
@@ -68,7 +68,7 @@ class UploadDocument(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "upload_document",
+                "name": "store_document",
                 "description": "Upload a new document to the system",
                 "parameters": {
                     "type": "object",

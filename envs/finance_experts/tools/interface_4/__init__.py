@@ -31,7 +31,7 @@ from .process_redemption import ProcessRedemption
 from .handover_to_human import HandOverToHuman
 from .upload_document import UploadDocument
 
-ALL_TOOLS_INTERFACE_1 = [
+ALL_TOOLS_INTERFACE_4 = [
     VerifyApproval,
     RecordCommitment,
     RecordInvestor,

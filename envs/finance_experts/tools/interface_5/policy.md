@@ -69,7 +69,7 @@ Always try to acquire as many parameters as possible in an SOP, while ensuring t
 - Retrieving entity details for reporting  
 - Supporting other SOPs that require entity verification  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use route_to_human if you receive the following errors; otherwise complete the SOP:**
 - Missing entity_type or invalid entity_type  
 - Unauthorized requester  
 - Discovery tool execution failed  
@@ -83,7 +83,7 @@ Always try to acquire as many parameters as possible in an SOP, while ensuring t
 3. Create the investor profile using generate_investor.  
 4. Create an audit entry for onboarding using generate_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use route_to_human if you receive the following errors; otherwise complete the SOP:**
 - Missing or invalid inputs  
 - Approval invalid or missing  
 - Creation failed  
@@ -99,7 +99,7 @@ Always try to acquire as many parameters as possible in an SOP, while ensuring t
 5. Deactivate the investor using offboard_investor.  
 6. Create an audit entry for offboarding using generate_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use route_to_human if you receive the following errors; otherwise complete the SOP:**
 - Investor not found  
 - Operation failed (cancellations of active subscriptions or offboarding)  
 
@@ -112,7 +112,7 @@ Always try to acquire as many parameters as possible in an SOP, while ensuring t
 3. Create or update the fund using process_fund  
 4. Create an audit entry for fund creation or update using generate_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use route_to_human if you receive the following errors; otherwise complete the SOP:**
 - Invalid details  
 - Invalid transitions  
 - Required approvals not provided  
@@ -128,7 +128,7 @@ Always try to acquire as many parameters as possible in an SOP, while ensuring t
 4. Create a subscription or update a subscription using process_subscription.  
 5. Create an audit entry for the subscription action using generate_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use route_to_human if you receive the following errors; otherwise complete the SOP:**
 - Invalid inputs  
 - Invalid transitions  
 - Required approvals not provided  
@@ -143,7 +143,7 @@ Always try to acquire as many parameters as possible in an SOP, while ensuring t
 3. Create a new subscription on the target fund or cancel/update the current subscription using process_subscription.  
 4. Create an audit entry for the switch using generate_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use route_to_human if you receive the following errors; otherwise complete the SOP:**
 - Invalid identifiers  
 - Investor ineligible for the target fund  
 - Operation failed (create/cancel)  
@@ -154,10 +154,10 @@ Always try to acquire as many parameters as possible in an SOP, while ensuring t
 
 1. Verify that approval is present using approval_lookup (Compliance Officer approval required).  
 2. For creation: obtain investor_id, fund_id, amount, commitment_date, due_date (optional), and compliance_officer_approval from (1); using generate_commitment  
-3. For fulfillment: obtain commitment_id, receipt (optional) and compliance_officer_approval from (1); fulfill using fulfill_commitment.  
+3. For fulfillment: obtain commitment_id, receipt (optional) and compliance_officer_approval from (1); fulfill using execute_commitment.  
 4. Create audit entries for both creation and fulfillment using generate_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use route_to_human if you receive the following errors; otherwise complete the SOP:**
 - Invalid IDs or status  
 - Amount not positive  
 - Compliance Officer approval missing  
@@ -169,10 +169,10 @@ Always try to acquire as many parameters as possible in an SOP, while ensuring t
 
 1. Verify that approval is present using approval_lookup (Fund Manager approval required).  
 2. Obtain fund_id, instrument_id, quantity, side (buy/sell), trade_date, price, and fund_manager_approval from (1).  
-3. Execute the trade using execute_trade.  
+3. Execute the trade using complete_trade.  
 4. Create an audit entry for trade and any NAV event using generate_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use route_to_human if you receive the following errors; otherwise complete the SOP:**
 - Invalid trade details  
 - Required approval not provided  
 - Execution or calculation failed  
@@ -186,7 +186,7 @@ Always try to acquire as many parameters as possible in an SOP, while ensuring t
 3. Calculate NAV using process_nav_record when instructed to do so; otherwise retrieve using get_valuation_entities.  
 4. Create an audit entry for the NAV event using generate_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use route_to_human if you receive the following errors; otherwise complete the SOP:**
 - Data incomplete for calculation  
 - Calculation failed  
 - NAV record unavailable  
@@ -201,7 +201,7 @@ Always try to acquire as many parameters as possible in an SOP, while ensuring t
 3. Process the redemption using process_redemption.  
 4. Create an audit entry for the redemption using generate_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use route_to_human if you receive the following errors; otherwise complete the SOP:**
 - Approval not provided  
 - Processing or reporting failed  
 
@@ -210,10 +210,10 @@ Always try to acquire as many parameters as possible in an SOP, while ensuring t
 ## Document Intake & Governance
 
 1. Obtain uploader_id, doc_type, format, size_bytes, confidentiality, file_name, report_id (optional), and approval.  
-2. Store the document using upload_document.  
+2. Store the document using store_document.  
 3. Create an audit entry for the document intake using generate_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use route_to_human if you receive the following errors; otherwise complete the SOP:**
 - Invalid metadata/format  
 - Upload failed  
 - Unauthorized audit access  
@@ -229,7 +229,7 @@ Always try to acquire as many parameters as possible in an SOP, while ensuring t
 5. Generate the report using generate_report.  
 6. Create an audit entry for report generation using generate_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use route_to_human if you receive the following errors; otherwise complete the SOP:**
 - Fund or investor not found  
 - Report already exists for the period  
 - Invalid report type  
@@ -247,7 +247,7 @@ Always try to acquire as many parameters as possible in an SOP, while ensuring t
 4. Create the portfolio using process_portfolio.  
 5. Create an audit entry for portfolio creation using generate_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use route_to_human if you receive the following errors; otherwise complete the SOP:**
 - Investor not found  
 - Investor already has active portfolio  
 - Required approval not provided  
@@ -265,7 +265,7 @@ After completing investor onboarding, automatically create a portfolio if the in
 4. Apply changes using process_portfolio.  
 5. Create an audit entry for portfolio update using generate_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use route_to_human if you receive the following errors; otherwise complete the SOP:**
 - Portfolio not found  
 - Active holdings prevent status change  
 - Required approval not provided  
@@ -280,7 +280,7 @@ After completing investor onboarding, automatically create a portfolio if the in
 3. For updates: obtain holding_id, change set (e.g., quantity, cost_basis), and approval_code; verify approval context using approval_lookup (Fund Manager approval required); update using process_portfolio_holding.  
 4. Create audit entries using generate_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use route_to_human if you receive the following errors; otherwise complete the SOP:**
 - Portfolio or fund not found  
 - Portfolio not active  
 - Fund already held in portfolio (for creation)  
@@ -301,7 +301,7 @@ One investor is only allowed to have one portfolio, while one portfolio can have
 4. Create the instrument using process_instrument.  
 5. Create an audit entry for instrument creation using generate_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use route_to_human if you receive the following errors; otherwise complete the SOP:**
 - Ticker already exists  
 - Invalid instrument type  
 - Required approvals not provided  
@@ -316,7 +316,7 @@ One investor is only allowed to have one portfolio, while one portfolio can have
 3. For updates: obtain invoice_id, change set (e.g., status, due_date), and finance_officer_approval from (1); update using process_invoice.  
 4. Create audit entries using generate_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use route_to_human if you receive the following errors; otherwise complete the SOP:**
 - Invalid dates or amounts  
 - Commitment not found (if provided)  
 - Invoice not found (for updates)  
@@ -334,7 +334,7 @@ One investor is only allowed to have one portfolio, while one portfolio can have
 4. Validate invoice and subscription existence and status.  
 5. Create audit entries using generate_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use route_to_human if you receive the following errors; otherwise complete the SOP:**
 - Invoice or subscription not found  
 - Amount exceeds outstanding balance  
 - Invalid payment method or amount  
@@ -353,7 +353,7 @@ One investor is only allowed to have one portfolio, while one portfolio can have
 4. For creation, verify that there is no existing NAV for the date using get_nav.  
 5. Create audit entries using generate_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use route_to_human if you receive the following errors; otherwise complete the SOP:**
 - Fund not found  
 - NAV already exists for date (for creation)  
 - NAV record not found (for updates)  
@@ -373,7 +373,7 @@ One investor is only allowed to have one portfolio, while one portfolio can have
 5. Create or update price record using process_instrument_price.  
 6. Create an audit entry for price update using generate_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use route_to_human if you receive the following errors; otherwise complete the SOP:**
 - Instrument not found  
 - Invalid price data (negative values, high < low, etc.)  
 - Price date in future  
@@ -399,7 +399,7 @@ One investor is only allowed to have one portfolio, while one portfolio can have
 3. For creation, validate notification type and class combinations.  
 4. Create audit entries using generate_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use route_to_human if you receive the following errors; otherwise complete the SOP:**
 - Invalid email format  
 - Invalid notification type or class combination Invalid notification type or class  
 - Reference entity not found (if reference_id provided)  
