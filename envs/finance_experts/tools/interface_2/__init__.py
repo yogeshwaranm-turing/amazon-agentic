@@ -1,4 +1,4 @@
-from .approval_lookup import ApprovalLookup
+from .check_approval import CheckApproval
 from .add_commitment import AddCommitment
 from .add_investor import AddInvestor
 from .add_new_audit_trail import AddNewAuditTrail
@@ -28,11 +28,11 @@ from .handle_portfolio_holdings import HandlePortfolioHoldings
 from .handle_subscription import HandleSubscription
 from .terminate_investor import TerminateInvestor
 from .process_redemption import ProcessRedemption
-from .transfer_to_human_agents import TransferToHumanAgents
+from .switch_to_human import SwitchToHuman  
 from .insert_document import InsertDocument
 
-ALL_TOOLS_INTERFACE_1 = [
-    ApprovalLookup,
+ALL_TOOLS_INTERFACE_2 = [
+    CheckApproval,
     AddCommitment,
     AddInvestor,
     AddNewAuditTrail,
@@ -62,6 +62,6 @@ ALL_TOOLS_INTERFACE_1 = [
     HandleSubscription,
     TerminateInvestor,
     ProcessRedemption,
-    TransferToHumanAgents,
+    SwitchToHuman,
     InsertDocument
 ]
