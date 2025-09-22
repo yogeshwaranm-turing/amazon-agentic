@@ -13,7 +13,7 @@ from .find_system_entities import FindSystemEntities
 from .find_trading_entities import FindTradingEntities
 from .find_user_entities import FindUserEntities
 from .find_valuation_entities import FindValuationEntities
-from .execute_trade import ExecuteTrade
+from .perform_trade import PerformTrade
 from .complete_commitment import CompleteCommitment
 from .generate_report import GenerateReport
 from .manipulate_fund import ManipulateFund
@@ -28,7 +28,7 @@ from .manipulate_portfolio_holdings import ManipulatePortfolioHoldings
 from .manipulate_subscription import ManipulateSubscription
 from .remove_investor import RemoveInvestor
 from .process_redemption import ProcessRedemption
-from .transfer_to_human_agents import TransferToHumanAgents
+from .escalate_to_human import EscalateToHuman
 from .upload_document import UploadDocument
 
 ALL_TOOLS_INTERFACE_1 = [
@@ -47,7 +47,7 @@ ALL_TOOLS_INTERFACE_1 = [
     FindTradingEntities,
     FindUserEntities,
     FindValuationEntities,
-    ExecuteTrade,
+    PerformTrade,
     CompleteCommitment,
     GenerateReport,
     ManipulateFund,
@@ -62,6 +62,6 @@ ALL_TOOLS_INTERFACE_1 = [
     ManipulateSubscription,
     RemoveInvestor,
     ProcessRedemption,
-    TransferToHumanAgents,
+    EscalateToHuman,
     UploadDocument
 ]

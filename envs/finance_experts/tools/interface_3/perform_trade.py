@@ -2,7 +2,7 @@ import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
-class ExecuteTrade(Tool):
+class PerformTrade(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], fund_id: str, instrument_id: str, 
                quantity: float, side: str, trade_date: str, price: float) -> str:
@@ -108,7 +108,7 @@ class ExecuteTrade(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "execute_trade",
+                "name": "perform_trade",
                 "description": "Execute a trade for a fund.",
                 "parameters": {
                     "type": "object",
