@@ -48,6 +48,11 @@ class ManageInstrumentPrice(Tool):
                     "success": False,
                     "error": f"Missing required fields for price creation: {', '.join(missing_fields)}. Both Fund Manager and Compliance Officer approvals are required."
                 })
+            if not (price_data.get("fund_manager_approval") and price_data.get("compliance_officer_approval")):
+                return json.dumps({
+                    "success": False,
+                    "error": "Both Fund Manager and Compliance Officer approvals are required for price creation"
+                })
             
             # Validate only allowed fields are present
             allowed_fields = ["instrument_id", "price_date", "open_price", "high_price", "low_price", "close_price", "fund_manager_approval", "compliance_officer_approval"]
@@ -135,6 +140,12 @@ class ManageInstrumentPrice(Tool):
                 return json.dumps({
                     "success": False,
                     "error": f"Missing required approvals for price update: {', '.join(missing_approvals)}. Both Fund Manager and Compliance Officer approvals are required."
+                })
+            
+            if not (price_data.get("fund_manager_approval") and price_data.get("compliance_officer_approval")):
+                return json.dumps({
+                    "success": False,
+                    "error": "Both Fund Manager and Compliance Officer approvals are required for price update"
                 })
             
             # Validate only allowed fields are present for updates

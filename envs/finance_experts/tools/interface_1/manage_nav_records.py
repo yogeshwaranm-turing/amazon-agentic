@@ -9,9 +9,15 @@ class ManageNavRecord(Tool):
         Create or update NAV records.
         
         Actions:
-        - create: Create new NAV record (requires nav_data with fund_id, nav_date, nav_value, approval_code)
-        - update: Update existing NAV record (requires nav_id and nav_data with changes like nav_value, approval_code)
+        - create: Create new NAV record (requires nav_data with fund_id, nav_date, nav_value, finance_officer_approval)
+        - update: Update existing NAV record (requires nav_id and nav_data with changes, finance_officer_approval, fund_manager_approval)
         """
+        
+        def generate_id(table: Dict[str, Any]) -> int:
+            if not table:
+                return 1
+            return max(int(k) for k in table.keys()) + 1
+        
         if action not in ["create", "update"]:
             return json.dumps({
                 "success": False,
@@ -35,16 +41,23 @@ class ManageNavRecord(Tool):
                 })
             
             # Validate required fields for creation
-            required_fields = ["fund_id", "nav_date", "nav_value", "approval_code"]
+            required_fields = ["fund_id", "nav_date", "nav_value", "finance_officer_approval"]
             missing_fields = [field for field in required_fields if field not in nav_data]
             if missing_fields:
                 return json.dumps({
                     "success": False,
-                    "error": f"Missing required fields for NAV creation: {', '.join(missing_fields)}"
+                    "error": f"Missing required fields for NAV creation: {', '.join(missing_fields)}. Finance Officer approval is required."
+                })
+            
+            # Validate that finance_officer_approval is True
+            if not nav_data.get("finance_officer_approval"):
+                return json.dumps({
+                    "success": False,
+                    "error": "Finance Officer approval must be True for NAV creation"
                 })
             
             # Validate only allowed fields are present
-            allowed_fields = ["fund_id", "nav_date", "nav_value", "approval_code"]
+            allowed_fields = ["fund_id", "nav_date", "nav_value", "finance_officer_approval"]
             invalid_fields = [field for field in nav_data.keys() if field not in allowed_fields]
             if invalid_fields:
                 return json.dumps({
@@ -56,7 +69,15 @@ class ManageNavRecord(Tool):
             if nav_data["nav_value"] <= 0:
                 return json.dumps({
                     "success": False,
-                    "error": "NAV value must be positive"
+                    "error": "NAV value must be positive - negative or zero values are not allowed"
+                })
+            
+            # Validate that nav_date is not in the future (using current system date)
+            current_date = "2025-10-01"  # Based on policy current date
+            if nav_data["nav_date"] > current_date:
+                return json.dumps({
+                    "success": False,
+                    "error": "Invalid NAV date: cannot create NAV record with future date"
                 })
             
             # Check for existing NAV for the same fund and date
@@ -70,25 +91,24 @@ class ManageNavRecord(Tool):
                         "error": f"NAV already exists for fund {fund_id} on date {nav_date}. Only one NAV per fund per date is allowed."
                     })
             
-            # Generate new NAV ID
-            existing_ids = [int(nid) for nid in nav_records.keys() if nid.isdigit()]
-            new_nav_id = str(max(existing_ids, default=0) + 1)
+            # Generate new NAV ID using the same pattern as other tools
+            new_nav_id = generate_id(nav_records)
             
             # Create new NAV record
             new_nav = {
-                "nav_id": new_nav_id,
+                "nav_id": str(new_nav_id),
                 "fund_id": nav_data["fund_id"],
                 "nav_date": nav_data["nav_date"],
                 "nav_value": nav_data["nav_value"],
                 "updated_at": "2025-10-01T12:00:00"
             }
             
-            nav_records[new_nav_id] = new_nav
+            nav_records[str(new_nav_id)] = new_nav
             
             return json.dumps({
                 "success": True,
                 "action": "create",
-                "nav_id": new_nav_id,
+                "nav_id": str(new_nav_id),
                 "message": f"NAV record {new_nav_id} created successfully for fund {fund_id} on {nav_date}",
                 "nav_data": new_nav
             })
@@ -112,15 +132,24 @@ class ManageNavRecord(Tool):
                     "error": "nav_data is required for update action"
                 })
             
-            # Validate required approval for updates
-            if "approval_code" not in nav_data:
+            # Validate required approvals for updates (both Finance Officer and Fund Manager required)
+            required_approvals = ["finance_officer_approval", "fund_manager_approval"]
+            missing_approvals = [field for field in required_approvals if field not in nav_data]
+            if missing_approvals:
                 return json.dumps({
                     "success": False,
-                    "error": "approval_code is required for NAV updates"
+                    "error": f"Missing required approvals for NAV update: {', '.join(missing_approvals)}. Both Finance Officer and Fund Manager approvals are required."
+                })
+            
+            # Validate that both approvals are True
+            if not (nav_data.get("finance_officer_approval") and nav_data.get("fund_manager_approval")):
+                return json.dumps({
+                    "success": False,
+                    "error": "Both Finance Officer and Fund Manager approvals must be True for NAV update"
                 })
             
             # Validate only allowed fields are present for updates (cannot update fund_id or nav_date)
-            allowed_update_fields = ["nav_value", "approval_code"]
+            allowed_update_fields = ["nav_value", "finance_officer_approval", "fund_manager_approval"]
             invalid_fields = [field for field in nav_data.keys() if field not in allowed_update_fields]
             if invalid_fields:
                 return json.dumps({
@@ -132,13 +161,13 @@ class ManageNavRecord(Tool):
             if "nav_value" in nav_data and nav_data["nav_value"] <= 0:
                 return json.dumps({
                     "success": False,
-                    "error": "NAV value must be positive"
+                    "error": "NAV value must be positive - negative or zero values are not allowed"
                 })
             
             # Update NAV record
             updated_nav = nav_records[nav_id].copy()
             for key, value in nav_data.items():
-                if key != "approval_code":  # Skip approval_code from being stored
+                if key not in ["finance_officer_approval", "fund_manager_approval"]:  # Skip approval codes from being stored
                     updated_nav[key] = value
             
             updated_nav["updated_at"] = "2025-10-01T12:00:00"
@@ -158,37 +187,40 @@ class ManageNavRecord(Tool):
             "type": "function",
             "function": {
                 "name": "manage_nav_record",
-                "description": "Create or update NAV records in the fund management system. For creation, requires fund_id, nav_date, nav_value, and approval_code. For updates, requires nav_id and fields to change with approval_code. Ensures one NAV record per fund per date and validates positive NAV values.",
+                "description": "Create or update NAV (Net Asset Value) records in the fund management system. This tool manages daily NAV calculations and updates for financial funds with comprehensive validation to ensure data integrity and regulatory compliance. For creation, establishes new NAV records with validation to prevent duplicate entries for the same fund and date combination, requiring Finance Officer approval. For updates, modifies existing NAV records while maintaining data integrity and requires both Finance Officer and Fund Manager approvals as mandated by regulatory requirements for material changes. Validates positive NAV values, prevents future-dated entries, and enforces proper business rules. Essential for accurate fund valuations, investor reporting, and regulatory compliance. Supports the complete NAV lifecycle from initial calculation to ongoing market-based adjustments.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "action": {
                             "type": "string",
-                            "description": "Action to perform: 'create' or 'update'",
+                            "description": "Action to perform: 'create' to establish new NAV record, 'update' to modify existing NAV record",
                             "enum": ["create", "update"]
                         },
                         "nav_data": {
                             "type": "object",
-                            "description": "NAV data object. For create: requires fund_id, nav_date, nav_value, approval_code. For update: fields to change with approval_code (fund_id and nav_date cannot be updated).",
+                            "description": "NAV data object. For create: requires fund_id, nav_date (cannot be future), nav_value (positive), finance_officer_approval (approval code). For update: includes nav_value to change with both finance_officer_approval and fund_manager_approval (fund_id and nav_date cannot be updated). SYNTAX: {\"key\": \"value\"}",
                             "properties": {
                                 "fund_id": {
                                     "type": "integer",
-                                    "description": "Unique identifier of the fund (required for create only, cannot be updated)"
+                                    "description": "Unique identifier of the fund (required for create only, cannot be updated, unique with nav_date)"
                                 },
                                 "nav_date": {
                                     "type": "string",
-                                    "description": "Date of the NAV record in YYYY-MM-DD format (required for create only, cannot be updated, unique with fund_id)"
+                                    "description": "Date of the NAV record in YYYY-MM-DD format (required for create only, cannot be updated, cannot be future date, unique with fund_id)"
                                 },
                                 "nav_value": {
                                     "type": "number",
-                                    "description": "Net Asset Value (must be positive)"
+                                    "description": "Net Asset Value with high precision (must be positive)"
                                 },
-                                "approval_code": {
-                                    "type": "string",
-                                    "description": "Authorization code for NAV operations (required for both create and update)"
+                                "finance_officer_approval": {
+                                    "type": "boolean",
+                                    "description": "Finance Officer approval presence (True/False) (required for both create and update operations)"
+                                },
+                                "fund_manager_approval": {
+                                    "type": "boolean",
+                                    "description": "Fund Manager approval presence (True/False) (required for update operations only, for material changes)"
                                 }
-                            },
-                            "additionalProperties": false
+                            }
                         },
                         "nav_id": {
                             "type": "string",
