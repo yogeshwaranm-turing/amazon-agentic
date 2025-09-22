@@ -12,6 +12,12 @@ class ManageNotifications(Tool):
         - create: Create new notification (requires notification_data with email, type, class, approval_code, optional reference_id)
         - update: Update existing notification (requires notification_id and notification_data with changes like status, approval_code)
         """
+        
+        def generate_id(table: Dict[str, Any]) -> int:
+            if not table:
+                return 1
+            return max(int(k) for k in table.keys()) + 1
+        
         if action not in ["create", "update"]:
             return json.dumps({
                 "success": False,
@@ -67,6 +73,24 @@ class ManageNotifications(Tool):
                     "error": f"Invalid class. Must be one of: {', '.join(valid_classes)}"
                 })
             
+            # Validate type-class combinations per policy
+            notification_type = notification_data["type"]
+            notification_class = notification_data["class"]
+            
+            # Valid combinations based on policy
+            valid_combinations = {
+                "alert": ["funds", "investors", "portfolios", "trades", "invoices", "subscriptions", "commitments"],
+                "report": ["funds", "investors", "portfolios", "reports", "documents"],
+                "reminder": ["invoices", "subscriptions", "commitments"],
+                "subscription_update": ["subscriptions", "commitments"]
+            }
+            
+            if notification_class not in valid_combinations[notification_type]:
+                return json.dumps({
+                    "success": False,
+                    "error": f"Invalid type-class combination: {notification_type} notifications are not valid for {notification_class}. Valid classes for {notification_type}: {', '.join(valid_combinations[notification_type])}"
+                })
+            
             # Validate status if provided
             if "status" in notification_data:
                 valid_statuses = ["pending", "sent", "failed"]
@@ -84,13 +108,12 @@ class ManageNotifications(Tool):
                     "error": "Invalid email format"
                 })
             
-            # Generate new notification ID
-            existing_ids = [int(nid) for nid in notifications.keys() if nid.isdigit()]
-            new_notification_id = str(max(existing_ids, default=0) + 1)
+            # Generate new notification ID using the same pattern as ManageInstrumentPrice
+            new_notification_id = generate_id(notifications)
             
             # Create new notification record
             new_notification = {
-                "notification_id": new_notification_id,
+                "notification_id": str(new_notification_id),
                 "email": notification_data["email"],
                 "type": notification_data["type"],
                 "class": notification_data["class"],
@@ -100,13 +123,13 @@ class ManageNotifications(Tool):
                 "created_at": "2025-10-01T12:00:00"
             }
             
-            notifications[new_notification_id] = new_notification
+            notifications[str(new_notification_id)] = new_notification
             
             return json.dumps({
                 "success": True,
                 "action": "create",
-                "notification_id": new_notification_id,
-                "message": f"Notification {new_notification_id} created successfully for {email}",
+                "notification_id": str(new_notification_id),
+                "message": f"Notification {new_notification_id} created successfully for {notification_data['email']}",
                 "notification_data": new_notification
             })
         
@@ -192,7 +215,7 @@ class ManageNotifications(Tool):
             "type": "function",
             "function": {
                 "name": "manage_notifications",
-                "description": "Create or update notification records in the fund management system. For creation, requires email, type (alert/report/reminder/subscription_update), class (funds/investors/portfolios/trades/invoices/reports/documents/subscriptions/commitments), and approval_code, with optional reference_id and status (defaults to 'pending'). For updates, requires notification_id and fields to change with approval_code. Validates status transitions and automatically sets sent_at timestamp.",
+                "description": "Create or update notification records in the fund management system. This tool manages communication notifications for various fund management activities including alerts, reports, reminders, and subscription updates. For creation, establishes new notification records with comprehensive validation to ensure proper type-class combinations per regulatory requirements and prevents invalid notification configurations. For updates, modifies existing notification records while maintaining data integrity. Validates type-class combinations according to policy: alert notifications for funds/investors/portfolios/trades/invoices/subscriptions/commitments, report notifications for funds/investors/portfolios/reports/documents, reminder notifications for invoices/subscriptions/commitments, and subscription_update notifications for subscriptions/commitments only. Ensures proper email format validation and manages notification lifecycle from creation through delivery status tracking. Essential for regulatory compliance, investor communications, and operational workflow management.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -203,7 +226,7 @@ class ManageNotifications(Tool):
                         },
                         "notification_data": {
                             "type": "object",
-                            "description": "Notification data object. For create: requires email, type, class, approval_code, with optional reference_id and status. For update: fields to change with approval_code (core fields cannot be updated).",
+                            "description": "Notification data object. For create: requires email (valid format), type (notification category), class (business entity type), approval_code (authorization), with optional reference_id (linked entity) and status (defaults to 'pending'). For update: fields to change with approval_code (core fields cannot be updated). Must follow type-class combination rules per policy. SYNTAX: {\"key\": \"value\"}",
                             "properties": {
                                 "email": {
                                     "type": "string",
@@ -236,8 +259,7 @@ class ManageNotifications(Tool):
                                     "type": "string",
                                     "description": "Authorization code for notification operations (required for both create and update)"
                                 }
-                            },
-                            "additionalProperties": false
+                            }
                         },
                         "notification_id": {
                             "type": "string",
