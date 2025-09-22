@@ -171,8 +171,7 @@ class ManageNotifications(Tool):
                         },
                         "notification_data": {
                             "type": "object",
-                            "description": "Notification data. For create: email, type, class, approval_code, optional reference_id, status. For update: fields to change with approval_code",
-                            "additionalProperties": True
+                            "description": "Notification data. For create: email, type, class, approval_code, optional reference_id, status. For update: fields to change with approval_code"
                         },
                         "notification_id": {
                             "type": "string",

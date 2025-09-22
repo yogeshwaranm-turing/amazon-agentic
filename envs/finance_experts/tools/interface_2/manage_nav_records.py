@@ -163,8 +163,7 @@ class ManageNavRecords(Tool):
                         },
                         "nav_data": {
                             "type": "object",
-                            "description": "NAV data. For create: fund_id, nav_date, nav_value, approval_code. For update: fields to change with approval_code",
-                            "additionalProperties": True
+                            "description": "NAV data. For create: fund_id, nav_date, nav_value, approval_code. For update: fields to change with approval_code"
                         },
                         "nav_id": {
                             "type": "string",

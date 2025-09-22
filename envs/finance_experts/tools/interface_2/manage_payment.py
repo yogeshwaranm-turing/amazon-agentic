@@ -193,8 +193,7 @@ class ManagePayment(Tool):
                         },
                         "payment_data": {
                             "type": "object",
-                            "description": "Payment data. For create: invoice_id, subscription_id, payment_date, amount, payment_method, approval_code, optional status. For update: fields to change with approval_code",
-                            "additionalProperties": True
+                            "description": "Payment data. For create: invoice_id, subscription_id, payment_date, amount, payment_method, approval_code, optional status. For update: fields to change with approval_code"
                         },
                         "payment_id": {
                             "type": "string",

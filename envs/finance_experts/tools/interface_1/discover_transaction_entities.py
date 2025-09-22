@@ -83,8 +83,7 @@ class DiscoverTransactionEntities(Tool):
                         },
                         "filters": {
                             "type": "object",
-                            "description": "Optional filters to apply. For subscriptions: fund_id, investor_id, amount, status, request_date. For commitments: fund_id, investor_id, amount, status. For redemptions: subscription_id, amount, status, request_date. For trades: fund_id, instrument_id, quantity, price, side, status",
-                            "additionalProperties": True
+                            "description": "Optional filters as JSON object with key-value pairs. SYNTAX: {\"key\": \"value\"} for single filter, {\"key1\": \"value1\", \"key2\": \"value2\"} for multiple filters (AND logic). RULES: Exact matches only, dates as YYYY-MM-DD and booleans as True/False. For subscriptions, filters are: fund_id, investor_id, amount, status, request_date. For commitments, filters are: fund_id, investor_id, amount, status. For redemptions, filters are: subscription_id, amount, status, request_date. For trades, filters are: fund_id, instrument_id, quantity, price, side, status."
                         }
                     },
                     "required": ["entity_type"]

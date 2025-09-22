@@ -84,8 +84,7 @@ class DiscoverFinancialEntities(Tool):
                         },
                         "filters": {
                             "type": "object",
-                            "description": "Optional filters to apply. For nav_records: fund_id, nav_date, nav_value. For instrument_prices: instrument_id, price_date, close_price, open_price, high_price, low_price. For invoices: commitment_id, amount, status, due_date, invoice_date. For payments: invoice_id, subscription_id, amount, status, payment_method, payment_date",
-                            "additionalProperties": True
+                            "description": "Optional filters as JSON object with key-value pairs. SYNTAX: {\"key\": \"value\"} for single filter, {\"key1\": \"value1\", \"key2\": \"value2\"} for multiple filters (AND logic). RULES: Exact matches only, dates as YYYY-MM-DD and booleans as True/False. For nav_records, filters are: fund_id, nav_date, nav_value. For instrument_prices, filters are: instrument_id, price_date, close_price, open_price, high_price, low_price. For invoices, filters are: commitment_id, amount, status, due_date, invoice_date. For payments, filters are: invoice_id, subscription_id, amount, status, payment_method, payment_date"
                         }
                     },
                     "required": ["entity_type"]

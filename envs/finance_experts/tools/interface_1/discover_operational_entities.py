@@ -83,8 +83,7 @@ class DiscoverOperationalEntities(Tool):
                         },
                         "filters": {
                             "type": "object",
-                            "description": "Optional filters to apply. For reports: fund_id, report_type, status, report_date, generated_by. For documents: name, format, uploaded_by, confidentiality_level, status. For notifications: email, type, class, status, reference_id. For audit_trails: reference_type, action, user_id, reference_id, created_at",
-                            "additionalProperties": True
+                            "description": "Optional filters as JSON object with key-value pairs. SYNTAX: {\"key\": \"value\"} for single filter, {\"key1\": \"value1\", \"key2\": \"value2\"} for multiple filters (AND logic). RULES: Exact matches only, dates as YYYY-MM-DD and booleans as True/False. For reports, filters are: fund_id, report_type, status, report_date, generated_by. For documents, filters are: name, format, uploaded_by, confidentiality_level, status. For notifications, filters are: email, type, class, status, reference_id. For audit_trails, filters are: reference_type, action, user_id, reference_id, created_at"
                         }
                     },
                     "required": ["entity_type"]

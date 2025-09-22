@@ -69,8 +69,7 @@ class DiscoverPeopleEntities(Tool):
                         },
                         "filters": {
                             "type": "object",
-                            "description": "Optional filters to apply. For users: role, status, email, timezone. For investors: name, country, status, accreditation_status, email, registration_number",
-                            "additionalProperties": True
+                            "description": "Optional filters as JSON object with key-value pairs. SYNTAX: {\"key\": \"value\"} for single filter, {\"key1\": \"value1\", \"key2\": \"value2\"} for multiple filters (AND logic). RULES: Exact matches only, dates as YYYY-MM-DD and booleans as True/False. For users, filters are: role, status, email, timezone. For investors, filters are: name, country, status, accreditation_status, email, registration_number."
                         }
                     },
                     "required": ["entity_type"]

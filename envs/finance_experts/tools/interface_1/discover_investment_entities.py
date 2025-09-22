@@ -83,8 +83,7 @@ class DiscoverInvestmentEntities(Tool):
                         },
                         "filters": {
                             "type": "object",
-                            "description": "Optional filters to apply. For funds: name, fund_type, manager_id, status. For instruments: ticker, name, instrument_type, status. For portfolios: investor_id, status. For portfolio_holdings: portfolio_id, fund_id, quantity, cost_basis",
-                            "additionalProperties": True
+                            "description": "Optional filters as JSON object with key-value pairs. SYNTAX: {\"key\": \"value\"} for single filter, {\"key1\": \"value1\", \"key2\": \"value2\"} for multiple filters (AND logic). RULES: Exact matches only, dates as YYYY-MM-DD and booleans as True/False. For funds, filters are: name, fund_type, manager_id, status. For instruments: ticker, name, instrument_type, status. For portfolios, filters are: investor_id, status. For portfolio_holdings, filters are: portfolio_id, fund_id, quantity, cost_basis"
                         }
                     },
                     "required": ["entity_type"]

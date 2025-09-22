@@ -173,8 +173,7 @@ class ManagePortfolioHoldings(Tool):
                         },
                         "holding_data": {
                             "type": "object",
-                            "description": "Holding data. For create: portfolio_id, fund_id, quantity, cost_basis, approval_code. For update: fields to change with approval_code",
-                            "additionalProperties": True
+                            "description": "Holding data. For create: portfolio_id, fund_id, quantity, cost_basis, approval_code. For update: fields to change with approval_code"
                         },
                         "holding_id": {
                             "type": "string",

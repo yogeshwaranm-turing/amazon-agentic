@@ -183,8 +183,7 @@ class ManageInvoice(Tool):
                         },
                         "invoice_data": {
                             "type": "object",
-                            "description": "Invoice data. For create: invoice_date, due_date, amount, approval_code, optional commitment_id, status. For update: fields to change with approval_code",
-                            "additionalProperties": True
+                            "description": "Invoice data. For create: invoice_date, due_date, amount, approval_code, optional commitment_id, status. For update: fields to change with approval_code"
                         },
                         "invoice_id": {
                             "type": "string",

@@ -164,8 +164,7 @@ class ManagePortfolio(Tool):
                         },
                         "portfolio_data": {
                             "type": "object",
-                            "description": "Portfolio data. For create: investor_id, approval_code, optional status. For update: fields to change with approval_code",
-                            "additionalProperties": True
+                            "description": "Portfolio data. For create: investor_id, approval_code, optional status. For update: fields to change with approval_code"
                         },
                         "portfolio_id": {
                             "type": "string",
