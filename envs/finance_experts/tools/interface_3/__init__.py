@@ -1,11 +1,67 @@
-from .create_investor import CreateInvestor
-from .manage_fund import ManageFund
-from .offboard_investor import OffboardInvestor
+from .validate_approval import ValidateApproval
+from .register_commitment import RegisterCommitment
+from .register_investor import RegisterInvestor
+from .register_new_audit_trail import RegisterNewAuditTrail
+from .find_billing_entities import FindBillingEntities
+from .find_fund_entities import FindFundEntities
+from .find_instrument_entities import FindInstrumentEntities
+from .find_investment_flow_entities import FindInvestmentFlowEntities
+from .find_investor_entities import FindInvestorEntities
+from .find_portfolio_entities import FindPortfolioEntities
+from .find_reporting_entities import FindReportingEntities
+from .find_system_entities import FindSystemEntities
+from .find_trading_entities import FindTradingEntities
+from .find_user_entities import FindUserEntities
+from .find_valuation_entities import FindValuationEntities
 from .execute_trade import ExecuteTrade
+from .complete_commitment import CompleteCommitment
+from .generate_report import GenerateReport
+from .manipulate_fund import ManipulateFund
+from .manipulate_instrument import ManipulateInstrument
+from .manipulate_instrument_price import ManipulateInstrumentPrice
+from .manipulate_invoice import ManipulateInvoice
+from .manipulate_nav_record import ManipulateNavRecord
+from .manipulate_notifications import ManipulateNotifications
+from .manipulate_payment import ManipulatePayment
+from .manipulate_portfolio import ManipulatePortfolio
+from .manipulate_portfolio_holdings import ManipulatePortfolioHoldings
+from .manipulate_subscription import ManipulateSubscription
+from .remove_investor import RemoveInvestor
+from .process_redemption import ProcessRedemption
+from .transfer_to_human_agents import TransferToHumanAgents
+from .upload_document import UploadDocument
 
-ALL_TOOLS_INTERFACE_4 = [
-    CreateInvestor,
+ALL_TOOLS_INTERFACE_1 = [
+    ValidateApproval,
+    RegisterCommitment,
+    RegisterInvestor,
+    RegisterNewAuditTrail,
+    FindBillingEntities,
+    FindFundEntities,
+    FindInstrumentEntities,
+    FindInvestmentFlowEntities,
+    FindInvestorEntities,
+    FindPortfolioEntities,
+    FindReportingEntities,
+    FindSystemEntities,
+    FindTradingEntities,
+    FindUserEntities,
+    FindValuationEntities,
     ExecuteTrade,
-    ManageFund,
-    OffboardInvestor
+    CompleteCommitment,
+    GenerateReport,
+    ManipulateFund,
+    ManipulateInstrument,
+    ManipulateInstrumentPrice,
+    ManipulateInvoice,
+    ManipulateNavRecord,
+    ManipulateNotifications,
+    ManipulatePayment,
+    ManipulatePortfolio,
+    ManipulatePortfolioHoldings,
+    ManipulateSubscription,
+    RemoveInvestor,
+    ProcessRedemption,
+    TransferToHumanAgents,
+    UploadDocument
 ]

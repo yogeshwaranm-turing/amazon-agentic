@@ -2,7 +2,7 @@ import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
-class ApprovalLookup(Tool):
+class CheckApproval(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], action: str, requester_email: str) -> str:
         # Define role authorization mapping
@@ -142,7 +142,7 @@ class ApprovalLookup(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "approval_lookup",
+                "name": "check_approval",
                 "description": "Validates role authorization and approval for fund management actions using requester email. Actions include: investor_onboarding (new investor registration), investor_offboarding (investor removal), fund_management_setup (new fund creation), fund_management_maintenance (fund updates), subscription_management (investor fund subscriptions), commitments_create (creating investor commitments), commitments_fulfill (fulfilling commitments), trade_execution (executing trades), nav_valuation (NAV calculations), redemption_processing (processing redemptions), portfolio_creation (creating investor portfolios), portfolio_update (updating portfolios), portfolio_holding_management (managing portfolio holdings), instrument_creation (creating new instruments), invoice_management (managing invoices), payment_processing (processing payments), nav_record_creation (creating NAV records), nav_record_updates (updating NAV records), instrument_price_updates (updating instrument prices), reporting_performance (performance reports), reporting_financial (financial reports), reporting_holding (holding reports), user_account_management (system user management), system_monitoring (system activity monitoring). Roles include: compliance_officer (handles regulatory compliance and investor verification), fund_manager (manages funds and approves investments), finance_officer (handles financial calculations and payments), trader (executes market trades), system_administrator (manages system users and monitoring). If the requester's role is directly authorized for the action, returns approval immediately. Otherwise, validates against existing approvals.",
                 "parameters": {
                     "type": "object",
