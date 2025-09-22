@@ -5,8 +5,8 @@ from tau_bench.envs.tool import Tool
 
 class HandleSubscription(Tool):
     @staticmethod
-    def invoke(data: Dict[str, Any], action: str, subscription_data: Dict[str, Any] = None, 
-               subscription_id: Optional[str] = None) -> str:
+    def invoke(data: Dict[str, Any], action: str, subscription_data: Dict[str, Any], 
+           subscription_id: Optional[str] = None) -> str:
         """
         Create, update, or cancel subscription records.
         
