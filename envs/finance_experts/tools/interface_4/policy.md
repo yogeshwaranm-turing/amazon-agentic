@@ -69,7 +69,7 @@ Always try to acquire as many parameters as possible in an SOP, while ensuring t
 - Retrieving entity details for reporting  
 - Supporting other SOPs that require entity verification  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use handover_to_human if you receive the following errors; otherwise complete the SOP:**
 - Missing entity_type or invalid entity_type  
 - Unauthorized requester  
 - Discovery tool execution failed  
@@ -78,12 +78,12 @@ Always try to acquire as many parameters as possible in an SOP, while ensuring t
 
 ## Investor Onboarding
 
-1. Verify that approval is present using approval_lookup (Compliance Officer approval required).  
+1. Verify that approval is present using verify_approval (Compliance Officer approval required).  
 2. Obtain legal_name, registration_number (optional), date_of_incorporation (optional), country_of_incorporation (optional), registered_address (optional), tax_id (optional), source_of_funds, contact_email, accreditation_status, and compliance_officer_approval from (1).  
 3. Create the investor profile using record_investor.  
 4. Create an audit entry for onboarding using record_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use handover_to_human if you receive the following errors; otherwise complete the SOP:**
 - Missing or invalid inputs  
 - Approval invalid or missing  
 - Creation failed  
@@ -92,14 +92,14 @@ Always try to acquire as many parameters as possible in an SOP, while ensuring t
 
 ## Investor Offboarding
 
-1. Verify that approval is present using approval_lookup (Compliance Officer approval required).  
+1. Verify that approval is present using verify_approval (Compliance Officer approval required).  
 2. Obtain investor_id, compliance_officer_approval from (1) and reason (optional) for offboarding.  
 3. Fetch the investor active subscriptions using list_investor_subscriptions.  
 4. Cancel the active subscriptions before proceeding with the offboarding process using address_subscription.  
 5. Deactivate the investor using deregister_investor.  
 6. Create an audit entry for offboarding using record_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use handover_to_human if you receive the following errors; otherwise complete the SOP:**
 - Investor not found  
 - Operation failed (cancellations of active subscriptions or offboarding)  
 
@@ -107,12 +107,12 @@ Always try to acquire as many parameters as possible in an SOP, while ensuring t
 
 ## Fund Management (Create and Update)
 
-1. Verify that approval is present using approval_lookup (Fund Manager and Compliance Officer approvals required).  
+1. Verify that approval is present using verify_approval (Fund Manager and Compliance Officer approvals required).  
 2. For new fund creation, obtain fund_name, fund_type, base_currency (optional), size (initial fund size, optional), manager_id, approval_code. For fund updates, obtain fund_id, change_set (such as status modifications or other fund details), fund_manager_approval from (1), and compliance_officer_approval from (1).  
 3. Create or update the fund using address_fund  
 4. Create an audit entry for fund creation or update using record_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use handover_to_human if you receive the following errors; otherwise complete the SOP:**
 - Invalid details  
 - Invalid transitions  
 - Required approvals not provided  
@@ -122,13 +122,13 @@ Always try to acquire as many parameters as possible in an SOP, while ensuring t
 
 ## Subscription Management (Create and Update)
 
-1. Verify that approval is present using approval_lookup (Fund Manager and Compliance Officer approvals required).  
+1. Verify that approval is present using verify_approval (Fund Manager and Compliance Officer approvals required).  
 2. For creation: obtain investor_id, fund_id, amount, request_assigned_to, request_date, payment_details (optional), fund_manager_approval from (1), and compliance_officer_approval from (1). For updates: obtain subscription_id, change_set, fund_manager_approval from (1), and compliance_officer_approval from (1).  
 3. List current subscriptions using lookup_investment_flow_entities.  
 4. Create a subscription or update a subscription using address_subscription.  
 5. Create an audit entry for the subscription action using record_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use handover_to_human if you receive the following errors; otherwise complete the SOP:**
 - Invalid inputs  
 - Invalid transitions  
 - Required approvals not provided  
@@ -138,12 +138,12 @@ Always try to acquire as many parameters as possible in an SOP, while ensuring t
 
 ## Fund Switch
 
-1. Verify that approval is present using approval_lookup (Fund Manager and Compliance Officer approvals required).  
+1. Verify that approval is present using verify_approval (Fund Manager and Compliance Officer approvals required).  
 2. Obtain investor_id, fund_manager_approval from (1), compliance_officer_approval from (1), current_fund_id, target_fund_id, and switch_amount.  
 2. Create a new subscription on the target fund or cancel/update the current subscription using address_subscription.  
 3. Create an audit entry for the switch using record_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use handover_to_human if you receive the following errors; otherwise complete the SOP:**
 - Invalid identifiers  
 - Investor ineligible for the target fund  
 - Operation failed (create/cancel)  
@@ -152,12 +152,12 @@ Always try to acquire as many parameters as possible in an SOP, while ensuring t
 
 ## Commitments (Create & Fulfill)
 
-1. Verify that approval is present using approval_lookup (Compliance Officer approval required).  
+1. Verify that approval is present using verify_approval (Compliance Officer approval required).  
 2. For creation: obtain investor_id, fund_id, amount, commitment_date, due_date (optional), and compliance_officer_approval from (1); using record_commitment  
 3. For fulfillment: obtain commitment_id, receipt (optional) and compliance_officer_approval from (1); fulfill using fulfill_commitment.  
 4. Create audit entries for both creation and fulfillment using record_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use handover_to_human if you receive the following errors; otherwise complete the SOP:**
 - Invalid IDs or status  
 - Amount not positive  
 - Compliance Officer approval missing  
@@ -167,12 +167,12 @@ Always try to acquire as many parameters as possible in an SOP, while ensuring t
 
 ## Trade Execution & Post-Trade Controls
 
-1. Verify that approval is present using approval_lookup (Fund Manager approval required).  
+1. Verify that approval is present using verify_approval (Fund Manager approval required).  
 2. Obtain fund_id, instrument_id, quantity, side (buy/sell), trade_date, price, and fund_manager_approval from (1).  
-3. Execute the trade using execute_trade.  
+3. Execute the trade using process_trade.  
 4. Create an audit entry for trade and any NAV event using record_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use handover_to_human if you receive the following errors; otherwise complete the SOP:**
 - Invalid trade details  
 - Required approval not provided  
 - Execution or calculation failed  
@@ -181,12 +181,12 @@ Always try to acquire as many parameters as possible in an SOP, while ensuring t
 
 ## NAV & Valuation
 
-Verify that approval is present using approval_lookup (Finance Officer approval required).  
+Verify that approval is present using verify_approval (Finance Officer approval required).  
 2. Obtain fund_id, date, and finance_officer_approval from (1).  
 3. Calculate NAV using address_nav_record when instructed to do so; otherwise retrieve using lookup_valuation_entities.  
 4. Create an audit entry for the NAV event using record_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use handover_to_human if you receive the following errors; otherwise complete the SOP:**
 - Data incomplete for calculation  
 - Calculation failed  
 - NAV record unavailable  
@@ -196,12 +196,12 @@ Verify that approval is present using approval_lookup (Finance Officer approval 
 
 ## Redemption Processing
 
-1. Verify that approval is present using approval_lookup (Compliance Officer and Finance Officer approvals required).  
+1. Verify that approval is present using verify_approval (Compliance Officer and Finance Officer approvals required).  
 2. Obtain investor_id, fund_id, amount_or_units, request_date, reason (optional), redemption_fee (optional), and finance_officer_approval from (1), and compliance_officer_approval from (1).  
 3. Process the redemption using process_redemption.  
 4. Create an audit entry for the redemption using record_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use handover_to_human if you receive the following errors; otherwise complete the SOP:**
 - Approval not provided  
 - Processing or reporting failed  
 
@@ -213,7 +213,7 @@ Verify that approval is present using approval_lookup (Finance Officer approval 
 2. Store the document using upload_document.  
 3. Create an audit entry for the document intake using record_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use handover_to_human if you receive the following errors; otherwise complete the SOP:**
 - Invalid metadata/format  
 - Upload failed  
 - Unauthorized audit access  
@@ -222,14 +222,14 @@ Verify that approval is present using approval_lookup (Finance Officer approval 
 
 ## Report Creation & Generation
 
-Verify that approval is present using approval_lookup (Fund Manager approval is required for report type “performance and financial reports”, and Finance Officer approval is required for “holding reports”).  
+Verify that approval is present using verify_approval (Fund Manager approval is required for report type “performance and financial reports”, and Finance Officer approval is required for “holding reports”).  
 Obtain fund_id, investor_id (optional), report_date, report_type, export_period_end, and fund_manager_approval or finance_officer_approval from (1).  
 Verify that the fund or investor (if investor information is provided) exist using lookup_fund_entities and lookup_instrument_entities.  
 Check for existing reports from the result of (3) using lookup_reporting_entities.  
-Generate the report using generate_report.  
+Generate the report using produce_report.  
 Create an audit entry for report generation using record_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use handover_to_human if you receive the following errors; otherwise complete the SOP:**
 - Fund or investor not found  
 - Report already exists for the period  
 - Invalid report type  
@@ -241,13 +241,13 @@ Create an audit entry for report generation using record_new_audit_trail.
 
 ## Portfolio Creation
 
-Verify that approval is present using approval_lookup (Fund Manager or Finance Officer approval required).  
+Verify that approval is present using verify_approval (Fund Manager or Finance Officer approval required).  
 Obtain investor_id, initial_status (optional, default: 'active'), and fund_manager_approval or finance_officer_approval from (1).  
 Verify that the investor has no existing active portfolio using lookup_portfolio_entities.  
 Create the portfolio using address_portfolio.  
 Create an audit entry for portfolio creation using record_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use handover_to_human if you receive the following errors; otherwise complete the SOP:**
 - Investor not found  
 - Investor already has active portfolio  
 - Required approval not provided  
@@ -259,13 +259,13 @@ After completing investor onboarding, automatically create a portfolio if the in
 
 ## Portfolio Update
 
-Verify that approval is present using approval_lookup (Fund Manager approval required).  
+Verify that approval is present using verify_approval (Fund Manager approval required).  
 Obtain portfolio_id, change set (e.g., status), and fund_manager_approval from (1).  
 If closing a portfolio, verify that there are no active holdings using lookup_portfolio_entities.  
 Apply changes using address_portfolio.  
 Create an audit entry for portfolio update using record_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use handover_to_human if you receive the following errors; otherwise complete the SOP:**
 - Portfolio not found  
 - Active holdings prevent status change  
 - Required approval not provided  
@@ -275,12 +275,12 @@ Create an audit entry for portfolio update using record_new_audit_trail.
 
 ## Portfolio Holding Management
 
-Verify that approval is present using approval_lookup (Fund Manager approval required).  
+Verify that approval is present using verify_approval (Fund Manager approval required).  
 For creation: obtain portfolio_id, fund_id, quantity, cost_basis, and fund_manager_approval from (1); create using address_portfolio_holding.  
-For updates: obtain holding_id, change set (e.g., quantity, cost_basis), and approval_code; verify approval context using approval_lookup (Fund Manager approval required); update using address_portfolio_holding.  
+For updates: obtain holding_id, change set (e.g., quantity, cost_basis), and approval_code; verify approval context using verify_approval (Fund Manager approval required); update using address_portfolio_holding.  
 Create audit entries using record_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use handover_to_human if you receive the following errors; otherwise complete the SOP:**
 - Portfolio or fund not found  
 - Portfolio not active  
 - Fund already held in portfolio (for creation)  
@@ -295,13 +295,13 @@ One investor is only allowed to have one portfolio, while one portfolio can have
 
 ## Instrument Creation
 
-Verify that approval is present using approval_lookup (Fund Manager and Compliance Officer approvals required).  
+Verify that approval is present using verify_approval (Fund Manager and Compliance Officer approvals required).  
 Obtain ticker, name, instrument_type, optional initial status (default: 'active'), fund_manager_approval or compliance_officer_approval from (1).  
 Verify ticker uniqueness using lookup_instrument_entities.  
 Create the instrument using address_instrument.  
 Create an audit entry for instrument creation using record_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use handover_to_human if you receive the following errors; otherwise complete the SOP:**
 - Ticker already exists  
 - Invalid instrument type  
 - Required approvals not provided  
@@ -311,7 +311,7 @@ Create an audit entry for instrument creation using record_new_audit_trail.
 
 ## Invoice Management
 
-Verify that approval is present using approval_lookup (Finance Officer approval required).  
+Verify that approval is present using verify_approval (Finance Officer approval required).  
 For creation:  
 obtain commitment_id (optional), invoice_date, due_date, amount, and finance_officer_approval from (1)  
 create using address_invoice.  
@@ -322,7 +322,7 @@ update using address_invoice.
 
 Create audit entries using record_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use handover_to_human if you receive the following errors; otherwise complete the SOP:**
 - Invalid dates or amounts  
 - Commitment not found (if provided)  
 - Invoice not found (for updates)  
@@ -334,7 +334,7 @@ Create audit entries using record_new_audit_trail.
 
 ## Payment Processing
 
-Verify that approval is present using approval_lookup (Finance Officer approval required).  
+Verify that approval is present using verify_approval (Finance Officer approval required).  
 For creation:  
 obtain invoice_id, subscription_id, payment_date, amount, payment_method, and finance_officer_approval from (1).  
 create using address_payment.  
@@ -346,7 +346,7 @@ update using address_payment.
 Validate invoice and subscription existence and status.  
 Create audit entries using record_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use handover_to_human if you receive the following errors; otherwise complete the SOP:**
 - Invoice or subscription not found  
 - Amount exceeds outstanding balance  
 - Invalid payment method or amount  
@@ -359,7 +359,7 @@ Create audit entries using record_new_audit_trail.
 
 ## NAV Record Creation & Updates
 
-Verify that approval is present using approval_lookup (Finance Officer approval is required for creation, and both Finance Officer and Fund Manager approvals are required for updates).  
+Verify that approval is present using verify_approval (Finance Officer approval is required for creation, and both Finance Officer and Fund Manager approvals are required for updates).  
 For creation:  
 obtain fund_id, nav_date, nav_value, and finance_officer_approval from (1).  
 create using address_nav_record.  
@@ -371,7 +371,7 @@ update using address_nav_record.
 For creation, verify that there is no existing NAV for the date using get_nav.  
 Create audit entries using record_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use handover_to_human if you receive the following errors; otherwise complete the SOP:**
 - Fund not found  
 - NAV already exists for date (for creation)  
 - NAV record not found (for updates)  
@@ -384,14 +384,14 @@ Create audit entries using record_new_audit_trail.
 
 ## Instrument Price Updates
 
-Verify that approval is present using approval_lookup (Fund Manager and Compliance Officer approvals required).  
+Verify that approval is present using verify_approval (Fund Manager and Compliance Officer approvals required).  
 Obtain instrument_id, price_date, open_price, high_price, low_price, close_price, and compliance_officer_approval and fund_manager_approval from (1).  
 Verify that the instrument exists using lookup_instrument_entities.  
 Check for existing price records for the date using lookup_valuation_entities.  
 Create or update price record using address_instrument_price.  
 Create an audit entry for price update using record_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use handover_to_human if you receive the following errors; otherwise complete the SOP:**
 - Instrument not found  
 - Invalid price data (negative values, high < low, etc.)  
 - Price date in future  
@@ -425,7 +425,7 @@ update using address_notification.
 For creation, validate notification type and class combinations.  
 Create audit entries using record_new_audit_trail.  
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use handover_to_human if you receive the following errors; otherwise complete the SOP:**
 - Invalid email format  
 - Invalid notification type or class combination Invalid notification type or class  
 - Reference entity not found (if reference_id provided)  

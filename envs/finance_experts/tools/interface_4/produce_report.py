@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 from tau_bench.envs.tool import Tool
 
 
-class GenerateReport(Tool):
+class ProduceReport(Tool):
     """
     A tool to generate a new report record for a fund.
     """
@@ -72,12 +72,12 @@ class GenerateReport(Tool):
     @staticmethod
     def get_info() -> Dict[str, Any]:
         """
-        Returns the schema for the GenerateReport tool.
+        Returns the schema for the ProduceReport tool.
         """
         return {
             "type": "function",
             "function": {
-                "name": "generate_report",
+                "name": "produce_report",
                 "description": "Generates a new report for a fund.",
                 "parameters": {
                     "type": "object",

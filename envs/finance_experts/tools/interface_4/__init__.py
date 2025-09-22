@@ -1,4 +1,4 @@
-from .approval_lookup import ApprovalLookup
+from .verify_approval import VerifyApproval
 from .record_commitment import RecordCommitment
 from .record_investor import RecordInvestor
 from .record_new_audit_trail import RecordNewAuditTrail
@@ -13,9 +13,9 @@ from .lookup_system_entities import LookupSystemEntities
 from .lookup_trading_entities import LookupTradingEntities
 from .lookup_user_entities import LookupUserEntities
 from .lookup_valuation_entities import LookupValuationEntities
-from .execute_trade import ExecuteTrade
+from .process_trade import ProcessTrade
 from .fulfill_commitment import FulfillCommitment
-from .generate_report import GenerateReport
+from .produce_report import ProduceReport
 from .address_fund import AddressFund
 from .address_instrument import AddressInstrument
 from .address_instrument_price import AddressInstrumentPrice
@@ -28,11 +28,11 @@ from .address_portfolio_holdings import AddressPortfolioHoldings
 from .address_subscription import AddressSubscription
 from .deregister_investor import DeregisterInvestor
 from .process_redemption import ProcessRedemption
-from .transfer_to_human_agents import TransferToHumanAgents
+from .handover_to_human import HandOverToHuman
 from .upload_document import UploadDocument
 
 ALL_TOOLS_INTERFACE_1 = [
-    ApprovalLookup,
+    VerifyApproval,
     RecordCommitment,
     RecordInvestor,
     RecordNewAuditTrail,
@@ -47,9 +47,9 @@ ALL_TOOLS_INTERFACE_1 = [
     LookupTradingEntities,
     LookupUserEntities,
     LookupValuationEntities,
-    ExecuteTrade,
+    ProcessTrade,
     FulfillCommitment,
-    GenerateReport,
+    ProduceReport,
     AddressFund,
     AddressInstrument,
     AddressInstrumentPrice,
@@ -62,6 +62,6 @@ ALL_TOOLS_INTERFACE_1 = [
     AddressSubscription,
     DeregisterInvestor,
     ProcessRedemption,
-    TransferToHumanAgents,
+    HandOverToHuman,
     UploadDocument
 ]
