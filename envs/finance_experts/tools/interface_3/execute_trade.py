@@ -6,12 +6,6 @@ class ExecuteTrade(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], fund_id: str, instrument_id: str, 
                quantity: float, side: str, trade_date: str, price: float) -> str:
-        """
-        Execute a trade for a fund after all approvals are obtained.
-        
-        This tool performs step 3 of the Trade Execution & Post-Trade Controls SOP.
-        Prerequisites: Fund Manager approval must be verified before calling this tool.
-        """
         
         def generate_id(table: Dict[str, Any]) -> int:
             if not table:
