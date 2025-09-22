@@ -109,7 +109,7 @@ class ExecuteTrade(Tool):
             "type": "function",
             "function": {
                 "name": "execute_trade",
-                "description": "Execute a trade for a fund after fund manager approval has been verified",
+                "description": "Execute a trade for a fund.",
                 "parameters": {
                     "type": "object",
                     "properties": {

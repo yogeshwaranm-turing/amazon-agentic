@@ -70,7 +70,7 @@ class OffboardInvestor(Tool):
             "type": "function",
             "function": {
                 "name": "offboard_investor",
-                "description": "Deactivates and archives an investor profile during the offboarding process. This tool should only be used after active subscriptions have been cancelled.",
+                "description": "Deactivates and archives an investor profile during the offboarding process.",
                 "parameters": {
                     "type": "object",
                     "properties": {
