@@ -15,10 +15,10 @@ class AuthorizationCheck(Tool):
                 "fund_management_setup", "fund_management_maintenance", "trade_execution", 
                 "portfolio_creation", "portfolio_update", "portfolio_holding_management", 
                 "instrument_creation", "nav_record_updates", "instrument_price_updates",
-                "reporting_performance", "reporting_financial", "subscription_management"
+                "reporting_performance", "reporting_financial"
             ],
             "finance_officer": [
-                "nav_valuation", "redemption_processing", 
+                "nav_valuation", "subscription_management", "redemption_processing", 
                 "portfolio_creation", "invoice_management", "payment_processing", 
                 "nav_record_creation", "nav_record_updates", "reporting_holding"
             ],
@@ -37,12 +37,12 @@ class AuthorizationCheck(Tool):
             "redemption_processing": ["compliance_officer", "finance_officer"],
             "instrument_creation": ["fund_manager", "compliance_officer"],
             "nav_record_updates": ["finance_officer", "fund_manager"],
-            "instrument_price_updates": ["fund_manager", "compliance_officer"],
-            "subscription_management": ["compliance_officer", "fund_manager"]
+            "instrument_price_updates": ["fund_manager", "compliance_officer"]
         }
         
         # Define actions allowing alternative approvers (OR logic)
         or_approval_actions = {
+            "subscription_management": ["compliance_officer", "finance_officer"],
             "portfolio_creation": ["fund_manager", "finance_officer"]
         }
         

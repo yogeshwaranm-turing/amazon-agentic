@@ -15,10 +15,10 @@ class VerifyApproval(Tool):
                 "fund_management_setup", "fund_management_maintenance", "trade_execution", 
                 "portfolio_creation", "portfolio_update", "portfolio_holding_management", 
                 "instrument_creation", "nav_record_updates", "instrument_price_updates",
-                "reporting_performance", "reporting_financial", "subscription_management"
+                "reporting_performance", "reporting_financial"
             ],
             "finance_officer": [
-                "nav_valuation", "redemption_processing", 
+                "nav_valuation", "subscription_management", "redemption_processing", 
                 "portfolio_creation", "invoice_management", "payment_processing", 
                 "nav_record_creation", "nav_record_updates", "reporting_holding"
             ],
@@ -37,12 +37,12 @@ class VerifyApproval(Tool):
             "redemption_processing": ["compliance_officer", "finance_officer"],
             "instrument_creation": ["fund_manager", "compliance_officer"],
             "nav_record_updates": ["finance_officer", "fund_manager"],
-            "instrument_price_updates": ["fund_manager", "compliance_officer"],
-            "subscription_management": ["compliance_officer", "fund_manager"]
+            "instrument_price_updates": ["fund_manager", "compliance_officer"]
         }
         
         # Define actions allowing alternative approvers (OR logic)
         or_approval_actions = {
+            "subscription_management": ["compliance_officer", "finance_officer"],
             "portfolio_creation": ["fund_manager", "finance_officer"]
         }
         
@@ -142,7 +142,7 @@ class VerifyApproval(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "verify_lookup",
+                "name": "verify_approval",
                 "description": "Validates role authorization and approval for fund management actions using requester email. Actions include: investor_onboarding (new investor registration), investor_offboarding (investor removal), fund_management_setup (new fund creation), fund_management_maintenance (fund updates), subscription_management (investor fund subscriptions), commitments_create (creating investor commitments), commitments_fulfill (fulfilling commitments), trade_execution (executing trades), nav_valuation (NAV calculations), redemption_processing (processing redemptions), portfolio_creation (creating investor portfolios), portfolio_update (updating portfolios), portfolio_holding_management (managing portfolio holdings), instrument_creation (creating new instruments), invoice_management (managing invoices), payment_processing (processing payments), nav_record_creation (creating NAV records), nav_record_updates (updating NAV records), instrument_price_updates (updating instrument prices), reporting_performance (performance reports), reporting_financial (financial reports), reporting_holding (holding reports), user_account_management (system user management), system_monitoring (system activity monitoring). Roles include: compliance_officer (handles regulatory compliance and investor verification), fund_manager (manages funds and approves investments), finance_officer (handles financial calculations and payments), trader (executes market trades), system_administrator (manages system users and monitoring). If the requester's role is directly authorized for the action, returns approval immediately. Otherwise, validates against existing approvals.",
                 "parameters": {
                     "type": "object",
