@@ -13,7 +13,7 @@ from typing import Optional, Union
 from tau_bench.envs.user import UserStrategy
 
 
-class MockFinanceDomainEnv(Env):
+class MockFundFinanceDomainEnv(Env):
     def __init__(
         self,
         user_strategy: Union[str, UserStrategy] = UserStrategy.LLM,
