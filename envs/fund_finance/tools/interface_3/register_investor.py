@@ -6,6 +6,7 @@ class RegisterInvestor(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], legal_name: str, source_of_funds: str, 
                contact_email: str, accreditation_status: str,
+               compliance_officer_approval: bool,
                registration_number: Optional[str] = None,
                date_of_incorporation: Optional[str] = None,
                country_of_incorporation: Optional[str] = None,
@@ -17,6 +18,11 @@ class RegisterInvestor(Tool):
                 return 1
             return max(int(k) for k in table.keys()) + 1
         
+        def validate_boolean_field(value: Any, field_name: str) -> Optional[str]:
+            if not isinstance(value, bool):
+                return f"Invalid {field_name}. Must be boolean (True/False)"
+            return None
+        
         investors = data.get("investors", {})
         
         # Validate required fields
@@ -25,6 +31,14 @@ class RegisterInvestor(Tool):
         
         if not contact_email or not contact_email.strip():
             return json.dumps({"error": "Contact email is required"})
+        
+        # Validate compliance officer approval
+        bool_error = validate_boolean_field(compliance_officer_approval, "compliance_officer_approval")
+        if bool_error:
+            return json.dumps({"error": bool_error})
+        
+        if not compliance_officer_approval:
+            return json.dumps({"error": "Compliance Officer approval is required"})
         
         # Validate source_of_funds
         valid_sources = ['retained_earnings', 'shareholder_capital', 'asset_sale', 'loan_facility', 'external_investment', 'government_grant', 'merger_or_acquisition_proceeds', 'royalty_or_licensing_income', 'dividend_income', 'other']
@@ -70,7 +84,7 @@ class RegisterInvestor(Tool):
             "type": "function",
             "function": {
                 "name": "register_investor",
-                "description": "Create a new investor profile for onboarding",
+                "description": "Create a new investor profile for onboarding. Compliance Officer approval is required.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -82,9 +96,13 @@ class RegisterInvestor(Tool):
                         "tax_id": {"type": "string", "description": "Tax identification number (optional)"},
                         "source_of_funds": {"type": "string", "description": "Source of funds ('retained_earnings', 'shareholder_capital', 'asset_sale', 'loan_facility', 'external_investment', 'government_grant', 'merger_or_acquisition_proceeds', 'royalty_or_licensing_income', 'dividend_income', 'other')"},
                         "contact_email": {"type": "string", "description": "Contact email address"},
-                        "accreditation_status": {"type": "string", "description": "Accreditation status (accredited, non_accredited)"}
+                        "accreditation_status": {"type": "string", "description": "Accreditation status (accredited, non_accredited)"},
+                        "compliance_officer_approval": {
+                            "type": "boolean", 
+                            "description": "Compliance Officer approval (True/False). Required for investor registration."
+                        }
                     },
-                    "required": ["legal_name", "source_of_funds", "contact_email", "accreditation_status"]
+                    "required": ["legal_name", "source_of_funds", "contact_email", "accreditation_status", "compliance_officer_approval"]
                 }
             }
         }
