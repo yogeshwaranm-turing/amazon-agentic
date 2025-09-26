@@ -21,7 +21,7 @@ jobs:
           ignore_whitespace: true
           base_sha: ${{ github.event.pull_request.base.sha }}
 
-      - name: Find single changed JSON file
+      - name: Find changed JSON files
         id: find-json
         run: |
           FILES="${{ steps.changed-files.outputs.all_changed_files }}"
@@ -35,19 +35,27 @@ jobs:
             echo "  - $f"
           done
 
-          if [[ "$COUNT" -ne 1 ]]; then
-            echo "❌ PR must change exactly one file"
+          if [[ "$COUNT" -ne 2 ]]; then
+            echo "❌ PR must change exactly two files"
             exit 1
           fi
 
-          FILE="${FILE_ARRAY[0]}"
-          if [[ "${FILE}" != *.json ]]; then
-            echo "❌ File is not a .json file: $FILE"
+          # Check that at least one file is a JSON file
+          JSON_FILES=()
+          for FILE in "${FILE_ARRAY[@]}"; do
+            if [[ "${FILE}" == *.json ]]; then
+              JSON_FILES+=("$FILE")
+            fi
+          done
+
+          if [[ ${#JSON_FILES[@]} -eq 0 ]]; then
+            echo "❌ At least one file must be a .json file"
             exit 1
           fi
 
-          echo "✅ Found JSON file: $FILE"
-          echo "json_file_path=$FILE" >> "$GITHUB_OUTPUT"
+          echo "✅ Found ${#JSON_FILES[@]} JSON file(s) out of $COUNT total files"
+          # Use the first JSON file for classification
+          echo "json_file_path=${JSON_FILES[0]}" >> "$GITHUB_OUTPUT"
 
       - name: Show JSON content
         run: |
@@ -57,7 +65,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install dependencies
         run: pip install -r requirements.txt
@@ -72,12 +80,10 @@ jobs:
         run: |
           echo "=== Classification Output ==="
           cat result.txt
-          
+
           if grep -q "✅ All checks passed" result.txt; then
             echo "✅ Workflow passed"
           else
             echo "❌ Workflow failed"
             exit 1
           fi
-     
-      
