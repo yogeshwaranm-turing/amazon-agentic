@@ -9,8 +9,8 @@ class ManageBenefitsPlan(Tool):
         Create or update benefits plan records.
         
         Actions:
-        - create: Create new benefits plan (requires plan_data with plan_name, plan_type, effective_date, hr_director_approval or finance_officer_approval)
-        - update: Update existing benefits plan (requires plan_id and plan_data with changes and approval)
+        - create: Create new benefits plan (requires plan_data with plan_name, plan_type, effective_date)
+        - update: Update existing benefits plan (requires plan_id and plan_data with changes)
         """
         
         def generate_id(table: Dict[str, Any]) -> int:
@@ -45,25 +45,15 @@ class ManageBenefitsPlan(Tool):
             if missing_fields:
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Invalid benefits plan details: {', '.join(missing_fields)}"
+                    "error": f"Halt: Missing or invalid inputs - missing fields: {', '.join(missing_fields)}"
                 })
             
-            # Authorization Check - HR Director or Finance Officer approval required
-            hr_approval = plan_data.get("hr_director_approval", False)
-            finance_approval = plan_data.get("finance_officer_approval", False)
-            
-            if not hr_approval and not finance_approval:
-                return json.dumps({
-                    "success": False,
-                    "error": "Halt: HR Director or Finance Officer approval required"
-                })
-            
-            # Validate plan_type enum according to policy
-            valid_types = ["health insurance", "dental", "vision", "life insurance", "disability", "retirement", "paid time off", "flexible spending"]
+            # Validate plan_type enum according to schema
+            valid_types = ["health_insurance", "dental", "vision", "life_insurance", "disability", "retirement_401k", "pto", "flexible_spending"]
             if plan_data["plan_type"] not in valid_types:
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Invalid plan_type. Must be one of: {', '.join(valid_types)}"
+                    "error": f"Halt: Invalid plan type or dates - plan_type must be one of: {', '.join(valid_types)}"
                 })
             
             # Validate cost amounts are non-negative monetary values if provided
@@ -73,7 +63,7 @@ class ManageBenefitsPlan(Tool):
                     if cost_value is not None and (not isinstance(cost_value, (int, float)) or cost_value < 0):
                         return json.dumps({
                             "success": False,
-                            "error": f"Halt: {cost_field} must be a non-negative monetary value"
+                            "error": f"Halt: Invalid plan type or dates - {cost_field} must be non-negative"
                         })
             
             # Validate date consistency - expiration date must occur after effective date if provided
@@ -82,21 +72,12 @@ class ManageBenefitsPlan(Tool):
             if expiration_date and expiration_date <= effective_date:
                 return json.dumps({
                     "success": False,
-                    "error": "Halt: Expiration date must occur after effective date"
+                    "error": "Halt: Invalid plan type or dates - expiration date must be after effective date"
                 })
-            
-            # Check for duplicate plan name
-            plan_name = plan_data["plan_name"].strip()
-            for existing_plan in benefits_plans.values():
-                if existing_plan.get("plan_name", "").strip().lower() == plan_name.lower():
-                    return json.dumps({
-                        "success": False,
-                        "error": f"Halt: Benefits plan with name '{plan_name}' already exists"
-                    })
             
             # Validate only allowed fields are present
             allowed_fields = ["plan_name", "plan_type", "provider", "employee_cost", "employer_cost", 
-                            "status", "effective_date", "expiration_date", "hr_director_approval", "finance_officer_approval"]
+                            "status", "effective_date", "expiration_date"]
             invalid_fields = [field for field in plan_data.keys() if field not in allowed_fields]
             if invalid_fields:
                 return json.dumps({
@@ -107,7 +88,7 @@ class ManageBenefitsPlan(Tool):
             # Generate new plan ID
             new_plan_id = generate_id(benefits_plans)
             
-            # Create new benefits plan with system defaults
+            # Create new benefits plan
             new_plan = {
                 "plan_id": str(new_plan_id),
                 "plan_name": plan_data["plan_name"],
@@ -115,7 +96,7 @@ class ManageBenefitsPlan(Tool):
                 "provider": plan_data.get("provider"),
                 "employee_cost": plan_data.get("employee_cost"),
                 "employer_cost": plan_data.get("employer_cost"),
-                "status": plan_data.get("status", "active"),  # System default: active status
+                "status": plan_data.get("status", "active"),  # If status is not specified during creation, set it to active
                 "effective_date": plan_data["effective_date"],
                 "expiration_date": plan_data.get("expiration_date"),
                 "created_at": "2025-10-01T12:00:00",
@@ -142,7 +123,7 @@ class ManageBenefitsPlan(Tool):
             if plan_id not in benefits_plans:
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Benefits plan {plan_id} not found"
+                    "error": f"Halt: Plan not found"
                 })
             
             if not plan_data:
@@ -151,23 +132,21 @@ class ManageBenefitsPlan(Tool):
                     "error": "plan_data is required for update action"
                 })
             
-            # Authorization Check - HR Director or Finance Officer approval required
-            hr_approval = plan_data.get("hr_director_approval", False)
-            finance_approval = plan_data.get("finance_officer_approval", False)
-            
-            if not hr_approval and not finance_approval:
+            # Validate at least one optional field is provided
+            update_fields = ["plan_name", "plan_type", "provider", "employee_cost", "employer_cost", 
+                           "status", "effective_date", "expiration_date"]
+            provided_fields = [field for field in update_fields if field in plan_data]
+            if not provided_fields:
                 return json.dumps({
                     "success": False,
-                    "error": "Halt: HR Director or Finance Officer approval required"
+                    "error": "At least one optional field must be provided for updates"
                 })
             
-            # Validate plan exists and get current plan
+            # Get current plan for validation
             current_plan = benefits_plans[plan_id]
             
             # Validate only allowed fields for updates
-            allowed_update_fields = ["plan_name", "plan_type", "provider", "employee_cost", "employer_cost", 
-                                   "status", "effective_date", "expiration_date", "hr_director_approval", "finance_officer_approval"]
-            invalid_fields = [field for field in plan_data.keys() if field not in allowed_update_fields]
+            invalid_fields = [field for field in plan_data.keys() if field not in update_fields]
             if invalid_fields:
                 return json.dumps({
                     "success": False,
@@ -180,16 +159,16 @@ class ManageBenefitsPlan(Tool):
                 if plan_data["status"] not in valid_statuses:
                     return json.dumps({
                         "success": False,
-                        "error": f"Halt: Invalid status. Must be one of: {', '.join(valid_statuses)}"
+                        "error": f"Halt: Benefits plan operation failed - status must be one of: {', '.join(valid_statuses)}"
                     })
             
             # Validate plan_type enum if provided
             if "plan_type" in plan_data:
-                valid_types = ["health insurance", "dental", "vision", "life insurance", "disability", "retirement", "paid time off", "flexible spending"]
+                valid_types = ["health_insurance", "dental", "vision", "life_insurance", "disability", "retirement_401k", "pto", "flexible_spending"]
                 if plan_data["plan_type"] not in valid_types:
                     return json.dumps({
                         "success": False,
-                        "error": f"Halt: Invalid plan_type. Must be one of: {', '.join(valid_types)}"
+                        "error": f"Halt: Benefits plan operation failed - plan_type must be one of: {', '.join(valid_types)}"
                     })
             
             # Validate cost amounts are non-negative monetary values if provided
@@ -199,35 +178,23 @@ class ManageBenefitsPlan(Tool):
                     if cost_value is not None and (not isinstance(cost_value, (int, float)) or cost_value < 0):
                         return json.dumps({
                             "success": False,
-                            "error": f"Halt: {cost_field} must be a non-negative monetary value"
+                            "error": f"Halt: Benefits plan operation failed - {cost_field} must be non-negative"
                         })
             
-            # Validate date consistency while maintaining date consistency
+            # Validate date consistency
             effective_date = plan_data.get("effective_date", current_plan.get("effective_date"))
             expiration_date = plan_data.get("expiration_date", current_plan.get("expiration_date"))
             
             if effective_date and expiration_date and expiration_date <= effective_date:
                 return json.dumps({
                     "success": False,
-                    "error": "Halt: Expiration date must occur after effective date"
+                    "error": "Halt: Benefits plan operation failed - expiration date must be after effective date"
                 })
             
-            # Check for duplicate plan name if plan name is being updated
-            if "plan_name" in plan_data:
-                plan_name = plan_data["plan_name"].strip()
-                for existing_id, existing_plan in benefits_plans.items():
-                    if (existing_id != plan_id and 
-                        existing_plan.get("plan_name", "").strip().lower() == plan_name.lower()):
-                        return json.dumps({
-                            "success": False,
-                            "error": f"Halt: Benefits plan with name '{plan_name}' already exists"
-                        })
-            
-            # Update benefits plan while maintaining date consistency
+            # Update benefits plan
             updated_plan = current_plan.copy()
             for key, value in plan_data.items():
-                if key not in ["hr_director_approval", "finance_officer_approval"]:  # Skip approval from being stored
-                    updated_plan[key] = value
+                updated_plan[key] = value
             
             updated_plan["updated_at"] = "2025-10-01T12:00:00"
             benefits_plans[plan_id] = updated_plan
@@ -246,7 +213,7 @@ class ManageBenefitsPlan(Tool):
             "type": "function",
             "function": {
                 "name": "manage_benefits_plan",
-                "description": "Create or update benefits plan records in the HR system. This tool manages employee benefits plans with comprehensive validation and authorization controls. For creation, establishes new benefits plans with proper validation of plan details, cost amounts, and HR Director or Finance Officer authorization. For updates, modifies existing plans while maintaining data integrity and date consistency. Validates plan types against supported categories, ensures cost amounts are non-negative, and enforces proper date relationships. Essential for benefits administration, employee enrollment management, and compliance with benefits regulations.",
+                "description": "Create or update benefits plan records in the HR system. This tool manages employee benefits plans with comprehensive validation. For creation, establishes new benefits plans with proper validation of plan details, cost amounts. For updates, modifies existing plans while maintaining data integrity and date consistency. Validates plan types against supported categories, ensures cost amounts are non-negative, and enforces proper date relationships. Essential for benefits administration, employee enrollment management, and compliance with benefits regulations.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -257,16 +224,16 @@ class ManageBenefitsPlan(Tool):
                         },
                         "plan_data": {
                             "type": "object",
-                            "description": "Benefits plan data object. For create: requires plan_name, plan_type, effective_date, and hr_director_approval or finance_officer_approval. Optional fields: provider, employee_cost, employer_cost, status, expiration_date. For update: fields to change with required approval. SYNTAX: {\"key\": \"value\"}",
+                            "description": "Benefits plan data object. For create: requires plan_name, plan_type, effective_date. Optional: provider, employee_cost, employer_cost, status, expiration_date. For update: at least one of plan_name, plan_type, provider, employee_cost, employer_cost, status, effective_date, expiration_date. SYNTAX: {\"key\": \"value\"}",
                             "properties": {
                                 "plan_name": {
                                     "type": "string",
-                                    "description": "Name of the benefits plan (must be unique)"
+                                    "description": "Name of the benefits plan"
                                 },
                                 "plan_type": {
                                     "type": "string",
                                     "description": "Type of benefits plan",
-                                    "enum": ["health insurance", "dental", "vision", "life insurance", "disability", "retirement", "paid time off", "flexible spending"]
+                                    "enum": ["health_insurance", "dental", "vision", "life_insurance", "disability", "retirement_401k", "pto", "flexible_spending"]
                                 },
                                 "provider": {
                                     "type": "string",
@@ -282,7 +249,7 @@ class ManageBenefitsPlan(Tool):
                                 },
                                 "status": {
                                     "type": "string",
-                                    "description": "Plan status (defaults to 'active')",
+                                    "description": "Plan status",
                                     "enum": ["active", "inactive"]
                                 },
                                 "effective_date": {
@@ -292,14 +259,6 @@ class ManageBenefitsPlan(Tool):
                                 "expiration_date": {
                                     "type": "string",
                                     "description": "Plan expiration date in YYYY-MM-DD format (must be after effective_date)"
-                                },
-                                "hr_director_approval": {
-                                    "type": "boolean",
-                                    "description": "HR Director approval status (True/False)"
-                                },
-                                "finance_officer_approval": {
-                                    "type": "boolean",
-                                    "description": "Finance Officer approval status (True/False)"
                                 }
                             }
                         },
@@ -312,3 +271,4 @@ class ManageBenefitsPlan(Tool):
                 }
             }
         }
+

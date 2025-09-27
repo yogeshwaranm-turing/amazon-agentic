@@ -1,7 +1,7 @@
+
 import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
-
 
 class ManageJobApplication(Tool):
     @staticmethod
@@ -11,7 +11,7 @@ class ManageJobApplication(Tool):
         
         Actions:
         - create: Create new application (requires candidate_id, position_id, application_date, recruiter_id)
-        - update: Update existing application (requires application_id, application_data with status updates, and recruiter_approval or hiring_manager_approval)
+        - update: Update existing application (requires application_id, application_data with status updates)
         """
         
         def generate_id(table: Dict[str, Any]) -> int:
@@ -25,29 +25,29 @@ class ManageJobApplication(Tool):
             # For demo purposes, assume dates starting with "2026" or later are future
             return date_str.startswith("2026") or date_str.startswith("2027")
             
-        # def is_valid_status_transition(current_status: str, new_status: str) -> bool:
-        #     """Validate status transitions follow proper workflow"""
-        #     # Define the linear progression workflow
-        #     workflow_order = ["submitted", "under_review", "screening", "interviewing", "offer_made", "accepted"]
-        #     terminal_states = ["accepted", "rejected", "withdrawn"]
-        #     exit_states = ["rejected", "withdrawn"]
+        def is_valid_status_transition(current_status: str, new_status: str) -> bool:
+            """Validate status transitions follow proper workflow"""
+            # Define the linear progression workflow
+            workflow_order = ["submitted", "under_review", "screening", "interviewing", "offer_made", "accepted"]
+            terminal_states = ["accepted", "rejected", "withdrawn"]
+            exit_states = ["rejected", "withdrawn"]
             
-        #     # Cannot transition from terminal states
-        #     if current_status in terminal_states:
-        #         return False
+            # Cannot transition from terminal states
+            if current_status in terminal_states:
+                return False
             
-        #     # Can exit to rejected/withdrawn from any active stage
-        #     if new_status in exit_states:
-        #         return True
+            # Can exit to rejected/withdrawn from any active stage
+            if new_status in exit_states:
+                return True
                 
-        #     # Cannot move backward in workflow
-        #     if current_status in workflow_order and new_status in workflow_order:
-        #         current_index = workflow_order.index(current_status)
-        #         new_index = workflow_order.index(new_status)
-        #         # Can only move forward one step or stay the same
-        #         return new_index >= current_index and new_index <= current_index + 1
+            # Cannot move backward in workflow
+            if current_status in workflow_order and new_status in workflow_order:
+                current_index = workflow_order.index(current_status)
+                new_index = workflow_order.index(new_status)
+                # Can only move forward one step or stay the same
+                return new_index >= current_index and new_index <= current_index + 1
             
-        #     return False
+            return False
         
         if action not in ["create", "update"]:
             return json.dumps({
@@ -79,23 +79,22 @@ class ManageJobApplication(Tool):
             if missing_fields:
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Invalid application details: {', '.join(missing_fields)}"
+                    "error": f"Halt: Missing or invalid inputs - missing fields: {', '.join(missing_fields)}"
                 })
             
-            # Validate that candidate exists and is valid
+            # Validate that candidate and position exist and are valid
             candidate_id = str(application_data["candidate_id"])
             if candidate_id not in candidates:
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Candidate {candidate_id} not found"
+                    "error": f"Halt: Candidate, position, or recruiter not found"
                 })
             
-            # Validate that position exists and is valid
             position_id = str(application_data["position_id"])
             if position_id not in job_positions:
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Position {position_id} not found"
+                    "error": f"Halt: Candidate, position, or recruiter not found"
                 })
             
             # Validate that assigned recruiter exists and has recruiter role
@@ -103,14 +102,14 @@ class ManageJobApplication(Tool):
             if recruiter_id not in users:
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Recruiter {recruiter_id} not found"
+                    "error": f"Halt: Candidate, position, or recruiter not found"
                 })
             
             recruiter = users[recruiter_id]
             if recruiter.get("role") != "recruiter":
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: User {recruiter_id} does not have recruiter role"
+                    "error": f"Halt: Candidate, position, or recruiter not found"
                 })
             
             # Validate that application date is not in future
@@ -118,7 +117,7 @@ class ManageJobApplication(Tool):
             if is_future_date(application_date):
                 return json.dumps({
                     "success": False,
-                    "error": "Halt: Application date cannot be in future"
+                    "error": "Halt: Invalid status transition - application date cannot be in future"
                 })
             
             # Validate AI screening score if provided
@@ -127,7 +126,7 @@ class ManageJobApplication(Tool):
                 if score is not None and (not isinstance(score, (int, float)) or score < 0 or score > 100):
                     return json.dumps({
                         "success": False,
-                        "error": "Halt: AI screening score must be within 0-100 percentage range"
+                        "error": "Halt: Invalid status transition - AI screening score must be within 0-100 range"
                     })
             
             # Validate final_decision enum if provided
@@ -136,7 +135,7 @@ class ManageJobApplication(Tool):
                 if application_data["final_decision"] not in valid_decisions:
                     return json.dumps({
                         "success": False,
-                        "error": f"Halt: Invalid final_decision. Must be one of: {', '.join(valid_decisions)}"
+                        "error": f"Halt: Invalid status transition - final_decision must be one of: {', '.join(valid_decisions)}"
                     })
             
             # Validate allowed fields
@@ -155,19 +154,19 @@ class ManageJobApplication(Tool):
                 if application_data["status"] not in valid_statuses:
                     return json.dumps({
                         "success": False,
-                        "error": f"Halt: Invalid status. Must be one of: {', '.join(valid_statuses)}"
+                        "error": f"Halt: Invalid status transition - status must be one of: {', '.join(valid_statuses)}"
                     })
             
             # Generate new application ID
             new_app_id = generate_id(applications)
             
-            # Create new application record with system defaults
+            # Create new application record
             new_application = {
                 "application_id": str(new_app_id),
                 "candidate_id": candidate_id,
                 "position_id": position_id,
                 "application_date": application_date,
-                "status": application_data.get("status", "submitted"),  # System default: submitted status
+                "status": application_data.get("status", "submitted"),  # If status is not specified during creation, set it to submitted
                 "recruiter_id": recruiter_id,
                 "ai_screening_score": application_data.get("ai_screening_score"),
                 "final_decision": application_data.get("final_decision"),
@@ -195,7 +194,7 @@ class ManageJobApplication(Tool):
             if application_id not in applications:
                 return json.dumps({
                     "success": False,
-                    "error": "Halt: Invalid application status change - application not found"
+                    "error": "Halt: Application not found"
                 })
             
             if not application_data:
@@ -204,14 +203,13 @@ class ManageJobApplication(Tool):
                     "error": "application_data is required for update action"
                 })
             
-            # Authorization Check - Recruiter or Hiring Manager approval required for stage management
-            recruiter_approval = application_data.get("recruiter_approval", False)
-            hiring_manager_approval = application_data.get("hiring_manager_approval", False)
-            
-            if not recruiter_approval and not hiring_manager_approval:
+            # Validate at least one optional field is provided
+            update_fields = ["candidate_id", "position_id", "application_date", "recruiter_id", "status", "ai_screening_score", "final_decision"]
+            provided_fields = [field for field in update_fields if field in application_data]
+            if not provided_fields:
                 return json.dumps({
                     "success": False,
-                    "error": "Halt: Recruiter or Hiring Manager approval required"
+                    "error": "At least one optional field must be provided for updates"
                 })
             
             # Get current application for validation
@@ -219,8 +217,7 @@ class ManageJobApplication(Tool):
             current_status = current_application.get("status", "submitted")
             
             # Validate allowed update fields
-            allowed_update_fields = ["status", "ai_screening_score", "final_decision", "recruiter_approval", "hiring_manager_approval"]
-            invalid_fields = [field for field in application_data.keys() if field not in allowed_update_fields]
+            invalid_fields = [field for field in application_data.keys() if field not in update_fields]
             if invalid_fields:
                 return json.dumps({
                     "success": False,
@@ -235,15 +232,15 @@ class ManageJobApplication(Tool):
                 if new_status not in valid_statuses:
                     return json.dumps({
                         "success": False,
-                        "error": f"Halt: Invalid status. Must be one of: {', '.join(valid_statuses)}"
+                        "error": f"Halt: Invalid status transition - status must be one of: {', '.join(valid_statuses)}"
                     })
                 
-                # # Validate status transitions follow proper workflow
-                # if not is_valid_status_transition(current_status, new_status):
-                #     return json.dumps({
-                #         "success": False,
-                #         "error": "Halt: Invalid application status change"
-                #     })
+                # Validate status transitions follow proper workflow
+                if not is_valid_status_transition(current_status, new_status):
+                    return json.dumps({
+                        "success": False,
+                        "error": "Halt: Invalid status transition"
+                    })
             
             # Validate AI screening score if provided
             if "ai_screening_score" in application_data:
@@ -251,7 +248,7 @@ class ManageJobApplication(Tool):
                 if score is not None and (not isinstance(score, (int, float)) or score < 0 or score > 100):
                     return json.dumps({
                         "success": False,
-                        "error": "Halt: AI screening score must be within 0-100 percentage range"
+                        "error": "Halt: Application stage management failed - AI screening score must be within 0-100 range"
                     })
             
             # Validate final_decision enum if provided
@@ -260,14 +257,13 @@ class ManageJobApplication(Tool):
                 if application_data["final_decision"] not in valid_decisions:
                     return json.dumps({
                         "success": False,
-                        "error": f"Halt: Invalid final_decision. Must be one of: {', '.join(valid_decisions)}"
+                        "error": f"Halt: Application stage management failed - final_decision must be one of: {', '.join(valid_decisions)}"
                     })
             
-            # Update application record, ensure status transitions are valid
+            # Update application record
             updated_application = current_application.copy()
             for key, value in application_data.items():
-                if key not in ["recruiter_approval", "hiring_manager_approval"]:  # Skip approval from being stored
-                    updated_application[key] = value
+                updated_application[key] = value
             
             updated_application["updated_at"] = "2025-10-01T12:00:00"
             applications[application_id] = updated_application
@@ -286,7 +282,7 @@ class ManageJobApplication(Tool):
             "type": "function",
             "function": {
                 "name": "manage_job_application",
-                "description": "Create or update job application records in the HR recruitment system. This tool manages job applications with comprehensive validation and workflow controls. For creation, establishes new applications with proper validation of candidate/position/recruiter existence and application date requirements. For updates (stage management), modifies application status while enforcing linear workflow progression and requiring proper authorization. Validates status transitions follow proper workflow (submitted → under_review → screening → interviewing → offer_made → accepted), prevents backward movement and terminal state transitions, validates AI screening scores, and ensures recruiter role verification. Essential for recruitment workflow management, candidate tracking, and maintaining accurate application records.",
+                "description": "Create or update job application records in the HR recruitment system. This tool manages job applications with comprehensive validation and workflow controls. For creation, establishes new applications with proper validation of candidate/position/recruiter existence and application date requirements. For updates (stage management), modifies application status while enforcing linear workflow progression. Validates status transitions follow proper workflow (submitted → under_review → screening → interviewing → offer_made → accepted), prevents backward movement and terminal state transitions, validates AI screening scores, and ensures recruiter role verification. Essential for recruitment workflow management, candidate tracking, and maintaining accurate application records.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -297,7 +293,7 @@ class ManageJobApplication(Tool):
                         },
                         "application_data": {
                             "type": "object",
-                            "description": "Application data object. For create: requires candidate_id, position_id, application_date, recruiter_id. Optional: ai_screening_score, final_decision, status. For update: requires recruiter_approval or hiring_manager_approval plus fields to change. SYNTAX: {\"key\": \"value\"}",
+                            "description": "Application data object. For create: requires candidate_id, position_id, application_date, recruiter_id. Optional: ai_screening_score, final_decision, status. For update: at least one of candidate_id, position_id, application_date, recruiter_id, status, ai_screening_score, final_decision. SYNTAX: {\"key\": \"value\"}",
                             "properties": {
                                 "candidate_id": {
                                     "type": "string",
@@ -317,7 +313,7 @@ class ManageJobApplication(Tool):
                                 },
                                 "status": {
                                     "type": "string",
-                                    "description": "Application status (defaults to 'submitted', must follow linear workflow progression)",
+                                    "description": "Application status (must follow linear workflow progression)",
                                     "enum": ["submitted", "under_review", "screening", "interviewing", "offer_made", "accepted", "rejected", "withdrawn"]
                                 },
                                 "ai_screening_score": {
@@ -328,14 +324,6 @@ class ManageJobApplication(Tool):
                                     "type": "string",
                                     "description": "Final hiring decision",
                                     "enum": ["hire", "reject", "hold"]
-                                },
-                                "recruiter_approval": {
-                                    "type": "boolean",
-                                    "description": "Recruiter approval status (True/False, required for updates)"
-                                },
-                                "hiring_manager_approval": {
-                                    "type": "boolean",
-                                    "description": "Hiring Manager approval status (True/False, required for updates)"
                                 }
                             }
                         },

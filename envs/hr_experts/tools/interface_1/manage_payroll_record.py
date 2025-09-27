@@ -1,7 +1,7 @@
+
 import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
-
 
 class ManagePayrollRecord(Tool):
     @staticmethod
@@ -10,8 +10,8 @@ class ManagePayrollRecord(Tool):
         Create or update payroll records.
         
         Actions:
-        - create: Process payroll run (requires payroll_data with employee_id, pay_period_start, pay_period_end, hourly_rate, finance_officer_approval)
-        - update: Payroll correction (requires payroll_id, payroll_data with correction details, and finance_officer_approval)
+        - create: Process payroll run (requires payroll_data with employee_id, pay_period_start, pay_period_end, hourly_rate)
+        - update: Payroll correction (requires payroll_id, payroll_data with correction details)
         """
         
         def generate_id(table: Dict[str, Any]) -> int:
@@ -62,7 +62,7 @@ class ManagePayrollRecord(Tool):
             if missing_fields:
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Invalid payroll run details: {', '.join(missing_fields)}"
+                    "error": f"Halt: Missing or invalid inputs - missing fields: {', '.join(missing_fields)}"
                 })
             
             # Validate that employee exists in system
@@ -70,15 +70,7 @@ class ManagePayrollRecord(Tool):
             if employee_id not in employees:
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Employee {employee_id} not found"
-                })
-            
-            # Authorization Check - Finance Officer approval required
-            finance_officer_approval = payroll_data.get("finance_officer_approval", False)
-            if not finance_officer_approval:
-                return json.dumps({
-                    "success": False,
-                    "error": "Halt: Finance Officer approval required"
+                    "error": f"Halt: Missing or invalid inputs - employee not found"
                 })
             
             # Validate that pay period dates are logical (start date before end date)
@@ -87,7 +79,7 @@ class ManagePayrollRecord(Tool):
             if not is_valid_date_order(pay_period_start, pay_period_end):
                 return json.dumps({
                     "success": False,
-                    "error": "Halt: Pay period start date must be before end date"
+                    "error": "Halt: Invalid pay period dates or hourly rate - start date must be before end date"
                 })
             
             # Validate that hourly rate is positive monetary value
@@ -96,20 +88,27 @@ class ManagePayrollRecord(Tool):
                 if hourly_rate <= 0:
                     return json.dumps({
                         "success": False,
-                        "error": "Halt: Hourly rate must be positive monetary value"
+                        "error": "Halt: Invalid pay period dates or hourly rate - hourly rate must be positive"
                     })
             except (ValueError, TypeError):
                 return json.dumps({
                     "success": False,
-                    "error": "Halt: Invalid hourly rate format - must be positive monetary value"
+                    "error": "Halt: Invalid pay period dates or hourly rate - invalid hourly rate format"
                 })
             
             # Aggregate approved timesheet hours for the specified pay period
             hours_worked = aggregate_approved_timesheet_hours(employee_id, pay_period_start, pay_period_end, employee_timesheets)
             
+            # Check if no approved timesheet hours found
+            if hours_worked == 0:
+                return json.dumps({
+                    "success": False,
+                    "error": "Halt: No approved timesheet hours found"
+                })
+            
             # Validate only allowed fields are present
             allowed_fields = ["employee_id", "pay_period_start", "pay_period_end", "hourly_rate", 
-                            "payment_date", "approved_by", "finance_officer_approval"]
+                            "hours_worked", "payment_date", "status", "approved_by"]
             invalid_fields = [field for field in payroll_data.keys() if field not in allowed_fields]
             if invalid_fields:
                 return json.dumps({
@@ -120,17 +119,19 @@ class ManagePayrollRecord(Tool):
             # Generate new payroll ID
             new_payroll_id = generate_id(payroll_records)
             
-            # Create payroll record with required information: employee, pay period dates, hourly rate
-            # Calculate hours worked from approved timesheets
+            # Calculate hours worked from approved timesheets if not provided
+            final_hours_worked = payroll_data.get("hours_worked", hours_worked)
+            
+            # Create payroll record with required information
             new_payroll = {
                 "payroll_id": str(new_payroll_id),
                 "employee_id": employee_id,
                 "pay_period_start": pay_period_start,
                 "pay_period_end": pay_period_end,
-                "hours_worked": hours_worked,  # Calculated from approved timesheets
+                "hours_worked": final_hours_worked,
                 "hourly_rate": hourly_rate,
                 "payment_date": payroll_data.get("payment_date"),
-                "status": payroll_data.get("status", "approved"),  # Default to approved if not specified, use provided status if given
+                "status": payroll_data.get("status", "pending"),  # If status is not specified, set it to pending
                 "approved_by": payroll_data.get("approved_by"),
                 "created_at": "2025-10-01T12:00:00",
                 "updated_at": "2025-10-01T12:00:00"
@@ -142,7 +143,7 @@ class ManagePayrollRecord(Tool):
                 "success": True,
                 "action": "create",
                 "payroll_id": str(new_payroll_id),
-                "message": f"Payroll record {new_payroll_id} created successfully with {hours_worked} hours",
+                "message": f"Payroll record {new_payroll_id} created successfully with {final_hours_worked} hours",
                 "payroll_data": new_payroll
             })
         
@@ -157,7 +158,7 @@ class ManagePayrollRecord(Tool):
             if payroll_id not in payroll_records:
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Payroll record {payroll_id} not found"
+                    "error": f"Halt: Payroll record not found"
                 })
             
             if not payroll_data:
@@ -166,21 +167,21 @@ class ManagePayrollRecord(Tool):
                     "error": "payroll_data is required for update action"
                 })
             
-            # Authorization Check - Finance Officer approval required for corrections
-            finance_officer_approval = payroll_data.get("finance_officer_approval", False)
-            if not finance_officer_approval:
+            # Validate at least one optional field is provided
+            update_fields = ["pay_period_start", "pay_period_end", "hours_worked", "hourly_rate", "payment_date", "status", "approved_by"]
+            provided_fields = [field for field in update_fields if field in payroll_data]
+            if not provided_fields:
                 return json.dumps({
                     "success": False,
-                    "error": "Halt: Finance Officer approval required"
+                    "error": "At least one optional field must be provided for updates"
                 })
             
             # Validate only allowed fields for corrections
-            allowed_update_fields = ["hours_worked", "hourly_rate", "payment_date", "status", "approved_by", "finance_officer_approval"]
-            invalid_fields = [field for field in payroll_data.keys() if field not in allowed_update_fields]
+            invalid_fields = [field for field in payroll_data.keys() if field not in update_fields]
             if invalid_fields:
                 return json.dumps({
                     "success": False,
-                    "error": f"Invalid fields for payroll correction: {', '.join(invalid_fields)}. Cannot update employee_id or pay_period_dates."
+                    "error": f"Invalid fields for payroll correction: {', '.join(invalid_fields)}. Cannot update employee_id."
                 })
             
             # Validate that correction information is valid (hours worked and hourly rate must be positive)
@@ -190,12 +191,12 @@ class ManagePayrollRecord(Tool):
                     if hours_worked <= 0:
                         return json.dumps({
                             "success": False,
-                            "error": "Halt: Hours worked must be positive"
+                            "error": "Halt: Invalid correction information - hours worked must be positive"
                         })
                 except (ValueError, TypeError):
                     return json.dumps({
                         "success": False,
-                        "error": "Halt: Invalid hours worked format - must be positive"
+                        "error": "Halt: Invalid correction information - invalid hours worked format"
                     })
             
             if "hourly_rate" in payroll_data:
@@ -204,12 +205,23 @@ class ManagePayrollRecord(Tool):
                     if hourly_rate <= 0:
                         return json.dumps({
                             "success": False,
-                            "error": "Halt: Hourly rate must be positive"
+                            "error": "Halt: Invalid correction information - hourly rate must be positive"
                         })
                 except (ValueError, TypeError):
                     return json.dumps({
                         "success": False,
-                        "error": "Halt: Invalid hourly rate format - must be positive"
+                        "error": "Halt: Invalid correction information - invalid hourly rate format"
+                    })
+            
+            # Validate pay period dates if provided
+            current_payroll = payroll_records[payroll_id]
+            if "pay_period_start" in payroll_data or "pay_period_end" in payroll_data:
+                start_date = payroll_data.get("pay_period_start", current_payroll.get("pay_period_start"))
+                end_date = payroll_data.get("pay_period_end", current_payroll.get("pay_period_end"))
+                if not is_valid_date_order(start_date, end_date):
+                    return json.dumps({
+                        "success": False,
+                        "error": "Halt: Invalid correction information - start date must be before end date"
                     })
             
             # Validate status enum if provided
@@ -218,18 +230,15 @@ class ManagePayrollRecord(Tool):
                 if payroll_data["status"] not in valid_statuses:
                     return json.dumps({
                         "success": False,
-                        "error": f"Halt: Invalid status. Must be one of: {', '.join(valid_statuses)}"
+                        "error": f"Halt: Invalid correction information - status must be one of: {', '.join(valid_statuses)}"
                     })
             
             # Adjust payroll record with correction details
-            current_payroll = payroll_records[payroll_id]
             updated_payroll = current_payroll.copy()
             
             for key, value in payroll_data.items():
-                if key != "finance_officer_approval":  # Skip approval from being stored
-                    updated_payroll[key] = value
+                updated_payroll[key] = value
             
-            # Update modification timestamp
             updated_payroll["updated_at"] = "2025-10-01T12:00:00"
             payroll_records[payroll_id] = updated_payroll
             
@@ -247,7 +256,7 @@ class ManagePayrollRecord(Tool):
             "type": "function",
             "function": {
                 "name": "manage_payroll_record",
-                "description": "Create or update payroll records in the HR payroll system. This tool manages payroll processing and corrections with comprehensive validation and authorization controls. For creation (payroll run), establishes new payroll records with proper validation of employee existence, pay period logic, and Finance Officer authorization. Automatically aggregates approved timesheet hours for the specified pay period and calculates total hours worked. For updates (payroll correction), modifies existing payroll records while maintaining data integrity and requiring Finance Officer approval for corrections. Validates hours worked and hourly rates are positive, ensures proper date ordering, and enforces field restrictions for corrections. Essential for payroll processing, employee compensation management, and maintaining accurate payroll records.",
+                "description": "Create or update payroll records in the HR payroll system. This tool manages payroll processing and corrections with comprehensive validation. For creation (payroll run), establishes new payroll records with proper validation of employee existence, pay period logic. Automatically aggregates approved timesheet hours for the specified pay period and calculates total hours worked. For updates (payroll correction), modifies existing payroll records while maintaining data integrity. Validates hours worked and hourly rates are positive, ensures proper date ordering, and enforces field restrictions for corrections. Essential for payroll processing, employee compensation management, and maintaining accurate payroll records.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -258,7 +267,7 @@ class ManagePayrollRecord(Tool):
                         },
                         "payroll_data": {
                             "type": "object",
-                            "description": "Payroll data object. For create: requires employee_id, pay_period_start, pay_period_end, hourly_rate, finance_officer_approval. Optional: payment_date, approved_by. For update: requires finance_officer_approval plus correction fields. SYNTAX: {\"key\": \"value\"}",
+                            "description": "Payroll data object. For create: requires employee_id, pay_period_start, pay_period_end, hourly_rate. Optional: hours_worked, payment_date, status, approved_by. For update: at least one of pay_period_start, pay_period_end, hours_worked, hourly_rate, payment_date, status, approved_by. SYNTAX: {\"key\": \"value\"}",
                             "properties": {
                                 "employee_id": {
                                     "type": "string",
@@ -266,11 +275,11 @@ class ManagePayrollRecord(Tool):
                                 },
                                 "pay_period_start": {
                                     "type": "string",
-                                    "description": "Pay period start date in YYYY-MM-DD format (required for create, must be before end date, cannot be updated)"
+                                    "description": "Pay period start date in YYYY-MM-DD format (required for create, must be before end date)"
                                 },
                                 "pay_period_end": {
                                     "type": "string",
-                                    "description": "Pay period end date in YYYY-MM-DD format (required for create, must be after start date, cannot be updated)"
+                                    "description": "Pay period end date in YYYY-MM-DD format (required for create, must be after start date)"
                                 },
                                 "hourly_rate": {
                                     "type": "number",
@@ -286,16 +295,12 @@ class ManagePayrollRecord(Tool):
                                 },
                                 "status": {
                                     "type": "string",
-                                    "description": "Payroll status (auto-set to approved for create if Finance Officer approved)",
+                                    "description": "Payroll status",
                                     "enum": ["draft", "approved", "paid", "cancelled"]
                                 },
                                 "approved_by": {
                                     "type": "string",
                                     "description": "User who approved the payroll"
-                                },
-                                "finance_officer_approval": {
-                                    "type": "boolean",
-                                    "description": "Finance Officer approval status (True/False, required for both create and update operations)"
                                 }
                             }
                         },

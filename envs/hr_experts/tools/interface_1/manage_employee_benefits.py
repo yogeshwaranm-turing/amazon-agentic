@@ -1,7 +1,7 @@
+
 import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
-
 
 class ManageEmployeeBenefits(Tool):
     @staticmethod
@@ -54,7 +54,7 @@ class ManageEmployeeBenefits(Tool):
             if missing_fields:
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Invalid benefits enrollment details: {', '.join(missing_fields)}"
+                    "error": f"Halt: Employee or plan not found or inactive - missing fields: {', '.join(missing_fields)}"
                 })
             
             # Validate that employee exists and has active status
@@ -62,14 +62,14 @@ class ManageEmployeeBenefits(Tool):
             if employee_id not in employees:
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Employee {employee_id} not found"
+                    "error": f"Halt: Employee or plan not found or inactive"
                 })
             
             employee = employees[employee_id]
             if employee.get("employment_status") != "active":
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Employee {employee_id} does not have active status"
+                    "error": f"Halt: Employee or plan not found or inactive"
                 })
             
             # Validate that benefits plan exists and has active status
@@ -77,14 +77,14 @@ class ManageEmployeeBenefits(Tool):
             if plan_id not in benefits_plans:
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Benefits plan {plan_id} not found"
+                    "error": f"Halt: Employee or plan not found or inactive"
                 })
             
             plan = benefits_plans[plan_id]
             if plan.get("status") != "active":
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Benefits plan {plan_id} does not have active status"
+                    "error": f"Halt: Employee or plan not found or inactive"
                 })
             
             # Validate that enrollment date is not in future
@@ -92,15 +92,15 @@ class ManageEmployeeBenefits(Tool):
             if is_future_date(enrollment_date):
                 return json.dumps({
                     "success": False,
-                    "error": "Halt: Enrollment date cannot be in future"
+                    "error": "Halt: Invalid enrollment date or coverage level - enrollment date cannot be in future"
                 })
             
-            # Validate coverage_level enum according to policy
-            valid_levels = ["employee only", "employee plus spouse", "employee plus children", "family coverage"]
+            # Validate coverage_level enum according to schema
+            valid_levels = ["employee_only", "employee_spouse", "employee_children", "family"]
             if benefits_data["coverage_level"] not in valid_levels:
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Invalid coverage_level. Must be one of: {', '.join(valid_levels)}"
+                    "error": f"Halt: Invalid enrollment date or coverage level - coverage_level must be one of: {', '.join(valid_levels)}"
                 })
             
             # Check that employee is not already enrolled in the same plan type
@@ -114,7 +114,7 @@ class ManageEmployeeBenefits(Tool):
                         if existing_plan_type == plan_type:
                             return json.dumps({
                                 "success": False,
-                                "error": f"Halt: Employee {employee_id} is already enrolled in {plan_type} plan"
+                                "error": f"Halt: Employee already enrolled in same plan type"
                             })
             
             # Validate only allowed fields are present
@@ -130,13 +130,13 @@ class ManageEmployeeBenefits(Tool):
             # Generate new enrollment ID
             new_enrollment_id = generate_id(employee_benefits)
             
-            # Create new employee benefits record with system defaults
+            # Create new employee benefits record
             new_benefits = {
                 "enrollment_id": str(new_enrollment_id),
                 "employee_id": employee_id,
                 "plan_id": plan_id,
                 "enrollment_date": enrollment_date,
-                "status": benefits_data.get("status", "active"),  # System default: active enrollment status
+                "status": benefits_data.get("status", "active"),  # If enrollment status is not specified during enrollment, set it to active
                 "coverage_level": benefits_data["coverage_level"],
                 "beneficiary_name": benefits_data.get("beneficiary_name"),
                 "beneficiary_relationship": benefits_data.get("beneficiary_relationship"),
@@ -164,7 +164,7 @@ class ManageEmployeeBenefits(Tool):
             if enrollment_id not in employee_benefits:
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Employee benefits enrollment {enrollment_id} not found"
+                    "error": f"Halt: Enrollment not found"
                 })
             
             if not benefits_data:
@@ -173,17 +173,24 @@ class ManageEmployeeBenefits(Tool):
                     "error": "benefits_data is required for update action"
                 })
             
+            # Validate at least one optional field is provided
+            update_fields = ["employee_id", "plan_id", "enrollment_date", "status", "coverage_level", "beneficiary_name", "beneficiary_relationship"]
+            provided_fields = [field for field in update_fields if field in benefits_data]
+            if not provided_fields:
+                return json.dumps({
+                    "success": False,
+                    "error": "At least one optional field must be provided for updates"
+                })
+            
             # Get current enrollment for validation
             current_benefits = employee_benefits[enrollment_id]
-            current_status = current_benefits.get("status", "active")
             
             # Validate only allowed fields for updates
-            allowed_update_fields = ["coverage_level", "status", "beneficiary_name", "beneficiary_relationship"]
-            invalid_fields = [field for field in benefits_data.keys() if field not in allowed_update_fields]
+            invalid_fields = [field for field in benefits_data.keys() if field not in update_fields]
             if invalid_fields:
                 return json.dumps({
                     "success": False,
-                    "error": f"Invalid fields for benefits enrollment update: {', '.join(invalid_fields)}. Cannot update employee_id, plan_id, or enrollment_date."
+                    "error": f"Invalid fields for benefits enrollment update: {', '.join(invalid_fields)}"
                 })
             
             # Validate status transitions if status is being updated
@@ -194,23 +201,16 @@ class ManageEmployeeBenefits(Tool):
                 if new_status not in valid_statuses:
                     return json.dumps({
                         "success": False,
-                        "error": f"Halt: Invalid status. Must be one of: {', '.join(valid_statuses)}"
-                    })
-                
-                # Validate status transitions - cannot reactivate terminated enrollments
-                if current_status == "terminated" and new_status in ["active", "pending"]:
-                    return json.dumps({
-                        "success": False,
-                        "error": "Halt: Cannot reactivate terminated benefits enrollment"
+                        "error": f"Halt: Benefits enrollment operation failed - status must be one of: {', '.join(valid_statuses)}"
                     })
             
             # Validate coverage_level enum if provided
             if "coverage_level" in benefits_data:
-                valid_levels = ["employee only", "employee plus spouse", "employee plus children", "family coverage"]
+                valid_levels = ["employee_only", "employee_spouse", "employee_children", "family"]
                 if benefits_data["coverage_level"] not in valid_levels:
                     return json.dumps({
                         "success": False,
-                        "error": f"Halt: Invalid coverage_level. Must be one of: {', '.join(valid_levels)}"
+                        "error": f"Halt: Benefits enrollment operation failed - coverage_level must be one of: {', '.join(valid_levels)}"
                     })
             
             # Update employee benefits record
@@ -246,28 +246,28 @@ class ManageEmployeeBenefits(Tool):
                         },
                         "benefits_data": {
                             "type": "object",
-                            "description": "Benefits enrollment data object. For create: requires employee_id, plan_id, enrollment_date, coverage_level. Optional fields: status, beneficiary_name, beneficiary_relationship. For update: fields to change (cannot update employee_id, plan_id, or enrollment_date). SYNTAX: {\"key\": \"value\"}",
+                            "description": "Benefits enrollment data object. For create: requires employee_id, plan_id, enrollment_date, coverage_level. Optional: status, beneficiary_name, beneficiary_relationship. For update: at least one of employee_id, plan_id, enrollment_date, status, coverage_level, beneficiary_name, beneficiary_relationship. SYNTAX: {\"key\": \"value\"}",
                             "properties": {
                                 "employee_id": {
                                     "type": "string",
-                                    "description": "Employee identifier (required for create, cannot be updated)"
+                                    "description": "Employee identifier (required for create)"
                                 },
                                 "plan_id": {
                                     "type": "string",
-                                    "description": "Benefits plan identifier (required for create, cannot be updated)"
+                                    "description": "Benefits plan identifier (required for create)"
                                 },
                                 "enrollment_date": {
                                     "type": "string",
-                                    "description": "Enrollment date in YYYY-MM-DD format (required for create, cannot be updated, must not be in future)"
+                                    "description": "Enrollment date in YYYY-MM-DD format (required for create, must not be in future)"
                                 },
                                 "coverage_level": {
                                     "type": "string",
                                     "description": "Coverage level for benefits",
-                                    "enum": ["employee only", "employee plus spouse", "employee plus children", "family coverage"]
+                                    "enum": ["employee_only", "employee_spouse", "employee_children", "family"]
                                 },
                                 "status": {
                                     "type": "string",
-                                    "description": "Enrollment status (defaults to 'active', terminated enrollments cannot be reactivated)",
+                                    "description": "Enrollment status",
                                     "enum": ["active", "terminated", "pending"]
                                 },
                                 "beneficiary_name": {

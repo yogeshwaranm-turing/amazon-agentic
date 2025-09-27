@@ -2,7 +2,6 @@ import json
 from typing import Any, Dict
 from tau_bench.envs.tool import Tool
 
-
 class ManageInterview(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], action: str, interview_data: Dict[str, Any] = None, interview_id: str = None) -> str:
@@ -10,7 +9,7 @@ class ManageInterview(Tool):
         Create or update interview records.
         
         Actions:
-        - create: Schedule new interview (requires interview_data with application_id, interviewer_id, interview_type, scheduled_date, recruiter_approval or hiring_manager_approval)
+        - create: Schedule new interview (requires interview_data with application_id, interviewer_id, interview_type, scheduled_date)
         - update: Record interview outcome (requires interview_id and interview_data with outcome details)
         """
         
@@ -54,7 +53,7 @@ class ManageInterview(Tool):
             if missing_fields:
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Invalid interview scheduling details: {', '.join(missing_fields)}"
+                    "error": f"Halt: Invalid interview scheduling details - missing fields: {', '.join(missing_fields)}"
                 })
             
             # Validate that application exists
@@ -62,7 +61,7 @@ class ManageInterview(Tool):
             if application_id not in job_applications:
                 return json.dumps({
                     "success": False,
-                    "error": "Halt: Invalid interview scheduling details - application not found"
+                    "error": "Halt: Application or interviewer not found"
                 })
             
             # Validate that interviewer exists
@@ -70,17 +69,15 @@ class ManageInterview(Tool):
             if interviewer_id not in users:
                 return json.dumps({
                     "success": False,
-                    "error": "Halt: Invalid interview scheduling details - interviewer not found"
+                    "error": "Halt: Application or interviewer not found"
                 })
             
-            # No authorization check required for interview scheduling per policy
-            
-            # Validate interview_type enum according to policy
-            valid_types = ["phone screening", "technical", "behavioral", "panel", "final"]
+            # Validate interview_type enum according to schema
+            valid_types = ["phone_screening", "technical", "behavioral", "panel", "final"]
             if interview_data["interview_type"] not in valid_types:
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Invalid interview_type. Must be one of: {', '.join(valid_types)}"
+                    "error": f"Halt: Invalid interview type or scheduled date - interview_type must be one of: {', '.join(valid_types)}"
                 })
             
             # Validate that scheduled date and time is in the future
@@ -88,7 +85,7 @@ class ManageInterview(Tool):
             if not is_future_datetime(scheduled_date):
                 return json.dumps({
                     "success": False,
-                    "error": "Halt: Scheduled date and time must be in the future"
+                    "error": "Halt: Invalid interview type or scheduled date - scheduled date must be in the future"
                 })
             
             # Validate that duration is positive time value with reasonable default
@@ -96,12 +93,12 @@ class ManageInterview(Tool):
             if not isinstance(duration_minutes, (int, float)) or duration_minutes <= 0:
                 return json.dumps({
                     "success": False,
-                    "error": "Halt: Duration must be a positive time value"
+                    "error": "Halt: Invalid interview scheduling details - duration must be positive"
                 })
             
             # Validate only allowed fields are present for creation
             allowed_fields = ["application_id", "interviewer_id", "interview_type", "scheduled_date", 
-                            "duration_minutes"]
+                            "duration_minutes", "status"]
             invalid_fields = [field for field in interview_data.keys() if field not in allowed_fields]
             if invalid_fields:
                 return json.dumps({
@@ -112,7 +109,7 @@ class ManageInterview(Tool):
             # Generate new interview ID
             new_interview_id = generate_id(interviews)
             
-            # Create new interview record with system defaults
+            # Create new interview record
             new_interview = {
                 "interview_id": str(new_interview_id),
                 "application_id": application_id,
@@ -120,7 +117,7 @@ class ManageInterview(Tool):
                 "interview_type": interview_data["interview_type"],
                 "scheduled_date": scheduled_date,
                 "duration_minutes": duration_minutes,
-                "status": "scheduled",  # System default: scheduled status
+                "status": interview_data.get("status", "scheduled"),  # If status is not specified, set it to scheduled
                 "overall_rating": None,
                 "technical_score": None,
                 "communication_score": None,
@@ -150,7 +147,7 @@ class ManageInterview(Tool):
             if interview_id not in interviews:
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Interview {interview_id} not found"
+                    "error": f"Halt: Interview not found or invalid status"
                 })
             
             if not interview_data:
@@ -167,13 +164,21 @@ class ManageInterview(Tool):
             if current_status not in ["scheduled", "completed"]:
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Interview must have scheduled or completed status for outcome recording"
+                    "error": f"Halt: Interview not found or invalid status"
+                })
+            
+            # Validate at least one optional field is provided
+            update_fields = ["overall_rating", "technical_score", "communication_score", 
+                           "cultural_fit_score", "recommendation", "status"]
+            provided_fields = [field for field in update_fields if field in interview_data]
+            if not provided_fields:
+                return json.dumps({
+                    "success": False,
+                    "error": "At least one optional field must be provided for updates"
                 })
             
             # Validate only allowed fields for updates (outcome recording)
-            allowed_update_fields = ["overall_rating", "technical_score", "communication_score", 
-                                   "cultural_fit_score", "recommendation", "status"]
-            invalid_fields = [field for field in interview_data.keys() if field not in allowed_update_fields]
+            invalid_fields = [field for field in interview_data.keys() if field not in update_fields]
             if invalid_fields:
                 return json.dumps({
                     "success": False,
@@ -186,7 +191,7 @@ class ManageInterview(Tool):
                 if interview_data["overall_rating"] not in valid_ratings:
                     return json.dumps({
                         "success": False,
-                        "error": f"Halt: Invalid overall_rating. Must be one of: {', '.join(valid_ratings)}"
+                        "error": f"Halt: Invalid rating, scores, or recommendation - overall_rating must be one of: {', '.join(valid_ratings)}"
                     })
             
             # Validate individual scores are within acceptable numeric range if provided
@@ -197,16 +202,25 @@ class ManageInterview(Tool):
                     if score is not None and (not isinstance(score, (int, float)) or score < 0 or score > 10):
                         return json.dumps({
                             "success": False,
-                            "error": f"Halt: {score_field} must be within acceptable numeric range (0-10)"
+                            "error": f"Halt: Invalid rating, scores, or recommendation - {score_field} must be within 0-10 range"
                         })
             
             # Validate recommendation is within accepted options if provided
             if "recommendation" in interview_data:
-                valid_recommendations = ["strong hire", "hire", "no hire", "strong no hire"]
+                valid_recommendations = ["strong_hire", "hire", "no_hire", "strong_no_hire"]
                 if interview_data["recommendation"] not in valid_recommendations:
                     return json.dumps({
                         "success": False,
-                        "error": f"Halt: Invalid recommendation. Must be one of: {', '.join(valid_recommendations)}"
+                        "error": f"Halt: Invalid rating, scores, or recommendation - recommendation must be one of: {', '.join(valid_recommendations)}"
+                    })
+            
+            # Validate status if provided
+            if "status" in interview_data:
+                valid_statuses = ["scheduled", "completed", "cancelled", "no_show"]
+                if interview_data["status"] not in valid_statuses:
+                    return json.dumps({
+                        "success": False,
+                        "error": f"Halt: Invalid status - must be one of: {', '.join(valid_statuses)}"
                     })
             
             # Update interview record with outcome information
@@ -214,8 +228,8 @@ class ManageInterview(Tool):
             for key, value in interview_data.items():
                 updated_interview[key] = value
             
-            # Change status to completed if outcome is being recorded
-            if any(field in interview_data for field in ["overall_rating", "recommendation"]):
+            # If status is not specified, set it to completed when outcome is being recorded
+            if "status" not in interview_data and any(field in interview_data for field in ["overall_rating", "recommendation"]):
                 updated_interview["status"] = "completed"
             
             updated_interview["updated_at"] = "2025-10-01T12:00:00"
@@ -233,10 +247,10 @@ class ManageInterview(Tool):
                 interview_type = updated_interview.get("interview_type")
                 
                 # Update job application status based on interview outcome per policy
-                if recommendation in ["strong hire", "hire"]:
+                if recommendation in ["strong_hire", "hire"]:
                     if current_app_status == "interviewing":
                         new_app_status = "offer_made"
-                elif recommendation in ["no hire", "strong no hire"]:
+                elif recommendation in ["no_hire", "strong_no_hire"]:
                     new_app_status = "rejected"
                 elif not recommendation and overall_rating:
                     # When no recommendation provided, use rating
@@ -245,7 +259,7 @@ class ManageInterview(Tool):
                     # excellent/good ratings remain at interviewing for potential additional interviews
                 
                 # Final interviews with positive recommendations automatically advance to offer_made
-                if interview_type == "final" and recommendation in ["strong hire", "hire"]:
+                if interview_type == "final" and recommendation in ["strong_hire", "hire"]:
                     new_app_status = "offer_made"
                 
                 # Update application status if changed
@@ -269,7 +283,7 @@ class ManageInterview(Tool):
             "type": "function",
             "function": {
                 "name": "manage_interview",
-                "description": "Create or update interview records in the HR recruitment system. This tool manages interview scheduling and outcome recording with comprehensive validation and workflow controls. For creation (scheduling), establishes new interviews with proper validation of application/interviewer existence, future date requirements, and authorization. For updates (outcome recording), captures interview results and automatically updates related job application status based on recommendations and ratings. Validates interview types, ensures scheduled dates are in future, validates score ranges, and enforces proper status transitions. Essential for recruitment workflow management, candidate evaluation tracking, and maintaining accurate hiring records.",
+                "description": "Create or update interview records in the HR recruitment system. This tool manages interview scheduling and outcome recording with comprehensive validation and workflow controls. For creation (scheduling), establishes new interviews with proper validation of application/interviewer existence, future date requirements. For updates (outcome recording), captures interview results and automatically updates related job application status based on recommendations and ratings. Validates interview types, ensures scheduled dates are in future, validates score ranges, and enforces proper status transitions. Essential for recruitment workflow management, candidate evaluation tracking, and maintaining accurate hiring records.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -280,7 +294,7 @@ class ManageInterview(Tool):
                         },
                         "interview_data": {
                             "type": "object",
-                            "description": "Interview data object. For create: requires application_id, interviewer_id, interview_type, scheduled_date. Optional: duration_minutes. For update: outcome fields like overall_rating, scores, recommendation. SYNTAX: {\"key\": \"value\"}",
+                            "description": "Interview data object. For create: requires application_id, interviewer_id, interview_type, scheduled_date. Optional: duration_minutes, status. For update: at least one of overall_rating, technical_score, communication_score, cultural_fit_score, recommendation, status. SYNTAX: {\"key\": \"value\"}",
                             "properties": {
                                 "application_id": {
                                     "type": "string",
@@ -293,7 +307,7 @@ class ManageInterview(Tool):
                                 "interview_type": {
                                     "type": "string",
                                     "description": "Type of interview being scheduled",
-                                    "enum": ["phone screening", "technical", "behavioral", "panel", "final"]
+                                    "enum": ["phone_screening", "technical", "behavioral", "panel", "final"]
                                 },
                                 "scheduled_date": {
                                     "type": "string",
@@ -323,11 +337,12 @@ class ManageInterview(Tool):
                                 "recommendation": {
                                     "type": "string",
                                     "description": "Hiring recommendation (affects job application status)",
-                                    "enum": ["strong hire", "hire", "no hire", "strong no hire"]
+                                    "enum": ["strong_hire", "hire", "no_hire", "strong_no_hire"]
                                 },
                                 "status": {
                                     "type": "string",
-                                    "description": "Interview status (automatically set to completed for outcome recording)"
+                                    "description": "Interview status",
+                                    "enum": ["scheduled", "completed", "cancelled", "no_show"]
                                 }
                             }
                         },
