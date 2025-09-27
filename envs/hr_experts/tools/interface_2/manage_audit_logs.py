@@ -10,13 +10,6 @@ class ManageAuditLogs(Tool):
     Manages the creation of immutable audit logs.
     """
     @staticmethod
-    def generate_id(table: Dict[str, Any]) -> str:
-        """Generates a new unique ID for a record."""
-        if not table:
-            return "1"
-        return str(max(int(k) for k in table.keys()) + 1)
-
-    @staticmethod
     def invoke(
         data: Dict[str, Any],
         operation: str,
@@ -31,6 +24,12 @@ class ManageAuditLogs(Tool):
         """
         Executes the create operation for audit logs.
         """
+        def generate_id(table: Dict[str, Any]) -> str:
+            """Generates a new unique ID for a record."""
+            if not table:
+                return "1"
+            return str(max(int(k) for k in table.keys()) + 1)
+
         timestamp = "2025-10-01T00:00:00"
         audit_logs = data.get("audit_logs", {})
         users = data.get("users", {})
@@ -48,7 +47,7 @@ class ManageAuditLogs(Tool):
         if action not in valid_actions:
             return json.dumps({"error": f"Invalid action. Must be one of {valid_actions}."})
 
-        new_log_id = ManageAuditLogs.generate_id(audit_logs)
+        new_log_id = generate_id(audit_logs)
         new_log = {
             "log_id": new_log_id,
             "user_id": user_id,

@@ -9,13 +9,7 @@ class ManageTrainingPrograms(Tool):
     """
     Manages training programs, including creation and modification.
     """
-    @staticmethod
-    def generate_id(table: Dict[str, Any]) -> str:
-        """Generates a new unique ID for a record."""
-        if not table:
-            return "1"
-        return str(max(int(k) for k in table.keys()) + 1)
-
+    
     @staticmethod
     def invoke(
         data: Dict[str, Any],
@@ -31,6 +25,12 @@ class ManageTrainingPrograms(Tool):
         """
         Executes the specified operation (create or update) on training programs.
         """
+        def generate_id(table: Dict[str, Any]) -> str:
+            """Generates a new unique ID for a record."""
+            if not table:
+                return "1"
+            return str(max(int(k) for k in table.keys()) + 1)
+
         timestamp = "2025-10-01T00:00:00"
         programs = data.get("training_programs", {})
 
@@ -54,7 +54,7 @@ class ManageTrainingPrograms(Tool):
             if effective_status not in valid_statuses:
                 return json.dumps({"error": f"Invalid status. Must be one of {valid_statuses}."})
 
-            new_program_id = ManageTrainingPrograms.generate_id(programs)
+            new_program_id = generate_id(programs)
             new_program = {
                 "program_id": new_program_id,
                 "program_name": program_name,

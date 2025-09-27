@@ -10,13 +10,6 @@ class ManageEmployeeTraining(Tool):
     Manages employee training records, including enrollment and progress tracking.
     """
     @staticmethod
-    def generate_id(table: Dict[str, Any]) -> str:
-        """Generates a new unique ID for a record."""
-        if not table:
-            return "1"
-        return str(max(int(k) for k in table.keys()) + 1)
-
-    @staticmethod
     def invoke(
         data: Dict[str, Any],
         operation: str,
@@ -33,6 +26,12 @@ class ManageEmployeeTraining(Tool):
         """
         Executes the specified operation (create or update) on employee training records.
         """
+        def generate_id(table: Dict[str, Any]) -> str:
+            """Generates a new unique ID for a record."""
+            if not table:
+                return "1"
+            return str(max(int(k) for k in table.keys()) + 1)
+
         timestamp = "2025-10-01T00:00:00"
         employee_trainings = data.get("employee_training", {})
         employees = data.get("employees", {})
@@ -47,7 +46,7 @@ class ManageEmployeeTraining(Tool):
             if program_id not in programs:
                 return json.dumps({"error": f"Training program with ID {program_id} not found."})
 
-            new_record_id = ManageEmployeeTraining.generate_id(employee_trainings)
+            new_record_id = generate_id(employee_trainings)
             new_record = {
                 "training_record_id": new_record_id,
                 "employee_id": employee_id,

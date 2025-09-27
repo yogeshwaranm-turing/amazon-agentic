@@ -10,13 +10,6 @@ class ManageDocumentStorage(Tool):
     Manages document storage, including uploads and metadata updates.
     """
     @staticmethod
-    def generate_id(table: Dict[str, Any]) -> str:
-        """Generates a new unique ID for a record."""
-        if not table:
-            return "1"
-        return str(max(int(k) for k in table.keys()) + 1)
-
-    @staticmethod
     def invoke(
         data: Dict[str, Any],
         operation: str,
@@ -34,6 +27,13 @@ class ManageDocumentStorage(Tool):
         """
         Executes the specified operation (create or update) on documents.
         """
+        def generate_id(table: Dict[str, Any]) -> str:
+            """Generates a new unique ID for a record."""
+            if not table:
+                return "1"
+            return str(max(int(k) for k in table.keys()) + 1)
+
+
         timestamp = "2025-10-01T00:00:00"
         documents = data.get("document_storage", {})
         users = data.get("users", {})
@@ -52,7 +52,7 @@ class ManageDocumentStorage(Tool):
             if document_type not in valid_types:
                 return json.dumps({"error": f"Invalid document type. Must be one of {valid_types}."})
 
-            new_doc_id = ManageDocumentStorage.generate_id(documents)
+            new_doc_id = generate_id(documents)
             new_document = {
                 "document_id": new_doc_id,
                 "document_name": document_name,
@@ -63,7 +63,7 @@ class ManageDocumentStorage(Tool):
                 "uploaded_by": uploaded_by,
                 "confidentiality_level": confidentiality_level,
                 "retention_period_years": retention_period_years,
-                "expiry_date": None,
+                "expiry_date": expiry_date,
                 "status": "active",
                 "created_at": timestamp,
             }
