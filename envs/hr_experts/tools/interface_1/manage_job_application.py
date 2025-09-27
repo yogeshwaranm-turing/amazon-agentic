@@ -87,14 +87,14 @@ class ManageJobApplication(Tool):
             if candidate_id not in candidates:
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Candidate, position, or recruiter not found"
+                    "error": f"Halt: Candidate not found"
                 })
             
             position_id = str(application_data["position_id"])
             if position_id not in job_positions:
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Candidate, position, or recruiter not found"
+                    "error": f"Halt: Position not found"
                 })
             
             # Validate that assigned recruiter exists and has recruiter role
@@ -102,14 +102,14 @@ class ManageJobApplication(Tool):
             if recruiter_id not in users:
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Candidate, position, or recruiter not found"
+                    "error": f"Halt: Recruiter not found"
                 })
             
             recruiter = users[recruiter_id]
             if recruiter.get("role") != "recruiter":
                 return json.dumps({
                     "success": False,
-                    "error": f"Halt: Candidate, position, or recruiter not found"
+                    "error": f"User specified is not a recruiter"
                 })
             
             # Validate that application date is not in future
