@@ -5,7 +5,7 @@ from tau_bench.envs.tool import Tool
 
 class HandlePayrollDeduction(Tool):
     @staticmethod
-    def invoke(data: Dict[str, Any], action: str, deduction_data: Dict[str, Any] = None, deduction_id: str = None) -> str:
+    def invoke(data: Dict[str, Any], action: str, deduction_data: Dict[str, Any] = None) -> str:
         """
         Create payroll deduction records. Updates are not supported as per schema design.
         """
