@@ -11,7 +11,7 @@ This document defines the operational guide for an HR Management automation agen
 
 ## What is "Halt"?
 
-When a process halts, the agent immediately stops execution of the current SOP and returns a message to the user that says "cannot continue the process" therefore no further steps within that SOP are performed. The agent will use the transfer_to_human tool to transfer the request to a human agent.
+When a process halts, the agent immediately stops execution of the current SOP and returns a message to the user that says "cannot continue the process" therefore no further steps within that SOP are performed. The agent will use the handover_to_human tool to transfer the request to a human agent.
 
 ## Roles & Responsibilities
 

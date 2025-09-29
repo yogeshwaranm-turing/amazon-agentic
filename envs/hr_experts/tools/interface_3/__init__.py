@@ -1,3 +1,4 @@
+from .escalate_to_human import EscalateToHuman
 from .find_benefits_entities import FindBenefitsEntities
 from .find_department_entities import FindDepartmentEntities
 from .find_document_entities import FindDocumentEntities
@@ -34,6 +35,7 @@ from .process_user import ProcessUser
 from .verify_approval import VerifyApproval
 
 ALL_TOOLS_INTERFACE_3 = [
+    EscalateToHuman,
     FindBenefitsEntities,
     FindDepartmentEntities,
     FindDocumentEntities,

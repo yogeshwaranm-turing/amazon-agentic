@@ -32,6 +32,7 @@ from .manage_performance_review import ManagePerformanceReview
 from .manage_skill import ManageSkill
 from .manage_training_programs import ManageTrainingPrograms
 from .manage_user import ManageUser
+from .transfer_to_human import TransferToHuman
 
 ALL_TOOLS_INTERFACE_1 = [
     CheckApproval,
@@ -68,5 +69,6 @@ ALL_TOOLS_INTERFACE_1 = [
     ManageSkill,
     ManageTrainingPrograms,
     ManageUser,
+    TransferToHuman,
 ]
 

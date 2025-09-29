@@ -19,6 +19,7 @@ from .administer_skill import AdministerSkill
 from .administer_training_programs import AdministerTrainingPrograms
 from .administer_user import AdministerUser
 from .confirm_approval import ConfirmApproval
+from .handover_to_human import HandOverToHuman
 from .lookup_benefits_entities import LookupBenefitsEntities
 from .lookup_department_entities import LookupDepartmentEntities
 from .lookup_document_entities import LookupDocumentEntities
@@ -55,6 +56,7 @@ ALL_TOOLS_INTERFACE_4 = [
     AdministerTrainingPrograms,
     AdministerUser,
     ConfirmApproval,
+    HandOverToHuman,
     LookupBenefitsEntities,
     LookupDepartmentEntities,
     LookupDocumentEntities,
