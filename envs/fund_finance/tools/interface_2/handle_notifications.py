@@ -115,7 +115,7 @@ class HandleNotifications(Tool):
                 "email": notification_data["email"],
                 "type": notification_data["type"],
                 "class": notification_data["class"],
-                "reference_id": notification_data.get("reference_id"),
+                "reference_id": str(notification_data.get("reference_id")),
                 "status": notification_data.get("status", "pending"),
                 "sent_at": None,
                 "created_at": "2025-10-01T12:00:00"
