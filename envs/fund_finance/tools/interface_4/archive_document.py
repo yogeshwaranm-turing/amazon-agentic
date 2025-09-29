@@ -49,12 +49,12 @@ class ArchiveDocument(Tool):
         timestamp = "2025-10-01T00:00:00"
         
         new_document = {
-            "document_id": str(document_id),
+            "document_id": str(document_id) if document_id else None,
             "name": name,
             "format": format,
             "uploaded_by": uploaded_by,
             "upload_date": timestamp,
-            "report_id": str(report_id),
+            "report_id": str(report_id) if report_id else None,
             "size_bytes": size_bytes,
             "confidentiality_level": confidentiality_level,
             "status": status
