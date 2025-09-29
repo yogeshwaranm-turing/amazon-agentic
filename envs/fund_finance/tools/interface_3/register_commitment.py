@@ -49,7 +49,7 @@ class RegisterCommitment(Tool):
         new_commitment = {
             "commitment_id": str(commitment_id),
             "fund_id": str(fund_id),
-            "investor_id": str(investor_id),
+            "investor_id": str(investor_id) if investor_id else None,
             "commitment_amount": commitment_amount,
             "commitment_date": commitment_date,
             "status": status,

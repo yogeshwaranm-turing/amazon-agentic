@@ -68,7 +68,7 @@ class CreateInvestor(Tool):
         timestamp = "2025-10-01T00:00:00"
         
         new_investor = {
-            "investor_id": str(investor_id),
+            "investor_id": str(investor_id) if investor_id else None,
             "name": legal_name,
             "registration_number": registration_number,
             "date_of_incorporation": date_of_incorporation,
