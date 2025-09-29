@@ -153,7 +153,7 @@ class ManipulateSubscription(Tool):
             # Generate new subscription ID and create record
             new_subscription_id = generate_id(subscriptions)
             new_subscription = {
-                "subscription_id": str(new_subscription_id), "fund_id": fund_id, "investor_id": investor_id,
+                "subscription_id": str(new_subscription_id) if new_subscription_id else None, "fund_id": str(fund_id) if fund_id else None, "investor_id": str(investor_id) if investor_id else None,
                 "amount": amount, "status": status, "request_assigned_to": request_assigned_to,
                 "request_date": request_date, "approval_date": subscription_data.get("approval_date"),
                 "updated_at": "2025-10-01T00:00:00"
@@ -206,7 +206,7 @@ class ManipulateSubscription(Tool):
             subscriptions[subscription_id] = updated_subscription
             
             return json.dumps({
-                "success": True, "action": "update", "subscription_id": subscription_id,
+                "success": True, "action": "update", "subscription_id": str(subscription_id),
                 "message": f"Subscription {subscription_id} updated successfully.",
                 "subscription_data": updated_subscription
             })
@@ -251,7 +251,7 @@ class ManipulateSubscription(Tool):
             subscription["updated_at"] = "2025-10-01T00:00:00"
             
             return json.dumps({
-                "success": True, "action": "cancel", "subscription_id": subscription_id,
+                "success": True, "action": "cancel", "subscription_id": str(subscription_id),
                 "message": f"Subscription {subscription_id} cancelled successfully.",
                 "subscription_data": subscription
             })
