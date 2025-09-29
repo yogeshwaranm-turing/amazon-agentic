@@ -31,6 +31,7 @@ from .search_recruitment_entities import SearchRecruitmentEntities
 from .search_timesheet_entities import SearchTimesheetEntities
 from .search_training_entities import SearchTrainingEntities
 from .search_user_entities import SearchUserEntities
+from .switch_to_human import SwitchToHuman
 from .validate_approval import ValidateApproval
 
 ALL_TOOLS_INTERFACE_2 = [
@@ -68,4 +69,5 @@ ALL_TOOLS_INTERFACE_2 = [
     SearchTrainingEntities,
     SearchUserEntities,
     ValidateApproval,
+    SwitchToHuman,
 ]

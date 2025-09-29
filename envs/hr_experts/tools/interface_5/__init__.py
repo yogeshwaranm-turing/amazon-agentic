@@ -32,6 +32,7 @@ from .retrieve_recruitment_entities import RetrieveRecruitmentEntities
 from .retrieve_timesheet_entities import RetrieveTimesheetEntities
 from .retrieve_training_entities import RetrieveTrainingEntities
 from .retrieve_user_entities import RetrieveUserEntities
+from .route_to_human import RouteToHuman
 
 ALL_TOOLS_INTERFACE_5 = [
     AuthenticateApproval,
@@ -68,4 +69,5 @@ ALL_TOOLS_INTERFACE_5 = [
     RetrieveTimesheetEntities,
     RetrieveTrainingEntities,
     RetrieveUserEntities,
+    RouteToHuman,
 ]
