@@ -94,7 +94,7 @@ class HandlePortfolio(Tool):
             # Create new portfolio record
             new_portfolio = {
                 "portfolio_id": str(new_portfolio_id),
-                "investor_id": portfolio_data["investor_id"],
+                "investor_id": str(portfolio_data["investor_id"]),
                 "status": portfolio_data.get("status", "active"),
                 "created_at": "2025-10-01T12:00:00",
                 "updated_at": "2025-10-01T12:00:00"

@@ -76,7 +76,7 @@ class RetainDocument(Tool):
                         "name": {"type": "string", "description": "Name of the document file"},
                         "format": {"type": "string", "description": "Format of document (pdf, xlsx, docx, csv, other)"},
                         "uploaded_by": {"type": "string", "description": "ID of the user uploading the document"},
-                        "size_bytes": {"type": "integer", "description": "Size of document in bytes"},
+                        "size_bytes": {"type": "number", "description": "Size of document in bytes"},
                         "report_id": {"type": "string", "description": "ID of related report if applicable"},
                         "confidentiality_level": {"type": "string", "description": "Confidentiality level (public, internal, confidential, restricted), defaults to internal"},
                         "status": {"type": "string", "description": "Status of document (available, archived, deleted), defaults to available"}

@@ -96,7 +96,7 @@ class ManipulateInstrumentPrice(Tool):
             # Create new price record
             new_price = {
                 "price_id": str(new_price_id),
-                "instrument_id": price_data["instrument_id"],
+                "instrument_id": str(price_data["instrument_id"]),
                 "price_date": price_data["price_date"],
                 "open_price": price_data["open_price"],
                 "high_price": price_data["high_price"],
