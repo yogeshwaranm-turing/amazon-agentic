@@ -192,7 +192,7 @@ class ManageInstrumentPrice(Tool):
             return json.dumps({
                 "success": True,
                 "action": "update",
-                "price_id": str(price_id),
+                "price_id": str(price_id) if price_id is not None else None,
                 "message": f"Instrument price {price_id} updated successfully",
                 "price_data": updated_price
             })
