@@ -7,7 +7,7 @@ class AddInvestor(Tool):
     def invoke(data: Dict[str, Any], legal_name: str, source_of_funds: str, 
                contact_email: str, accreditation_status: str,
                compliance_officer_approval: bool,
-               registration_number: Optional[str] = None,
+               registration_number: Optional[int] = None,
                date_of_incorporation: Optional[str] = None,
                country_of_incorporation: Optional[str] = None,
                registered_address: Optional[str] = None,
@@ -68,13 +68,13 @@ class AddInvestor(Tool):
         timestamp = "2025-10-01T00:00:00"
         
         new_investor = {
-            "investor_id": str(investor_id),
+            "investor_id": str(investor_id) if investor_id is not None else None,
             "name": legal_name,
             "registration_number": registration_number,
             "date_of_incorporation": date_of_incorporation,
             "country": country_of_incorporation,
             "address": registered_address,
-            "tax_id": tax_id,
+            "tax_id": str(tax_id) if tax_id is not None else None,
             "source_of_funds": source_of_funds,
             "status": "onboarded",
             "contact_email": contact_email,
@@ -101,7 +101,7 @@ class AddInvestor(Tool):
                             "description": "Legal name of the investor (required, cannot be empty or whitespace only)"
                         },
                         "registration_number": {
-                            "type": "string", 
+                            "type": "number", 
                             "description": "Registration number of the investor entity (optional, used for corporate entities)"
                         },
                         "date_of_incorporation": {
