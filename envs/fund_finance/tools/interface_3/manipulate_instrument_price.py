@@ -96,7 +96,7 @@ class ManipulateInstrumentPrice(Tool):
             # Create new price record
             new_price = {
                 "price_id": str(new_price_id),
-                "instrument_id": price_data["instrument_id"],
+                "instrument_id": str(price_data["instrument_id"]),
                 "price_date": price_data["price_date"],
                 "open_price": price_data["open_price"],
                 "high_price": price_data["high_price"],
@@ -192,7 +192,7 @@ class ManipulateInstrumentPrice(Tool):
             return json.dumps({
                 "success": True,
                 "action": "update",
-                "price_id": price_id,
+                "price_id": str(price_id) if price_id is not None else None,
                 "message": f"Instrument price {price_id} updated successfully",
                 "price_data": updated_price
             })
@@ -217,7 +217,7 @@ class ManipulateInstrumentPrice(Tool):
                             "description": "Price data object. For create: requires instrument_id, price_date (cannot be future), open_price (positive), high_price (positive, >= low_price), low_price (positive, <= high_price), close_price (positive), fund_manager_approval (approval code), compliance_officer_approval (approval code). For update: includes price fields to change with both approval codes (instrument_id and price_date cannot be updated). SYNTAX: {\"key\": \"value\"}",
                             "properties": {
                                 "instrument_id": {
-                                    "type": "integer",
+                                    "type": "string",
                                     "description": "Unique identifier of the financial instrument (required for create only, cannot be updated)"
                                 },
                                 "price_date": {
