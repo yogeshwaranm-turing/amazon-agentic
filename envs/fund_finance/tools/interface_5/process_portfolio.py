@@ -93,8 +93,8 @@ class ProcessPortfolio(Tool):
             
             # Create new portfolio record
             new_portfolio = {
-                "portfolio_id": str(new_portfolio_id),
-                "investor_id": portfolio_data["investor_id"],
+                "portfolio_id": str(new_portfolio_id) if new_portfolio_id else None ,
+                "investor_id": str(portfolio_data["investor_id"]) if portfolio_data["investor_id"] else None,
                 "status": portfolio_data.get("status", "active"),
                 "created_at": "2025-10-01T12:00:00",
                 "updated_at": "2025-10-01T12:00:00"
@@ -105,7 +105,7 @@ class ProcessPortfolio(Tool):
             return json.dumps({
                 "success": True,
                 "action": "create",
-                "portfolio_id": str(new_portfolio_id),
+                "portfolio_id": str(new_portfolio_id) if new_portfolio_id else None ,
                 "message": f"Portfolio {new_portfolio_id} created successfully for investor {investor_id}",
                 "portfolio_data": new_portfolio
             })
@@ -183,7 +183,7 @@ class ProcessPortfolio(Tool):
             return json.dumps({
                 "success": True,
                 "action": "update",
-                "portfolio_id": portfolio_id,
+                "portfolio_id": str(portfolio_id),
                 "message": f"Portfolio {portfolio_id} updated successfully",
                 "portfolio_data": updated_portfolio
             })
@@ -208,7 +208,7 @@ class ProcessPortfolio(Tool):
                             "description": "Portfolio data object. For create: requires investor_id, status (optional, defaults to 'active'), and either fund_manager_approval OR finance_officer_approval. For update: includes status changes with fund_manager_approval (investor_id cannot be updated). SYNTAX: {\"key\": \"value\"}",
                             "properties": {
                                 "investor_id": {
-                                    "type": "integer",
+                                    "type": "string",
                                     "description": "Unique identifier of the investor (required for create only, cannot be updated)"
                                 },
                                 "status": {
