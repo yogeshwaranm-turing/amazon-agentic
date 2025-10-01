@@ -1,0 +1,270 @@
+name: Validate Task Execution
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - '**/task.json'
+      - 'envs/**/*.py'
+      - '.github/workflows/validate-tasks.yml'
+      - 'scripts/task_validator.py'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - '**/task.json' 
+      - 'envs/**/*.py'
+      - '.github/workflows/validate-tasks.yml'
+      - 'scripts/task_validator.py'
+  workflow_dispatch:
+    inputs:
+      task_file:
+        description: 'Specific task.json file to validate (optional)'
+        required: false
+        type: string
+      environment:
+        description: 'Specific environment to test (optional)'
+        required: false
+        type: string
+
+jobs:
+  validate-tasks:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-json-report pytest-html
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        # Install common dependencies for task validation
+        pip install jsonschema deepdiff typing-extensions
+        
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch full history for git diff
+        
+    - name: Find changed task.json files
+      id: find-tasks
+      run: |
+        if [ -n "${{ github.event.inputs.task_file }}" ]; then
+          echo "tasks=${{ github.event.inputs.task_file }}" >> $GITHUB_OUTPUT
+        elif [ "${{ github.event_name }}" = "pull_request" ]; then
+          # Get the correct base branch reference
+          base_ref="${{ github.event.pull_request.base.ref }}"
+          head_ref="${{ github.event.pull_request.head.ref }}"
+          
+          echo "Comparing $head_ref against base branch: $base_ref"
+          
+          # Get all changed files using the correct git references
+          all_changed=$(git diff --name-only "origin/$base_ref"...HEAD)
+          
+          # If that fails, try alternative approaches
+          if [ $? -ne 0 ]; then
+            echo "Git diff failed, trying alternative method..."
+            # Try using the merge base
+            merge_base=$(git merge-base HEAD "origin/$base_ref" 2>/dev/null || echo "")
+            if [ -n "$merge_base" ]; then
+              all_changed=$(git diff --name-only "$merge_base"...HEAD)
+            else
+              # Last resort: compare with HEAD~1
+              all_changed=$(git diff --name-only HEAD~1...HEAD)
+            fi
+          fi
+          
+          echo "All changed files:"
+          echo "$all_changed"
+          
+          # Filter for files ending with /task.json or just task.json
+          tasks=$(echo "$all_changed" | grep -E '(^|/)task\.json$' | head -20 | tr '\n' ' ')
+          echo "Found task.json files: $tasks"
+          echo "tasks=$tasks" >> $GITHUB_OUTPUT
+        else
+          # For push events, find recent task.json files at any depth
+          tasks=$(find . -name "task.json" -type f -mtime -1 | head -10 | tr '\n' ' ')
+          echo "tasks=$tasks" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Check if validation needed
+      id: check-validation
+      run: |
+        tasks="${{ steps.find-tasks.outputs.tasks }}"
+        if [ -z "$tasks" ] || [ "$tasks" = " " ]; then
+          echo "No task.json files to validate"
+          echo "skip=true" >> $GITHUB_OUTPUT
+          # Create empty report for consistency
+          echo '{"summary": {"total": 0, "passed": 0, "failed": 0, "success_rate": 100.0}, "results": [], "message": "No task.json files found to validate"}' > validation-report.json
+        else
+          echo "Will validate: $tasks"
+          echo "skip=false" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Validate task files
+      if: steps.check-validation.outputs.skip == 'false'
+      run: |
+        python scripts/task_validator.py \
+          --tasks "${{ steps.find-tasks.outputs.tasks }}" \
+          --environment "${{ github.event.inputs.environment }}" \
+          --output-format json \
+          --report-file validation-report.json
+          
+    - name: Display detailed validation results
+      if: always() && hashFiles('validation-report.json') != ''
+      run: |
+        python scripts/display_results.py --input validation-report.json
+          
+    - name: Comment PR with results
+      if: github.event_name == 'pull_request' && always() && hashFiles('validation-report.json') != ''
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          
+          try {
+            const report = JSON.parse(fs.readFileSync('validation-report.json', 'utf8'));
+            
+            const passed = report.summary.passed;
+            const failed = report.summary.failed;
+            const total = passed + failed;
+            const successRate = total > 0 ? ((passed / total) * 100).toFixed(1) : 0;
+            
+            const status = failed === 0 ? '✅' : '❌';
+            
+            let comment = `## ${status} Task Validation Results\n\n`;
+            comment += `**Summary:** ${passed}/${total} tasks passed (${successRate}%)\n\n`;
+            
+            // Add detailed action results
+            for (const result of report.results) {
+              const taskStatus = result.success ? '✅' : '❌';
+              comment += `### ${taskStatus} ${result.task_file}\n`;
+              comment += `- **Environment:** ${result.environment}\n`;
+              comment += `- **Actions validated:** ${result.actions_validated}\n`;
+              comment += `- **Execution time:** ${result.execution_time_ms.toFixed(2)}ms\n`;
+              
+              if (result.error) {
+                comment += `- **Error:** ${result.error}\n`;
+              }
+              
+              comment += `\n#### Action Details:\n\n`;
+              
+              // Load task data to get ground truth
+              let taskData = null;
+              try {
+                const taskContent = fs.readFileSync(result.task_file, 'utf8');
+                taskData = JSON.parse(taskContent).task;
+              } catch (e) {
+                console.log(`Warning: Could not load task data from ${result.task_file}`);
+              }
+              
+              for (let i = 0; i < result.action_results.length; i++) {
+                const action = result.action_results[i];
+                const actionStatus = action.success ? '✅' : '❌';
+                comment += `**${actionStatus} ACTION ${i + 1}: ${action.action_name}** (${(action.execution_time_ms || 0).toFixed(2)}ms)\n\n`;
+                
+                // Show ground truth
+                if (taskData && taskData.actions && taskData.actions[i]) {
+                  const groundTruth = taskData.actions[i];
+                  comment += `<details>\n<summary>📋 Ground truth action</summary>\n\n`;
+                  comment += '```json\n';
+                  comment += JSON.stringify(groundTruth, null, 2);
+                  comment += '\n```\n</details>\n\n';
+                }
+                
+                // Show execution outcome
+                const executionResult = {
+                  name: action.action_name,
+                  arguments: action.arguments || {},
+                  output: action.actual_output || 'No output available'
+                };
+                comment += `<details>\n<summary>🔧 Execution outcome</summary>\n\n`;
+                comment += '```json\n';
+                comment += JSON.stringify(executionResult, null, 2);
+                comment += '\n```\n</details>\n\n';
+                
+                // Show validation result
+                if (action.error) {
+                  comment += `**❌ Error:** ${action.error}\n\n`;
+                } else if (action.success) {
+                  comment += `**✅ VALIDATION:** Outputs match expected ground truth\n\n`;
+                } else {
+                  comment += `**❌ VALIDATION:** Outputs do not match expected ground truth\n\n`;
+                  
+                  // Show differences
+                  if (action.expected_output && action.actual_output) {
+                    const expected = action.expected_output;
+                    const actual = action.actual_output;
+                    
+                    if (typeof expected === 'object' && typeof actual === 'object') {
+                      const expectedKeys = Object.keys(expected || {});
+                      const actualKeys = Object.keys(actual || {});
+                      const missingKeys = expectedKeys.filter(k => !actualKeys.includes(k));
+                      const extraKeys = actualKeys.filter(k => !expectedKeys.includes(k));
+                      
+                      if (missingKeys.length > 0) {
+                        comment += `🔍 **Missing keys:** ${missingKeys.join(', ')}\n\n`;
+                      }
+                      if (extraKeys.length > 0) {
+                        comment += `🔍 **Extra keys:** ${extraKeys.join(', ')}\n\n`;
+                      }
+                      
+                      // Check value differences
+                      const commonKeys = expectedKeys.filter(k => actualKeys.includes(k));
+                      for (const key of commonKeys) {
+                        if (JSON.stringify(expected[key]) !== JSON.stringify(actual[key])) {
+                          comment += `🔍 **Different value for "${key}":** expected \`${JSON.stringify(expected[key]).substring(0, 50)}...\` → got \`${JSON.stringify(actual[key]).substring(0, 50)}...\`\n\n`;
+                        }
+                      }
+                    }
+                  }
+                }
+                
+                comment += '---\n\n';
+              }
+              comment += `\n`;
+            }
+            
+            comment += `\n📊 [View full details in workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+          } catch (error) {
+            console.log('Could not read validation report:', error.message);
+          }
+          
+    - name: Fail if validation errors
+      run: |
+        if [ -f validation-report.json ]; then
+          failed=$(python -c "import json; report = json.load(open('validation-report.json')); print(report['summary']['failed'])")
+          if [ "$failed" -gt "0" ]; then
+            echo "❌ $failed task(s) failed validation"
+            exit 1
+          else
+            echo "✅ All tasks passed validation"
+          fi
+        else
+          echo "❌ Validation report not found"
+          exit 1
+        fi

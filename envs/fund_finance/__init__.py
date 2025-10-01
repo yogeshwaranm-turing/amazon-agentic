@@ -1,1 +1,1 @@
-from .env import MockFinanceDomainEnv as MockFinanceDomainEnv
+from .env import MockFundFinanceDomainEnv as MockFundFinanceDomainEnv
