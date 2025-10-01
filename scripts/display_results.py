@@ -8,7 +8,7 @@ import json
 import sys
 
 def display_validation_results(report_data: dict):
-    """Display detailed validation results with action-by-action comparison"""
+    """Display detailed validation results with full action comparison format"""
     
     print('\n' + '='*80)
     print('🧪 DETAILED VALIDATION RESULTS')
@@ -27,39 +27,65 @@ def display_validation_results(report_data: dict):
         
         if result.get('error'):
             print(f'   ❌ Task Error: {result["error"]}')
+            print()
+            print('-' * 60)
+            print()
+            continue
         
         print()
+        
+        # Load the original task data to get ground truth
+        task_data = None
+        try:
+            with open(result["task_file"], 'r') as f:
+                task_json = json.load(f)
+                task_data = task_json.get('task', {})
+        except:
+            pass
         
         for i, action in enumerate(result.get('action_results', []), 1):
             action_status = '✅' if action['success'] else '❌'
             print(f'   {action_status} ACTION {i}: {action["action_name"]}')
             print(f'      Time: {action.get("execution_time_ms", 0):.2f}ms')
+            print()
             
+            # Show ground truth action
+            if task_data and 'actions' in task_data and len(task_data['actions']) >= i:
+                ground_truth = task_data['actions'][i-1]  # 0-indexed
+                print(f'      📋 Ground truth action:')
+                print(json.dumps(ground_truth, indent=6, ensure_ascii=False))
+                print()
+            
+            # Show execution outcome
+            if action.get('actual_output') is not None:
+                print(f'      � Execution outcome:')
+                execution_result = {
+                    "name": action['action_name'],
+                    "arguments": action.get('arguments', {}),
+                    "output": action['actual_output']
+                }
+                print(json.dumps(execution_result, indent=6, ensure_ascii=False))
+                print()
+            
+            # Show any errors
             if action.get('error'):
                 print(f'      ❌ Error: {action["error"]}')
+                print()
             
-            # Show expected vs actual comparison
-            if 'expected_output' in action and 'actual_output' in action:
-                print(f'      📋 EXPECTED OUTPUT:')
-                expected = json.dumps(action['expected_output'], indent=8) if action['expected_output'] else 'None'
-                for line in expected.split('\n'):
-                    print(f'        {line}')
+            # Show comparison result
+            if action['success']:
+                print(f'      ✅ VALIDATION: Outputs match expected ground truth')
+            else:
+                print(f'      ❌ VALIDATION: Outputs do not match expected ground truth')
                 
-                print(f'      📋 ACTUAL OUTPUT:')
-                actual = json.dumps(action['actual_output'], indent=8) if action['actual_output'] else 'None'
-                for line in actual.split('\n'):
-                    print(f'        {line}')
-                
-                # Simple comparison
-                if action['expected_output'] == action['actual_output']:
-                    print(f'      ✅ MATCH: Outputs are identical')
-                else:
-                    print(f'      ❌ MISMATCH: Outputs differ')
+                # Show detailed differences if available
+                if 'expected_output' in action and 'actual_output' in action:
+                    expected = action['expected_output']
+                    actual = action['actual_output']
                     
-                    # Show specific differences for better debugging
-                    if isinstance(action['expected_output'], dict) and isinstance(action['actual_output'], dict):
-                        expected_keys = set(action['expected_output'].keys()) if action['expected_output'] else set()
-                        actual_keys = set(action['actual_output'].keys()) if action['actual_output'] else set()
+                    if isinstance(expected, dict) and isinstance(actual, dict):
+                        expected_keys = set(expected.keys()) if expected else set()
+                        actual_keys = set(actual.keys()) if actual else set()
                         
                         missing_keys = expected_keys - actual_keys
                         extra_keys = actual_keys - expected_keys
@@ -72,9 +98,11 @@ def display_validation_results(report_data: dict):
                         # Check value differences for common keys
                         common_keys = expected_keys & actual_keys
                         for key in common_keys:
-                            if action['expected_output'][key] != action['actual_output'][key]:
-                                print(f'      🔍 Different value for "{key}": {action["expected_output"][key]} → {action["actual_output"][key]}')
+                            if expected[key] != actual[key]:
+                                print(f'      🔍 Different value for "{key}": expected {expected[key]} → got {actual[key]}')
             
+            print()
+            print('   ' + '='*60)
             print()
         
         print('-' * 60)
