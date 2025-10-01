@@ -11,66 +11,7 @@ This document defines the operational guide for an HR Management automation agen
 
 ## What is "Halt"?
 
-When a process halts, the agent immediately stops execution of the current SOP and returns a message to the user that says "cannot continue the process" therefore no further steps within that SOP are performed. The agent will use the handover_to_human tool to transfer the request to a human agent.
-
-## Roles & Responsibilities
-
-**HR Director**
-
-- Full access to all HR operations and data
-- Can approve department creation/updates, job positions, skills management
-- Required for high-impact organizational changes
-- Access to all employee and payroll information
-
-**HR Manager**
-
-- Manage employee lifecycle operations (onboarding, offboarding)
-- Approve performance reviews and training programs
-- Access to employee records and benefits administration
-- Cannot approve payroll or financial operations
-
-**IT Administrator**
-
-- User provisioning and system access management
-- Cannot access employee personal data or payroll
-- System configuration and security management
-
-**Finance Officer**
-
-- Approve all payroll operations and corrections
-- Benefits plan financial approvals
-- Cannot access HR operational data without approval
-
-**Hiring Manager**
-
-- Job position management and posting
-- Interview scheduling and candidate evaluation
-- Application stage management
-- Cannot access payroll or benefits data
-
-**Recruiter**
-
-- Candidate and application management
-- Interview scheduling and outcome recording
-- Cannot approve compensation or benefits
-
-**Payroll Administrator**
-
-- Timesheet approval and corrections
-- Payroll processing assistance
-- Cannot approve final payroll runs
-
-**Compliance Officer**
-
-- Required for employee onboarding verification
-- Document retention and regulatory compliance
-- Employee offboarding compliance checks
-
-**Employee**
-
-- Submit timesheets and leave requests
-- Access own training and performance records
-- Cannot access other employees' data
+When a process halts, the agent immediately stops execution of the current SOP and returns a message to the user that says "cannot continue the process" therefore no further steps within that SOP are performed. The agent will use the `handover_to_human` tool to transfer the request to a human agent.
 
 ## Standard Operating Procedures
 
@@ -78,20 +19,18 @@ When a process halts, the agent immediately stops execution of the current SOP a
 
 Use this whenever you need to find, search, or verify entities; fetch details for validation or reporting; or when another SOP needs entity information first.
 
-**Obtain:**
+1. **Obtain:**
 
-- Required: entity_type, requester_id
-- Optional: Include any filters for that entity—i.e., the entity's field names (e.g., ID, status, dates) used to narrow the search.
+   - Required: entity_type, requester_id
+   - Optional: Include any filters for that entity—i.e., the entity's field names (e.g., ID, status, dates) used to narrow the search.
 
-**Process:**
+2. Pick one discovery tool that matches the entity type, and pass only the filters you have:
 
-1. Pick one discovery tool that matches the entity type, and pass only the filters you have:
-
-   - For users, call `lookup_user_entities` (filter by user ID, email, role, status, or name)
+   - For users, call `lookup_user_employee_entities` (filter by user ID, email, role, status, or name)
    - For departments, call `lookup_department_entities` (filter by department ID, name, manager ID, status)
    - For job positions, skills, job position skills, call `lookup_job_entities` (filter by position ID, title, department ID, skill ID, skill name, status)
    - For candidates, job applications, interviews, call `lookup_recruitment_entities` (filter by candidate ID, application ID, position ID, recruiter ID, interview ID, interviewer ID, status)
-   - For employees, call `lookup_employee_entities` (filter by employee ID, user ID, position ID, manager ID, employment status)
+   - For employees, call `lookup_user_employee_entities` (filter by employee ID, user ID, position ID, manager ID, employment status)
    - For timesheets, call `lookup_timesheet_entities` (filter by timesheet ID, employee ID, work date, status)
    - For payroll records, payroll deductions, call `lookup_payroll_entities` (filter by payroll ID, employee ID, pay period dates, deduction ID, deduction type, status)
    - For benefits plans, employee benefits, call `lookup_benefits_entities` (filter by plan ID, plan name, plan type, enrollment ID, employee ID, status)
@@ -101,11 +40,11 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
    - For training programs, employee training, call `lookup_training_entities` (filter by program ID, program name, program type, training record ID, employee ID, status)
    - For documents, call `lookup_document_entities` (filter by document ID, document name, document type, employee ID, uploaded by, status)
 
-2. Run the selected discovery tool and wait for the results
-3. Acquire the result—whether it is a single match, multiple matches, or none
-4. Record what happened by creating an audit entry with `administer_audit_logs`
+3. Run the selected discovery tool and wait for the results
+4. Acquire the result—whether it is a single match, multiple matches, or none
+5. Record what happened by creating an audit entry with `administer_audit_logs`
 
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - The entity_type is missing or invalid
 - The requester is not authorized
@@ -113,18 +52,16 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 
 ### User Provisioning
 
-**Obtain:**
+1. **Obtain:**
 
-- Required: first_name, last_name, email, role
-- Optional: phone_number, status (active, inactive), mfa_enabled
+   - Required: first_name, last_name, email, role
+   - Optional: phone_number, status (active, inactive), mfa_enabled
 
-**Process:**
+2. Verify that approval is present using `confirm_approval` (HR Director or IT Administrator approval required)
+3. Create the new user using `administer_user`
+4. Create an audit entry for user provisioning using `administer_audit_logs`
 
-1. Verify that approval is present using `confirm_approval` (HR Director or IT Administrator approval required)
-2. Create the new user using `administer_user`
-3. Create an audit entry for user provisioning using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - Missing or invalid inputs
 - Email already exists
@@ -134,26 +71,23 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 
 ### Create/Update Department
 
-**Obtain:**
+1. **Obtain:**
+   **For Creation:**
 
-For Creation:
+   - Required: department_name, manager_id
+   - Optional: budget, status (active, inactive)
 
-- Required: department_name, manager_id
-- Optional: budget, status (active, inactive)
+   **For Update:**
 
-For Update:
+   - Required: department_id
+   - Optional: department_name, manager_id, budget, status (active, inactive) (at least one must be provided)
 
-- Required: department_id
-- Optional: department_name, manager_id, budget, status (active, inactive) (at least one must be provided)
+2. Verify that approval is present using `confirm_approval` (HR Director approval required)
+3. For creation, validate that the department name is provided and the assigned manager exists in the employee system and has active status using `lookup_user_employee_entities`. For updates, validate that department exists and has active status using `lookup_department_entities`
+4. Create or update the department using `administer_department`
+5. Create an audit entry for department operation using `administer_audit_logs`
 
-**Process:**
-
-1. Verify that approval is present using `confirm_approval` (HR Director approval required)
-2. For creation, validate that the department name is provided and the assigned manager exists in the employee system and has active status using `lookup_employee_entities`. For updates, validate that department exists and has active status using `lookup_department_entities`
-3. Create or update the department using `administer_department`
-4. Create an audit entry for department operation using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - Missing or invalid inputs
 - Department not found (for updates)
@@ -164,26 +98,23 @@ For Update:
 
 ### Create/Update Job Position
 
-**Obtain:**
+1. **Obtain:**
+   **For Creation:**
 
-For Creation:
+   - Required: title, department_id, job_level (entry, junior, mid, senior, lead, manager, director, executive), employment_type (full_time, part_time, contract, intern), status (draft, open, closed)
+   - Optional: hourly_rate_min, hourly_rate_max
 
-- Required: title, department_id, job_level (entry, junior, mid, senior, lead, manager, director, executive), employment_type (full_time, part_time, contract, intern), status (draft, open, closed)
-- Optional: hourly_rate_min, hourly_rate_max
+   **For Update:**
 
-For Update:
+   - Required: position_id
+   - Optional: title, department_id, job_level (entry, junior, mid, senior, lead, manager, director, executive), employment_type (full_time, part_time, contract, intern), hourly_rate_min, hourly_rate_max, status (draft, open, closed) (at least one must be provided)
 
-- Required: position_id
-- Optional: title, department_id, job_level (entry, junior, mid, senior, lead, manager, director, executive), employment_type (full_time, part_time, contract, intern), hourly_rate_min, hourly_rate_max, status (draft, open, closed) (at least one must be provided)
+2. Verify that approval is present using `confirm_approval` (HR Director or Hiring Manager approval required)
+3. For creation: validate that position title and department assignment are provided and the assigned department exists and has active status using `lookup_department_entities`. For updates: validate that position exists in the system using `lookup_job_entities`
+4. Create or update the job position using `administer_job_position`
+5. Create an audit entry for job position operation using `administer_audit_logs`
 
-**Process:**
-
-1. Verify that approval is present using `confirm_approval` (HR Director or Hiring Manager approval required)
-2. For creation: validate that position title and department assignment are provided and the assigned department exists and has active status using `lookup_department_entities`. For updates: validate that position exists in the system using `lookup_job_entities`
-3. Create or update the job position using `administer_job_position`
-4. Create an audit entry for job position operation using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - Missing or invalid inputs
 - Position not found (for updates)
@@ -195,17 +126,15 @@ For Update:
 
 ### Post Job Opening
 
-**Obtain:**
+1. **Obtain:**
 
-- Required: position_id
+   - Required: position_id
 
-**Process:**
+2. Validate that position exists and currently has draft status using `lookup_job_entities`
+3. Change job position status for public visibility using `administer_job_position`
+4. Create an audit entry for job posting using `administer_audit_logs`
 
-1. Validate that position exists and currently has draft status using `lookup_job_entities`
-2. Change job position status for public visibility using `administer_job_position`
-3. Create an audit entry for job posting using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - Position not found or not in draft status
 - Position missing required information
@@ -214,26 +143,23 @@ For Update:
 
 ### Skills Management
 
-**Obtain:**
+1. **Obtain:**
+   **For Creation:**
 
-For Creation:
+   - Required: skill_name
+   - Optional: status (active, inactive)
 
-- Required: skill_name
-- Optional: status (active, inactive)
+   **For Update:**
 
-For Update:
+   - Required: skill_id
+   - Optional: skill_name, status (active, inactive) (at least one must be provided)
 
-- Required: skill_id
-- Optional: skill_name, status (active, inactive) (at least one must be provided)
+2. Verify that approval is present using `confirm_approval` (HR Director approval required)
+3. For creation, check that skill_name does not already exist using `lookup_job_entities`. For updates, validate that skill_id exists using `lookup_job_entities`
+4. Create or update the skill record using `administer_skill`
+5. Create an audit entry for skills operation using `administer_audit_logs`
 
-**Process:**
-
-1. Verify that approval is present using `confirm_approval` (HR Director approval required)
-2. For creation, check that skill_name does not already exist using `lookup_job_entities`. For updates, validate that skill_id exists using `lookup_job_entities`
-3. Create or update the skill record using `administer_skill`
-4. Create an audit entry for skills operation using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - Invalid skill details
 - Skill name already exists (for creation)
@@ -244,19 +170,17 @@ For Update:
 
 ### Job Position Skills Management
 
-**Obtain:**
+1. **Obtain:**
 
-- Required: position_id, skill_ids, action (add, remove)
+   - Required: position_id, skill_ids, action (add, remove)
 
-**Process:**
+2. Verify that approval is present using `confirm_approval` (HR Director or Hiring Manager approval required)
+3. Validate that the position ID is valid and skill IDs are provided using `lookup_job_entities`
+4. Verify that the job position exists and all specified skills exist in the skills catalog using `lookup_job_entities`
+5. Add or remove skill associations for the job position using `administer_job_position_skills`
+6. Create an audit entry for position skills management using `administer_audit_logs`
 
-1. Verify that approval is present using `confirm_approval` (HR Director or Hiring Manager approval required)
-2. Validate that the position ID is valid and skill IDs are provided using `lookup_job_entities`
-3. Verify that the job position exists and all specified skills exist in the skills catalog using `lookup_job_entities`
-4. Add or remove skill associations for the job position using `administer_job_position_skills`
-5. Create an audit entry for position skills management using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - Invalid position skills details
 - Position or skills not found
@@ -267,17 +191,15 @@ For Update:
 
 ### Close Job Opening
 
-**Obtain:**
+1. **Obtain:**
 
-- Required: position_id
+   - Required: position_id
 
-**Process:**
+2. Validate that position exists and currently has open status using `lookup_job_entities`
+3. Change job position status using `administer_job_position`
+4. Create an audit entry for job closing using `administer_audit_logs`
 
-1. Validate that position exists and currently has open status using `lookup_job_entities`
-2. Change job position status using `administer_job_position`
-3. Create an audit entry for job closing using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - Position not found or not in open status
 - Job closing failed
@@ -285,18 +207,16 @@ For Update:
 
 ### Adding Candidate Record
 
-**Obtain:**
+1. **Obtain:**
 
-- Required: first_name, last_name, email, source (website, referral, linkedin, job_board, recruiter, other)
-- Optional: phone_number, address, status (new, screening, interviewing, offered, hired, rejected)
+   - Required: first_name, last_name, email, source (website, referral, linkedin, job_board, recruiter, other)
+   - Optional: phone_number, address, status (new, screening, interviewing, offered, hired, rejected)
 
-**Process:**
+2. Validate that email is unique in the system using `lookup_recruitment_entities`
+3. Create a candidate using `administer_candidate`
+4. Create an audit entry for candidate creation using `administer_audit_logs`
 
-1. Validate that email is unique in the system using `lookup_recruitment_entities`
-2. Create a candidate using `administer_candidate`
-3. Create an audit entry for candidate creation using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - Missing or invalid inputs
 - Email already exists
@@ -306,17 +226,16 @@ For Update:
 
 ### Create/Update Job Application
 
-**Obtain:**
+1. **Obtain:**
+   **For Creation:**
 
-For Creation:
+   - Required: candidate_id, position_id, application_date, recruiter_id
+   - Optional: status (submitted, under_review, screening, interviewing, offer_made, accepted, rejected, withdrawn), ai_screening_score, final_decision (hire, reject, pending)
 
-- Required: candidate_id, position_id, application_date, recruiter_id
-- Optional: status (submitted, under_review, screening, interviewing, offer_made, accepted, rejected, withdrawn), ai_screening_score, final_decision (hire, reject, pending)
+   **For Update:**
 
-For Update:
-
-- Required: application_id
-- Optional: candidate_id, position_id, application_date, recruiter_id, status (submitted, under_review, screening, interviewing, offer_made, accepted, rejected, withdrawn), ai_screening_score, final_decision (hire, reject, pending) (at least one must be provided)
+   - Required: application_id
+   - Optional: candidate_id, position_id, application_date, recruiter_id, status (submitted, under_review, screening, interviewing, offer_made, accepted, rejected, withdrawn), ai_screening_score, final_decision (hire, reject, pending) (at least one must be provided)
 
 **Process:**
 
@@ -327,6 +246,8 @@ For Update:
 
 **Halt Conditions:**
 
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Missing or invalid inputs
 - Candidate, position, or recruiter not found
 - Invalid status transition
@@ -335,19 +256,17 @@ For Update:
 
 ### Manage Application Stage
 
-**Obtain:**
+1. **Obtain:**
 
-- Required: application_id, new_status (submitted, screening, interviewing, offered, hired, rejected)
-- Optional: ai_screening_score, final_decision (hire, reject, pending)
+   - Required: application_id, new_status (submitted, screening, interviewing, offered, hired, rejected)
+   - Optional: ai_screening_score, final_decision (hire, reject, pending)
 
-**Process:**
+2. Verify that approval is present using `confirm_approval` (Recruiter or Hiring Manager approval required)
+3. Validate that the application exists, and the stage transition is valid using `lookup_recruitment_entities`. Validate that AI screening score is within acceptable percentage range if provided
+4. Update job application status and AI screening score (if provided) using `administer_job_application`
+5. Create an audit entry for stage change using `administer_audit_logs`
 
-1. Verify that approval is present using `confirm_approval` (Recruiter or Hiring Manager approval required)
-2. Validate that the application exists, and the stage transition is valid using `lookup_recruitment_entities`. Validate that AI screening score is within acceptable percentage range if provided
-3. Update job application status and AI screening score (if provided) using `administer_job_application`
-4. Create an audit entry for stage change using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - Invalid application status change
 - Invalid AI screening score or final decision
@@ -357,18 +276,16 @@ For Update:
 
 ### Schedule Interview
 
-**Obtain:**
+1. **Obtain:**
 
-- Required: application_id, interviewer_id, interview_type (phone, video, in_person, technical, behavioral), scheduled_date
-- Optional: duration_minutes, status (scheduled, completed, cancelled)
+   - Required: application_id, interviewer_id, interview_type (phone, video, in_person, technical, behavioral), scheduled_date
+   - Optional: duration_minutes, status (scheduled, completed, cancelled)
 
-**Process:**
+2. Validate that the application and interviewer exist using `lookup_recruitment_entities` and `lookup_user_employee_entities` respectively
+3. Create the interview using `administer_interview`
+4. Create an audit entry for interview scheduling using `administer_audit_logs`
 
-1. Validate that the application and interviewer exist using `lookup_recruitment_entities` and `lookup_user_entities` respectively
-2. Create the interview using `administer_interview`
-3. Create an audit entry for interview scheduling using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - Invalid interview scheduling details
 - Application or interviewer not found
@@ -378,19 +295,17 @@ For Update:
 
 ### Record Interview Outcome
 
-**Obtain:**
+1. **Obtain:**
 
-- Required: interview_id
-- Optional: overall_rating, technical_score, communication_score, cultural_fit_score, recommendation (hire, reject, maybe), status (scheduled, completed, cancelled) (at least one must be provided)
+   - Required: interview_id
+   - Optional: overall_rating, technical_score, communication_score, cultural_fit_score, recommendation (hire, reject, maybe), status (scheduled, completed, cancelled) (at least one must be provided)
 
-**Process:**
+2. Validate that interview exists and has scheduled or completed status using `lookup_recruitment_entities`
+3. Update interview with outcome information using `administer_interview`
+4. Update related job application status based on interview outcome using `administer_job_application`
+5. Create an audit entry for the interview outcome using `administer_audit_logs`
 
-1. Validate that interview exists and has scheduled or completed status using `lookup_recruitment_entities`
-2. Update interview with outcome information using `administer_interview`
-3. Update related job application status based on interview outcome using `administer_job_application`
-4. Create an audit entry for the interview outcome using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - Interview not found or invalid status
 - Invalid rating, scores, or recommendation
@@ -400,21 +315,19 @@ For Update:
 
 ### Employee Onboarding
 
-**Obtain:**
+1. **Obtain:**
 
-- Required: user_id, position_id, hire_date
-- Optional: manager_id, date_of_birth, address, hourly_rate, employment_status (active, inactive, terminated)
+   - Required: user_id, position_id, hire_date
+   - Optional: manager_id, date_of_birth, address, hourly_rate, employment_status (active, inactive, terminated)
 
-**Process:**
+2. Verify that approval is present using `confirm_approval` (HR Manager approval and Compliance verification required)
+3. Validate that all required information is provided and the user account exists and is not already associated with an employee record using `lookup_user_employee_entities` and `lookup_user_employee_entities`
+4. Validate that assigned position exists and has active status using `lookup_job_entities`
+5. Create the employee record using `administer_employee`
+6. Update user account to active status using `administer_user`
+7. Create an audit entry for onboarding using `administer_audit_logs`
 
-1. Verify that approval is present using `confirm_approval` (HR Manager approval and Compliance verification required)
-2. Validate that all required information is provided and the user account exists and is not already associated with an employee record using `lookup_user_entities` and `lookup_employee_entities`
-3. Validate that assigned position exists and has active status using `lookup_job_entities`
-4. Create the employee record using `administer_employee`
-5. Update user account to active status using `administer_user`
-6. Create an audit entry for onboarding using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - Approval or compliance verification missing
 - Missing or invalid inputs
@@ -426,18 +339,16 @@ For Update:
 
 ### Update Employee Profile
 
-**Obtain:**
+1. **Obtain:**
 
-- Required: employee_id
-- Optional: position_id, employment_status (active, inactive, terminated), manager_id, date_of_birth, address, hourly_rate (at least one must be provided)
+   - Required: employee_id
+   - Optional: position_id, employment_status (active, inactive, terminated), manager_id, date_of_birth, address, hourly_rate (at least one must be provided)
 
-**Process:**
+2. Validate that employee exists and has "active" status using `lookup_user_employee_entities`
+3. Update employee record information using `administer_employee`
+4. Create an audit entry for employee update using `administer_audit_logs`
 
-1. Validate that employee exists and has "active" status using `lookup_employee_entities`
-2. Update employee record information using `administer_employee`
-3. Create an audit entry for employee update using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - Employee not found or inactive
 - Invalid employment status or hourly rate
@@ -446,24 +357,22 @@ For Update:
 
 ### Employee Offboarding
 
-**Obtain:**
+1. **Obtain:**
 
-- Required: employee_id
+   - Required: employee_id
 
-**Process:**
+2. Verify that approval is present using `confirm_approval` (HR Manager and Compliance Officer approvals required)
+3. Validate that employee exists and has active employment status using `lookup_user_employee_entities`
+4. Check for pending payroll records that have not been finalized using `lookup_payroll_entities`
+5. Check for active benefits enrollments using `lookup_benefits_entities`
+6. Check for incomplete training programs using `lookup_training_entities`
+7. Change employee's employment status using `administer_employee`
+8. Update user account status using `administer_user`
+9. Terminate active benefits enrollments using `administer_employee_benefits`
+10. Cancel incomplete training enrollments using `administer_employee_training`
+11. Create an audit entry for offboarding using `administer_audit_logs`
 
-1. Verify that approval is present using `confirm_approval` (HR Manager and Compliance Officer approvals required)
-2. Validate that employee exists and has active employment status using `lookup_employee_entities`
-3. Check for pending payroll records that have not been finalized using `lookup_payroll_entities`
-4. Check for active benefits enrollments using `lookup_benefits_entities`
-5. Check for incomplete training programs using `lookup_training_entities`
-6. Change employee's employment status using `administer_employee`
-7. Update user account status using `administer_user`
-8. Terminate active benefits enrollments using `administer_employee_benefits`
-9. Cancel incomplete training enrollments using `administer_employee_training`
-10. Create an audit entry for offboarding using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - Required approvals missing
 - Employee not found or not active
@@ -471,21 +380,60 @@ For Update:
 - Employee offboarding failed
 - Audit trail logging failure
 
+### Timesheet Submission
+
+1. **Obtain:**
+
+   - **Required:** employee_id, work_date, clock_in_time, clock_out_time
+   - **Optional:** break_duration_minutes, project_code, total_hours, status (submitted, approved, rejected)
+
+2. Validate that employee exists and has active status using `discover_user_employee_entities`
+3. Create a timesheet using `administer_timesheet_entries`
+4. Create an audit entry for timesheet submission using `manage_audit_logs`
+
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
+
+- Employee not found or inactive
+- Invalid work date or times
+- Invalid break duration
+- Timesheet submission failed
+- Audit trail logging failure
+
+### Timesheet Approval/Correction
+
+1. **Obtain:**
+
+   - **Required:** timesheet_id, approver_id, new_status (submitted, approved, rejected)
+   - **Optional:** clock_in_time, clock_out_time, break_duration_minutes, total_hours, project_code (at least one must be provided for corrections)
+
+2. Verify approver is authorized manager using `check_approval` (Payroll Administrator or Hiring Manager)
+3. Validate that timesheet exists in the system using `discover_timesheet_entities`
+4. Validate that approver has a payroll administrator or hiring manager role using `discover_user_employee_entities`
+5. Update timesheet using `administer_timesheet_entries`
+6. Create an audit entry for approval and corrections using `manage_audit_logs`
+
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
+
+- Unauthorized access
+- Timesheet not found
+- Invalid status transition
+- Invalid correction values
+- Timesheet approval/correction failed
+- Audit trail logging failure
+
 ### Process Payroll Run
 
-**Obtain:**
+1. **Obtain:**
 
-- Required: employee_id, pay_period_start, pay_period_end, hourly_rate
-- Optional: hours_worked, payment_date, status (pending, approved, paid), approved_by
+   - Required: employee_id, pay_period_start, pay_period_end, hourly_rate
+   - Optional: hours_worked, payment_date, status (pending, approved, paid), approved_by
 
-**Process:**
+2. Verify that approval is present using `confirm_approval` (Finance Officer approval required)
+3. Aggregate approved timesheet hours for the specified pay period using `lookup_timesheet_entities`
+4. Create the payroll record using `administer_payroll_record`
+5. Create an audit entry for payroll transactions using `administer_audit_logs`
 
-1. Verify that approval is present using `confirm_approval` (Finance Officer approval required)
-2. Aggregate approved timesheet hours for the specified pay period using `lookup_timesheet_entities`
-3. Create the payroll record using `administer_payroll_record`
-4. Create an audit entry for payroll transactions using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - Finance Officer approval required
 - Missing or invalid inputs
@@ -496,19 +444,17 @@ For Update:
 
 ### Payroll Correction
 
-**Obtain:**
+1. **Obtain:**
 
-- Required: payroll_id
-- Optional: pay_period_start, pay_period_end, hours_worked, hourly_rate, payment_date, status (pending, approved, paid), approved_by (at least one must be provided)
+   - Required: payroll_id
+   - Optional: pay_period_start, pay_period_end, hours_worked, hourly_rate, payment_date, status (pending, approved, paid), approved_by (at least one must be provided)
 
-**Process:**
+2. Verify that approval is present using `confirm_approval` (Finance Officer approval required)
+3. Validate that payroll record exists in the system using `lookup_payroll_entities`
+4. Adjust the payroll record using `administer_payroll_record`
+5. Create an audit entry for payroll correction using `administer_audit_logs`
 
-1. Verify that approval is present using `confirm_approval` (Finance Officer approval required)
-2. Validate that payroll record exists in the system using `lookup_payroll_entities`
-3. Adjust the payroll record using `administer_payroll_record`
-4. Create an audit entry for payroll correction using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - Finance Officer approval required
 - Payroll record not found
@@ -518,26 +464,23 @@ For Update:
 
 ### Create/Update Benefits Plan
 
-**Obtain:**
+1. **Obtain:**
+   **For Creation:**
 
-For Creation:
+   - Required: plan_name, plan_type (health, dental, vision, retirement, life_insurance), effective_date
+   - Optional: provider, employee_cost, employer_cost, expiration_date, status (active, inactive)
 
-- Required: plan_name, plan_type (health, dental, vision, retirement, life_insurance), effective_date
-- Optional: provider, employee_cost, employer_cost, expiration_date, status (active, inactive)
+   **For Update:**
 
-For Update:
+   - Required: plan_id
+   - Optional: plan_name, plan_type (health, dental, vision, retirement, life_insurance), provider, employee_cost, employer_cost, status (active, inactive), effective_date, expiration_date (at least one must be provided)
 
-- Required: plan_id
-- Optional: plan_name, plan_type (health, dental, vision, retirement, life_insurance), provider, employee_cost, employer_cost, status (active, inactive), effective_date, expiration_date (at least one must be provided)
+2. Verify that approval is present using `confirm_approval` (HR Director or Finance Officer approval required)
+3. For updates, validate that plan exists in the system using `lookup_benefits_entities`
+4. Create or update the plan using `administer_benefits_plan`
+5. Create an audit entry for benefits plan operation using `administer_audit_logs`
 
-**Process:**
-
-1. Verify that approval is present using `confirm_approval` (HR Director or Finance Officer approval required)
-2. For updates, validate that plan exists in the system using `lookup_benefits_entities`
-3. Create or update the plan using `administer_benefits_plan`
-4. Create an audit entry for benefits plan operation using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - HR Director or Finance Officer approval required
 - Missing or invalid inputs
@@ -548,27 +491,24 @@ For Update:
 
 ### Employee Benefits Enrollment & Update
 
-**Obtain:**
+1. **Obtain:**
+   **For Enrollment:**
 
-For Enrollment:
+   - Required: employee_id, plan_id, enrollment_date, coverage_level (individual, family, employee_spouse, employee_children)
+   - Optional: beneficiary_name, beneficiary_relationship, status (active, inactive)
 
-- Required: employee_id, plan_id, enrollment_date, coverage_level (individual, family, employee_spouse, employee_children)
-- Optional: beneficiary_name, beneficiary_relationship, status (active, inactive)
+   **For Update:**
 
-For Update:
+   - Required: enrollment_id
+   - Optional: employee_id, plan_id, enrollment_date, status (active, inactive), coverage_level (individual, family, employee_spouse, employee_children), beneficiary_name, beneficiary_relationship (at least one must be provided)
 
-- Required: enrollment_id
-- Optional: employee_id, plan_id, enrollment_date, status (active, inactive), coverage_level (individual, family, employee_spouse, employee_children), beneficiary_name, beneficiary_relationship (at least one must be provided)
+2. For enrollment: validate that employee and benefits plan exist and have active status using `lookup_user_employee_entities` and `lookup_benefits_entities` respectively
+3. Check that the employee is not already enrolled in the same plan type using `lookup_benefits_entities`
+4. For updates: validate that enrollment record exists using `lookup_benefits_entities`
+5. Create or update benefits enrollment using `administer_employee_benefits`
+6. Create an audit entry for benefits enrollment change using `administer_audit_logs`
 
-**Process:**
-
-1. For enrollment: validate that employee and benefits plan exist and have active status using `lookup_employee_entities` and `lookup_benefits_entities` respectively
-2. Check that the employee is not already enrolled in the same plan type using `lookup_benefits_entities`
-3. For updates: validate that enrollment record exists using `lookup_benefits_entities`
-4. Create or update benefits enrollment using `administer_employee_benefits`
-5. Create an audit entry for benefits enrollment change using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - Employee or plan not found or inactive
 - Invalid enrollment date or coverage level
@@ -579,26 +519,23 @@ For Update:
 
 ### Performance Review Cycle
 
-**Obtain:**
+1. **Obtain:**
+   **For Creation:**
 
-For Creation:
+   - Required: employee_id, reviewer_id, review_period_start, review_period_end, review_type (annual, quarterly, probationary, mid_year), overall_rating
+   - Optional: goals_achievement_score, communication_score, teamwork_score, leadership_score, technical_skills_score, status (draft, submitted, approved)
 
-- Required: employee_id, reviewer_id, review_period_start, review_period_end, review_type (annual, quarterly, probationary, mid_year), overall_rating
-- Optional: goals_achievement_score, communication_score, teamwork_score, leadership_score, technical_skills_score, status (draft, submitted, approved)
+   **For Update:**
 
-For Update:
+   - Required: review_id
+   - Optional: employee_id, reviewer_id, review_period_start, review_period_end, review_type (annual, quarterly, probationary, mid_year), overall_rating, goals_achievement_score, communication_score, teamwork_score, leadership_score, technical_skills_score, status (draft, submitted, approved) (at least one must be provided)
 
-- Required: review_id
-- Optional: employee_id, reviewer_id, review_period_start, review_period_end, review_type (annual, quarterly, probationary, mid_year), overall_rating, goals_achievement_score, communication_score, teamwork_score, leadership_score, technical_skills_score, status (draft, submitted, approved) (at least one must be provided)
+2. Verify that approval is present using `confirm_approval` (HR Manager approval required for final approval)
+3. Validate that employee and reviewer exist and have active status using `lookup_user_employee_entities`
+4. Create or update the performance review using `administer_performance_review`
+5. Create an audit entry for performance review using `administer_audit_logs`
 
-**Process:**
-
-1. Verify that approval is present using `confirm_approval` (HR Manager approval required for final approval)
-2. Validate that employee and reviewer exist and have active status using `lookup_employee_entities`
-3. Create or update the performance review using `administer_performance_review`
-4. Create an audit entry for performance review using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - HR Manager approval required
 - Employee or reviewer not found or inactive
@@ -609,24 +546,21 @@ For Update:
 
 ### Create/Update Training Program
 
-**Obtain:**
+1. **Obtain:**
+   **For Creation:**
 
-For Creation:
+   - Required: program_name, program_type (onboarding, compliance, technical, leadership, safety), duration_hours, delivery_method (online, in_person, hybrid)
+   - Optional: mandatory, status (active, inactive)
 
-- Required: program_name, program_type (onboarding, compliance, technical, leadership, safety), duration_hours, delivery_method (online, in_person, hybrid)
-- Optional: mandatory, status (active, inactive)
+   **For Update:**
 
-For Update:
+   - Required: program_id
+   - Optional: program_name, program_type (onboarding, compliance, technical, leadership, safety), duration_hours, delivery_method (online, in_person, hybrid), mandatory, status (active, inactive) (at least one must be provided)
 
-- Required: program_id
-- Optional: program_name, program_type (onboarding, compliance, technical, leadership, safety), duration_hours, delivery_method (online, in_person, hybrid), mandatory, status (active, inactive) (at least one must be provided)
+2. Create or update training programs with mandatory flags if the training is required using `administer_training_programs`
+3. Create an audit entry using `administer_audit_logs`
 
-**Process:**
-
-1. Create or update training programs with mandatory flags if the training is required using `administer_training_programs`
-2. Create an audit entry using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - Invalid training program details
 - Training program operation failed
@@ -634,24 +568,21 @@ For Update:
 
 ### Employee Training Enrollment & Completion
 
-**Obtain:**
+1. **Obtain:**
+   **For Enrollment:**
 
-For Enrollment:
+   - Required: employee_id, program_id, enrollment_date
 
-- Required: employee_id, program_id, enrollment_date
+   **For Update:**
 
-For Update:
+   - Required: training_record_id
+   - Optional: employee_id, program_id, enrollment_date, completion_date, status (enrolled, in_progress, completed, failed), score, certificate_issued, expiry_date (at least one must be provided)
 
-- Required: training_record_id
-- Optional: employee_id, program_id, enrollment_date, completion_date, status (enrolled, in_progress, completed, failed), score, certificate_issued, expiry_date (at least one must be provided)
+2. Validate that the employee and training program are valid using `lookup_user_employee_entities` and `lookup_training_entities` respectively
+3. Create or update the employee training record using `administer_employee_training`
+4. Create an audit entry for training enrollment and completion using `administer_audit_logs`
 
-**Process:**
-
-1. Validate that the employee and training program are valid using `lookup_employee_entities` and `lookup_training_entities` respectively
-2. Create or update the employee training record using `administer_employee_training`
-3. Create an audit entry for training enrollment and completion using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - Invalid training enrollment
 - Employee or program not found
@@ -661,17 +592,15 @@ For Update:
 
 ### Document Upload & Management
 
-**Obtain:**
+1. **Obtain:**
 
-- Required: document_name, document_type (contract, policy, handbook, form, certificate, report), file_path, uploaded_by, confidentiality_level (public, internal, confidential, restricted), retention_period_years
-- Optional: employee_id, expiry_date, status (active, archived, deleted)
+   - Required: document_name, document_type (contract, policy, handbook, form, certificate, report), file_path, uploaded_by, confidentiality_level (public, internal, confidential, restricted), retention_period_years
+   - Optional: employee_id, expiry_date, status (active, archived, deleted)
 
-**Process:**
+2. Insert document into document storage system with confidentiality level and retention period in years, and store file pointer using `administer_document_storage`
+3. Create an audit entry for document creation using `administer_audit_logs`
 
-1. Insert document into document storage system with confidentiality level and retention period in years, and store file pointer using `administer_document_storage`
-2. Create an audit entry for document creation using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - Invalid document metadata
 - Unsupported document type
@@ -680,18 +609,16 @@ For Update:
 
 ### Leave Request Processing
 
-**Obtain:**
+1. **Obtain:**
 
-- Required: employee_id, leave_type (vacation, sick, personal, maternity, paternity, bereavement, jury_duty), start_date, end_date
-- Optional: status (pending, approved, rejected), approved_by, requested_days, remaining_balance
+   - Required: employee_id, leave_type (vacation, sick, personal, maternity, paternity, bereavement, jury_duty), start_date, end_date
+   - Optional: status (pending, approved, rejected), approved_by, requested_days, remaining_balance
 
-**Process:**
+2. Validate that employee exists and has active status using `lookup_user_employee_entities`
+3. Create the leave request using `administer_leave_requests`
+4. Create an audit entry for leave request submission using `administer_audit_logs`
 
-1. Validate that employee exists and has active status using `lookup_employee_entities`
-2. Create the leave request using `administer_leave_requests`
-3. Create an audit entry for leave request submission using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - Employee not found or inactive
 - Invalid leave type or dates
@@ -700,26 +627,23 @@ For Update:
 
 ### Create/Update Expense Reimbursement
 
-**Obtain:**
+1. **Obtain:**
+   **For Creation:**
 
-For Creation:
+   - Required: employee_id, expense_date, amount, expense_type (travel, meals, accommodation, supplies, training, other)
+   - Optional: receipt_file_path, status (submitted, approved, rejected, paid)
 
-- Required: employee_id, expense_date, amount, expense_type (travel, meals, accommodation, supplies, training, other)
-- Optional: receipt_file_path, status (submitted, approved, rejected, paid)
+   **For Update:**
 
-For Update:
+   - Required: reimbursement_id
+   - Optional: employee_id, expense_date, amount, expense_type (travel, meals, accommodation, supplies, training, other), receipt_file_path, status (submitted, approved, rejected, paid), approved_by, payment_date (at least one must be provided)
 
-- Required: reimbursement_id
-- Optional: employee_id, expense_date, amount, expense_type (travel, meals, accommodation, supplies, training, other), receipt_file_path, status (submitted, approved, rejected, paid), approved_by, payment_date (at least one must be provided)
+2. For creation, validate that employee, expense date, amount, and expense type are provided and the employee exists and has active status using `lookup_user_employee_entities`
+3. For updates, validate that reimbursement record exists and has submitted status using `lookup_expense_entities`
+4. Create or update the reimbursement using `administer_expense_reimbursements`
+5. Create an audit entry for reimbursement operation using `administer_audit_logs`
 
-**Process:**
-
-1. For creation, validate that employee, expense date, amount, and expense type are provided and the employee exists and has active status using `lookup_employee_entities`
-2. For updates, validate that reimbursement record exists and has submitted status using `lookup_expense_entities`
-3. Create or update the reimbursement using `administer_expense_reimbursements`
-4. Create an audit entry for reimbursement operation using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - Employee not found or inactive
 - Invalid expense type, amount, or date
@@ -730,19 +654,17 @@ For Update:
 
 ### Process Expense Reimbursement
 
-**Obtain:**
+1. **Obtain:**
 
-- Required: reimbursement_id, approving_user_id, new_status (submitted, approved, rejected, paid)
-- Optional: payment_date
+   - Required: reimbursement_id, approving_user_id, new_status (submitted, approved, rejected, paid)
+   - Optional: payment_date
 
-**Process:**
+2. Validate that reimbursement record exists in the system using `lookup_expense_entities`
+3. Validate that the approving user exists and has an appropriate role using `lookup_user_employee_entities`
+4. Update reimbursement status to specified value using `administer_expense_reimbursements`
+5. Create an audit entry for reimbursement processing using `administer_audit_logs`
 
-1. Validate that reimbursement record exists in the system using `lookup_expense_entities`
-2. Validate that the approving user exists and has an appropriate role using `lookup_user_entities`
-3. Update reimbursement status to specified value using `administer_expense_reimbursements`
-4. Create an audit entry for reimbursement processing using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - Reimbursement not found
 - Approving user not found or lacks appropriate role
@@ -752,18 +674,16 @@ For Update:
 
 ### Payroll Deductions Management
 
-**Obtain:**
+1. **Obtain:**
 
-- Required: payroll_id, deduction_type (tax, insurance, retirement, garnishment, other), amount, created_by
+   - Required: payroll_id, deduction_type (tax, insurance, retirement, garnishment, other), amount, created_by
 
-**Process:**
+2. Validate that payroll record exists in the system using `lookup_payroll_entities`
+3. Validate that creator exists in the user system using `lookup_user_employee_entities`
+4. Create deduction with required information using `administer_payroll_deduction`
+5. Create an audit entry for deduction creation using `administer_audit_logs`
 
-1. Validate that payroll record exists in the system using `lookup_payroll_entities`
-2. Validate that creator exists in the user system using `lookup_user_entities`
-3. Create deduction with required information using `administer_payroll_deduction`
-4. Create an audit entry for deduction creation using `administer_audit_logs`
-
-**Halt Conditions:**
+**Halt, and use `handover_to_human` if you receive the following errors; otherwise complete the SOP:**
 
 - Payroll record not found
 - Invalid deduction type or amount
@@ -780,18 +700,3 @@ All operations within the HR system must generate audit log entries using `admin
 - Timestamp of the action
 - Details of what changed (before/after values for updates)
 - Result of the operation (success/failure)
-
-## Approvals
-
-The system uses role-based approval workflows managed through `confirm_approval`. Key approval requirements:
-
-- **HR Director**: Required for department operations, job positions, skills management, benefits plans
-- **IT Administrator**: Required for user provisioning
-- **Finance Officer**: Required for payroll operations, benefits plan financial approvals
-- **HR Manager**: Required for employee onboarding/offboarding, performance reviews
-- **Hiring Manager**: Required for job position operations, application stage management
-- **Recruiter**: Required for application stage management
-- **Compliance Officer**: Required for employee onboarding verification and offboarding compliance
-- **Payroll Administrator**: Required for timesheet approvals and corrections
-
-All approval requests must include the requester's identity and the specific action being approved.

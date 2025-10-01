@@ -23,7 +23,7 @@ from .handover_to_human import HandOverToHuman
 from .lookup_benefits_entities import LookupBenefitsEntities
 from .lookup_department_entities import LookupDepartmentEntities
 from .lookup_document_entities import LookupDocumentEntities
-from .lookup_employee_entities import LookupEmployeeEntities
+# from .lookup_employee_entities import LookupEmployeeEntities
 from .lookup_expense_entities import LookupExpenseEntities
 from .lookup_job_entities import LookupJobEntities
 from .lookup_leave_entities import LookupLeaveEntities
@@ -32,7 +32,9 @@ from .lookup_performance_entities import LookupPerformanceEntities
 from .lookup_recruitment_entities import LookupRecruitmentEntities
 from .lookup_timesheet_entities import LookupTimesheetEntities
 from .lookup_training_entities import LookupTrainingEntities
-from .lookup_user_entities import LookupUserEntities
+# from .lookup_user_entities import LookupUserEntities
+from .lookup_user_employee_entities import LookupUserEmployeeEntities
+from .administer_timesheet_entries import AdministerTimesheetEntries
 
 ALL_TOOLS_INTERFACE_4 = [
     AdministerAuditLogs,
@@ -60,7 +62,7 @@ ALL_TOOLS_INTERFACE_4 = [
     LookupBenefitsEntities,
     LookupDepartmentEntities,
     LookupDocumentEntities,
-    LookupEmployeeEntities,
+    # LookupEmployeeEntities,
     LookupExpenseEntities,
     LookupJobEntities,
     LookupLeaveEntities,
@@ -69,5 +71,7 @@ ALL_TOOLS_INTERFACE_4 = [
     LookupRecruitmentEntities,
     LookupTimesheetEntities,
     LookupTrainingEntities,
-    LookupUserEntities,
+    # LookupUserEntities,
+    LookupUserEmployeeEntities,
+    AdministerTimesheetEntries,
 ]

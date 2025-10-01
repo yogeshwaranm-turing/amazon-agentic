@@ -4,7 +4,7 @@ from tau_bench.envs.tool import Tool
 
 class CheckApproval(Tool):
     @staticmethod
-    def invoke(data: Dict[str, Any], action: str, requester_email: str, approval_code: str = None) -> str:
+    def invoke(data: Dict[str, Any], action: str, requester_email: str) -> str:
         """
         Check approval for HR actions based on SOPs and approval data.
         
@@ -12,7 +12,6 @@ class CheckApproval(Tool):
             data: Environment data containing users and approvals
             action: The HR action being performed
             requester_email: Email of the user requesting the action  
-            approval_code: Optional specific approval code to check
         """
         # Define role authorization mapping based on SOPs
         role_authorizations = {
@@ -65,15 +64,34 @@ class CheckApproval(Tool):
             "timesheet_correction": ["payroll_administrator", "hiring_manager"]
         }
         
+        # Define simplified action to approval keyword mapping
+        action_keywords = {
+            "user_provisioning": ["user provisioning", "elevated roles"],
+            "create_department": ["department creation"],
+            "update_department": ["department update", "department manager"],
+            "create_benefits_plan": ["benefits plan creation"],
+            "update_benefits_plan": ["benefits plan update"],
+            "create_job_position": ["job position", "publishable"],
+            "update_job_position": ["job position", "publishable"],
+            "job_position_skills_management": ["job position", "skills"],
+            "manage_application_stage": ["application stage"],
+            "employee_onboarding": ["onboarding"],
+            "employee_offboarding": ["offboarding"],
+            "timesheet_approval": ["timesheet approval"],
+            "timesheet_correction": ["timesheet correction"],
+            "process_payroll_run": ["payroll run"],
+            "payroll_correction": ["payroll correction"],
+            "performance_review_final_approval": ["performance review"],
+            "skills_management": ["skills management"]
+        }
+        
         # Find the requester's role
         users = data.get("users", {})
         role_conducting_action = None
-        requester_id = None
         
         for user in users.values():
             if user.get("email") == requester_email:
                 role_conducting_action = user.get("role")
-                requester_id = user.get("user_id")
                 break
         
         if not role_conducting_action:
@@ -95,24 +113,27 @@ class CheckApproval(Tool):
                     "approval_valid": True,
                     "message": f"Role '{role_conducting_action}' is directly authorized for action '{action}'"
                 })
+            else:
+                return json.dumps({
+                    "approval_valid": False,
+                    "error": f"Role '{role_conducting_action}' is not authorized for action '{action}'"
+                })
         
         # For approval-based actions, check the approvals data
         approvals = data.get("approvals", {})
         
-        # If specific approval_code is provided, use it
-        if approval_code:
-            target_code = approval_code
-        else:
-            # Generate calculated approval code based on action and requester
-            target_code = f"{action}_{requester_id}"
-        
-        # Find approvals matching the code or action
+        # Find matching approvals using keywords
         matching_approvals = []
+        keywords = action_keywords.get(action, [action])
+        
         for approval in approvals.values():
-            # Check if approval code matches or if action name matches
-            if (approval.get("code") == target_code or 
-                action.lower() in approval.get("action_name", "").lower().replace(" ", "_").replace("-", "_")):
-                matching_approvals.append(approval)
+            action_name = approval.get("action_name", "").lower()
+            
+            # Check if any keyword matches the approval action name
+            for keyword in keywords:
+                if keyword.lower() in action_name:
+                    matching_approvals.append(approval)
+                    break
         
         if not matching_approvals:
             return json.dumps({
@@ -135,8 +156,7 @@ class CheckApproval(Tool):
             if required_roles.issubset(approved_roles):
                 return json.dumps({
                     "approval_valid": True,
-                    "approved_by": approver_roles,
-                    "approval_type": "multiple_required",
+                    "approved_by": list(required_roles),
                     "message": f"All required approvals received from: {', '.join(required_roles)}"
                 })
             else:
@@ -156,25 +176,13 @@ class CheckApproval(Tool):
                 return json.dumps({
                     "approval_valid": True,
                     "approved_by": valid_approver,
-                    "approval_type": "alternative_sufficient",
-                    "message": f"Valid approval received from authorized role: {valid_approver}"
+                    "message": f"Approved by authorized role: {valid_approver}"
                 })
             else:
                 return json.dumps({
                     "approval_valid": False,
                     "error": f"No valid approval from authorized roles: {', '.join(allowed_roles)}"
                 })
-        
-        # Check single approver actions against approval data
-        else:
-            for role, actions in role_authorizations.items():
-                if action in actions and role in approver_roles:
-                    return json.dumps({
-                        "approval_valid": True,
-                        "approved_by": role,
-                        "approval_type": "single_approver",
-                        "message": f"Valid approval received from authorized role: {role}"
-                    })
         
         return json.dumps({
             "approval_valid": False,
@@ -187,7 +195,7 @@ class CheckApproval(Tool):
             "type": "function",
             "function": {
                 "name": "check_approval",
-                "description": "Validates role authorization and approval for HR management actions using requester email and approval codes. Actions include: user_provisioning (creating/updating user accounts with elevated roles), create_department/update_department (department management operations), create_benefits_plan/update_benefits_plan (benefits plan management), create_job_position/update_job_position (job position management), skills_management (managing skills catalog), job_position_skills_management (linking skills to positions), manage_application_stage (moving applications through hiring workflow), employee_onboarding (new employee setup), employee_offboarding (employee departure processing), timesheet_approval/timesheet_correction (timesheet management), process_payroll_run (payroll processing), payroll_correction (payroll adjustments), performance_review_final_approval (performance review finalization). Roles include: hr_director (senior HR leadership with broad permissions), hr_manager (HR operations management), it_administrator (IT system administration), finance_officer (financial operations), hiring_manager (department hiring authority), recruiter (talent acquisition), payroll_administrator (payroll operations), compliance_officer (regulatory compliance). Some actions require single approvers, others allow alternative approvers (OR logic), and some require multiple approvers (AND logic) based on company SOPs.",
+                "description": "Validates role authorization and approval for HR management actions. Checks if the requester has the required approval(s) for the specified action based on company SOPs and existing approval records.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -198,10 +206,6 @@ class CheckApproval(Tool):
                         "requester_email": {
                             "type": "string",
                             "description": "Email of the user requesting the action"
-                        },
-                        "approval_code": {
-                            "type": "string",
-                            "description": "Optional specific approval code to validate (e.g., USER0001, DEPT0001, etc.)"
                         }
                     },
                     "required": ["action", "requester_email"]
