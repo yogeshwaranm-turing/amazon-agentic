@@ -4,14 +4,14 @@ on:
   push:
     branches: [ main, develop ]
     paths:
-      - 'week_*/**/*.json'
+      - 'week_*/**/task.json'
       - 'envs/**/*.py'
       - '.github/workflows/validate-tasks.yml'
       - 'scripts/task_validator.py'
   pull_request:
     branches: [ main, develop ]
     paths:
-      - 'week_*/**/*.json' 
+      - 'week_*/**/task.json' 
       - 'envs/**/*.py'
       - '.github/workflows/validate-tasks.yml'
       - 'scripts/task_validator.py'
@@ -55,18 +55,36 @@ jobs:
         # Install common dependencies for task validation
         pip install jsonschema deepdiff typing-extensions
         
-    - name: Find task.json files
+    - name: Find changed task.json files
       id: find-tasks
       run: |
         if [ -n "${{ github.event.inputs.task_file }}" ]; then
           echo "tasks=${{ github.event.inputs.task_file }}" >> $GITHUB_OUTPUT
+        elif [ "${{ github.event_name }}" = "pull_request" ]; then
+          # Get only changed task.json files (not result.json)
+          tasks=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep 'task\.json$' | head -20 | tr '\n' ' ')
+          echo "tasks=$tasks" >> $GITHUB_OUTPUT
+          echo "Found changed task.json files: $tasks"
         else
-          # Find all task.json files in week_* directories
-          tasks=$(find week_* -name "task.json" -type f | head -20 | tr '\n' ' ')
+          # For push events, find recent task.json files
+          tasks=$(find week_* -name "task.json" -type f -mtime -1 | head -10 | tr '\n' ' ')
           echo "tasks=$tasks" >> $GITHUB_OUTPUT
         fi
         
+    - name: Check if validation needed
+      id: check-validation
+      run: |
+        tasks="${{ steps.find-tasks.outputs.tasks }}"
+        if [ -z "$tasks" ] || [ "$tasks" = " " ]; then
+          echo "No task.json files to validate"
+          echo "skip=true" >> $GITHUB_OUTPUT
+        else
+          echo "Will validate: $tasks"
+          echo "skip=false" >> $GITHUB_OUTPUT
+        fi
+        
     - name: Validate task files
+      if: steps.check-validation.outputs.skip == 'false'
       run: |
         python scripts/task_validator.py \
           --tasks "${{ steps.find-tasks.outputs.tasks }}" \

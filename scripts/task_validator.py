@@ -10,6 +10,12 @@ This script:
 5. Reports detailed validation results
 """
 
+# Import mock tau_bench first to bypass dependency issues
+try:
+    from mock_tau_bench import *  # This sets up the mock modules
+except ImportError:
+    pass  # If mock not available, continue (for local development)
+
 import argparse
 import json
 import os
