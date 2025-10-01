@@ -21,7 +21,7 @@ from .handle_user import HandleUser
 from .search_benefits_entities import SearchBenefitsEntities
 from .search_department_entities import SearchDepartmentEntities
 from .search_document_entities import SearchDocumentEntities
-from .search_employee_entities import SearchEmployeeEntities
+# from .search_employee_entities import SearchEmployeeEntities
 from .search_expense_entities import SearchExpenseEntities
 from .search_job_entities import SearchJobEntities
 from .search_leave_entities import SearchLeaveEntities
@@ -30,9 +30,11 @@ from .search_performance_entities import SearchPerformanceEntities
 from .search_recruitment_entities import SearchRecruitmentEntities
 from .search_timesheet_entities import SearchTimesheetEntities
 from .search_training_entities import SearchTrainingEntities
-from .search_user_entities import SearchUserEntities
+# from .search_user_entities import SearchUserEntities
 from .switch_to_human import SwitchToHuman
 from .validate_approval import ValidateApproval
+from .search_user_employee_entities import SearchUserEmployeeEntities
+from .handle_timesheet_entries import HandleTimesheetEntries
 
 ALL_TOOLS_INTERFACE_2 = [
     HandleAuditLogs,
@@ -58,7 +60,7 @@ ALL_TOOLS_INTERFACE_2 = [
     SearchBenefitsEntities,
     SearchDepartmentEntities,
     SearchDocumentEntities,
-    SearchEmployeeEntities,
+    # SearchEmployeeEntities,
     SearchExpenseEntities,
     SearchJobEntities,
     SearchLeaveEntities,
@@ -67,7 +69,9 @@ ALL_TOOLS_INTERFACE_2 = [
     SearchRecruitmentEntities,
     SearchTimesheetEntities,
     SearchTrainingEntities,
-    SearchUserEntities,
+    # SearchUserEntities,
     ValidateApproval,
     SwitchToHuman,
+    SearchUserEmployeeEntities,
+    HandleTimesheetEntries,
 ]

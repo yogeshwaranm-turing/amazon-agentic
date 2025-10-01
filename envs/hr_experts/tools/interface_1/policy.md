@@ -87,11 +87,11 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 
 1. Pick one discovery tool that matches the entity type, and pass only the filters you have:
 
-   - For users, call `discover_user_entities` (filter by user ID, email, role, status, or name)
+   - For users, call `discover_user_employee_entities` (filter by user ID, email, role, status, or name)
    - For departments, call `discover_department_entities` (filter by department ID, name, manager ID, status)
    - For job positions, skills, job position skills, call `discover_job_entities` (filter by position ID, title, department ID, skill ID, skill name, status)
    - For candidates, job applications, interviews, call `discover_recruitment_entities` (filter by candidate ID, application ID, position ID, recruiter ID, interview ID, interviewer ID, status)
-   - For employees, call `discover_employee_entities` (filter by employee ID, user ID, position ID, manager ID, employment status)
+   - For employees, call `discover_user_employee_entities` (filter by employee ID, user ID, position ID, manager ID, employment status)
    - For timesheets, call `discover_timesheet_entities` (filter by timesheet ID, employee ID, work date, status)
    - For payroll records, payroll deductions, call `discover_payroll_entities` (filter by payroll ID, employee ID, pay period dates, deduction ID, deduction type, status)
    - For benefits plans, employee benefits, call `discover_benefits_entities` (filter by plan ID, plan name, plan type, enrollment ID, employee ID, status)
@@ -149,7 +149,7 @@ For Update:
 **Process:**
 
 1. Verify that approval is present using `check_approval` (HR Director approval required)
-2. For creation, validate that the department name is provided and the assigned manager exists in the employee system and has active status using `discover_employee_entities`. For updates, validate that department exists and has active status using `discover_department_entities`
+2. For creation, validate that the department name is provided and the assigned manager exists in the employee system and has active status using `discover_user_employee_entities`. For updates, validate that department exists and has active status using `discover_department_entities`
 3. Create or update the department using `manage_department`
 4. Create an audit entry for department operation using `manage_audit_logs`
 
@@ -320,7 +320,7 @@ For Update:
 
 **Process:**
 
-1. For creation: validate that candidate and position exist and are valid using `discover_recruitment_entities` and `discover_job_entities` respectively. Also, validate that the assigned recruiter exists and has a "recruiter" role using `discover_user_entities`
+1. For creation: validate that candidate and position exist and are valid using `discover_recruitment_entities` and `discover_job_entities` respectively. Also, validate that the assigned recruiter exists and has a "recruiter" role using `discover_user_employee_entities`
 2. For updates: validate that application exists using `discover_recruitment_entities`
 3. Create or update the job application with the information provided using `manage_job_application`
 4. Create an audit entry for application operation using `manage_audit_logs`
@@ -364,7 +364,7 @@ For Update:
 
 **Process:**
 
-1. Validate that the application and interviewer exist using `discover_recruitment_entities` and `discover_user_entities` respectively
+1. Validate that the application and interviewer exist using `discover_recruitment_entities` and `discover_user_employee_entities` respectively
 2. Create the interview using `manage_interview`
 3. Create an audit entry for interview scheduling using `manage_audit_logs`
 
@@ -408,7 +408,7 @@ For Update:
 **Process:**
 
 1. Verify that approval is present using `check_approval` (HR Manager approval and Compliance verification required)
-2. Validate that all required information is provided and the user account exists and is not already associated with an employee record using `discover_user_entities` and `discover_employee_entities`
+2. Validate that all required information is provided and the user account exists and is not already associated with an employee record using `discover_user_employee_entities` and `discover_user_employee_entities`
 3. Validate that assigned position exists and has active status using `discover_job_entities`
 4. Create the employee record using `manage_employee`
 5. Update user account to active status using `manage_user`
@@ -433,7 +433,7 @@ For Update:
 
 **Process:**
 
-1. Validate that employee exists and has "active" status using `discover_employee_entities`
+1. Validate that employee exists and has "active" status using `discover_user_employee_entities`
 2. Update employee record information using `manage_employee`
 3. Create an audit entry for employee update using `manage_audit_logs`
 
@@ -453,7 +453,7 @@ For Update:
 **Process:**
 
 1. Verify that approval is present using `check_approval` (HR Manager and Compliance Officer approvals required)
-2. Validate that employee exists and has active employment status using `discover_employee_entities`
+2. Validate that employee exists and has active employment status using `discover_user_employee_entities`
 3. Check for pending payroll records that have not been finalized using `discover_payroll_entities`
 4. Check for active benefits enrollments using `discover_benefits_entities`
 5. Check for incomplete training programs using `discover_training_entities`
@@ -470,6 +470,37 @@ For Update:
 - Pending payroll, benefits, or training found
 - Employee offboarding failed
 - Audit trail logging failure
+
+## Timesheet Submission
+1.  **Obtain:**
+    * **Required:** `employee_id`, `work_date`, `clock_in_time`, `clock_out_time`
+    * **Optional:** `break_duration_minutes`, `project_code`, `total_hours`, `status` (submitted, approved, rejected)
+2.  Validate that employee exists and has active status using `discover_user_employee_entities`.
+3.  Create a timesheet using `manage_timesheet_entries`.
+4.  Create an audit entry for timesheet submission using `manage_audit_logs`.
+5.  **Halt, and use `transfer_to_human` if you receive the following errors; otherwise complete the SOP:**
+    * Employee not found or inactive
+    * Invalid work date or times
+    * Invalid break duration
+    * Timesheet submission failed
+    * Audit trail logging failure
+
+## Timesheet Approval/Correction
+1.  **Obtain:**
+    * **Required:** `timesheet_id`, `approver_id`, `new_status` (submitted, approved, rejected)
+    * **Optional:** `clock_in_time`, `clock_out_time`, `break_duration_minutes`, `total_hours`, `project_code` (at least one must be provided for corrections)
+2.  Verify approver is authorized manager using `check_approval` (Payroll Administrator or Hiring Manager).
+3.  Validate that timesheet exists in the system using `discover_timesheet_entities`.
+4.  Validate that approver has a payroll administrator or hiring manager role using `discover_user_employee_entities`.
+5.  Update timesheet using `manage_timesheet_entries`.
+6.  Create an audit entry for approval and corrections using `manage_audit_logs`.
+7.  **Halt, and use `transfer_to_human` if you receive the following errors; otherwise complete the SOP:**
+    * Unauthorized access
+    * Timesheet not found
+    * Invalid status transition
+    * Invalid correction values
+    * Timesheet approval/correction failed
+    * Audit trail logging failure
 
 ### Process Payroll Run
 
@@ -562,7 +593,7 @@ For Update:
 
 **Process:**
 
-1. For enrollment: validate that employee and benefits plan exist and have active status using `discover_employee_entities` and `discover_benefits_entities` respectively
+1. For enrollment: validate that employee and benefits plan exist and have active status using `discover_user_employee_entities` and `discover_benefits_entities` respectively
 2. Check that the employee is not already enrolled in the same plan type using `discover_benefits_entities`
 3. For updates: validate that enrollment record exists using `discover_benefits_entities`
 4. Create or update benefits enrollment using `manage_employee_benefits`
@@ -594,7 +625,7 @@ For Update:
 **Process:**
 
 1. Verify that approval is present using `check_approval` (HR Manager approval required for final approval)
-2. Validate that employee and reviewer exist and have active status using `discover_employee_entities`
+2. Validate that employee and reviewer exist and have active status using `discover_user_employee_entities`
 3. Create or update the performance review using `manage_performance_review`
 4. Create an audit entry for performance review using `manage_audit_logs`
 
@@ -647,7 +678,7 @@ For Update:
 
 **Process:**
 
-1. Validate that the employee and training program are valid using `discover_employee_entities` and `discover_training_entities` respectively
+1. Validate that the employee and training program are valid using `discover_user_employee_entities` and `discover_training_entities` respectively
 2. Create or update the employee training record using `manage_employee_training`
 3. Create an audit entry for training enrollment and completion using `manage_audit_logs`
 
@@ -687,7 +718,7 @@ For Update:
 
 **Process:**
 
-1. Validate that employee exists and has active status using `discover_employee_entities`
+1. Validate that employee exists and has active status using `discover_user_employee_entities`
 2. Create the leave request using `manage_leave_requests`
 3. Create an audit entry for leave request submission using `manage_audit_logs`
 
@@ -714,7 +745,7 @@ For Update:
 
 **Process:**
 
-1. For creation, validate that employee, expense date, amount, and expense type are provided and the employee exists and has active status using `discover_employee_entities`
+1. For creation, validate that employee, expense date, amount, and expense type are provided and the employee exists and has active status using `discover_user_employee_entities`
 2. For updates, validate that reimbursement record exists and has submitted status using `discover_expense_entities`
 3. Create or update the reimbursement using `manage_expense_reimbursements`
 4. Create an audit entry for reimbursement operation using `manage_audit_logs`
@@ -738,7 +769,7 @@ For Update:
 **Process:**
 
 1. Validate that reimbursement record exists in the system using `discover_expense_entities`
-2. Validate that the approving user exists and has an appropriate role using `discover_user_entities`
+2. Validate that the approving user exists and has an appropriate role using `discover_user_employee_entities`
 3. Update reimbursement status to specified value using `manage_expense_reimbursements`
 4. Create an audit entry for reimbursement processing using `manage_audit_logs`
 
@@ -759,7 +790,7 @@ For Update:
 **Process:**
 
 1. Validate that payroll record exists in the system using `discover_payroll_entities`
-2. Validate that creator exists in the user system using `discover_user_entities`
+2. Validate that creator exists in the user system using `discover_user_employee_entities`
 3. Create deduction with required information using `manage_payroll_deduction`
 4. Create an audit entry for deduction creation using `manage_audit_logs`
 
