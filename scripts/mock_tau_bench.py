@@ -21,6 +21,7 @@ class Env:
 
 class UserStrategy:
     """Mock UserStrategy class"""
+    LLM = "mock_llm"  # Add the LLM attribute that's being accessed
     pass
 
 def load_user(*args, **kwargs):
