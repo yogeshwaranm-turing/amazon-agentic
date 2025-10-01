@@ -1,0 +1,165 @@
+name: Validate Task Execution
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'week_*/**/*.json'
+      - 'envs/**/*.py'
+      - '.github/workflows/validate-tasks.yml'
+      - 'scripts/task_validator.py'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'week_*/**/*.json' 
+      - 'envs/**/*.py'
+      - '.github/workflows/validate-tasks.yml'
+      - 'scripts/task_validator.py'
+  workflow_dispatch:
+    inputs:
+      task_file:
+        description: 'Specific task.json file to validate (optional)'
+        required: false
+        type: string
+      environment:
+        description: 'Specific environment to test (optional)'
+        required: false
+        type: string
+
+jobs:
+  validate-tasks:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11']
+      fail-fast: false
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-json-report pytest-html
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        # Install common dependencies for task validation
+        pip install jsonschema deepdiff typing-extensions
+        
+    - name: Find task.json files
+      id: find-tasks
+      run: |
+        if [ -n "${{ github.event.inputs.task_file }}" ]; then
+          echo "tasks=${{ github.event.inputs.task_file }}" >> $GITHUB_OUTPUT
+        else
+          # Find all task.json files in week_* directories
+          tasks=$(find week_* -name "task.json" -type f | head -20 | tr '\n' ' ')
+          echo "tasks=$tasks" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Validate task files
+      run: |
+        python scripts/task_validator.py \
+          --tasks "${{ steps.find-tasks.outputs.tasks }}" \
+          --environment "${{ github.event.inputs.environment }}" \
+          --output-format json \
+          --report-file validation-report.json
+          
+    - name: Generate HTML report
+      if: always()
+      run: |
+        python scripts/generate_report.py \
+          --input validation-report.json \
+          --output validation-report.html
+          
+    - name: Upload validation report
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: validation-report-python${{ matrix.python-version }}
+        path: |
+          validation-report.json
+          validation-report.html
+          
+    - name: Comment PR with results
+      if: github.event_name == 'pull_request' && always()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          
+          try {
+            const report = JSON.parse(fs.readFileSync('validation-report.json', 'utf8'));
+            
+            const passed = report.summary.passed;
+            const failed = report.summary.failed;
+            const total = passed + failed;
+            const successRate = total > 0 ? ((passed / total) * 100).toFixed(1) : 0;
+            
+            const status = failed === 0 ? '✅' : '❌';
+            
+            let comment = `## ${status} Task Validation Results (Python ${{ matrix.python-version }})\n\n`;
+            comment += `**Summary:** ${passed}/${total} tasks passed (${successRate}%)\n\n`;
+            
+            if (failed > 0) {
+              comment += `### ❌ Failed Tasks:\n`;
+              report.results.filter(r => !r.success).forEach(result => {
+                comment += `- **${result.task_file}**: ${result.error || 'Action sequence validation failed'}\n`;
+              });
+              comment += '\n';
+            }
+            
+            if (passed > 0) {
+              comment += `### ✅ Passed Tasks:\n`;
+              report.results.filter(r => r.success).slice(0, 5).forEach(result => {
+                comment += `- **${result.task_file}**: ${result.actions_validated} actions validated\n`;
+              });
+              if (passed > 5) {
+                comment += `- ... and ${passed - 5} more\n`;
+              }
+            }
+            
+            comment += `\n[View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+          } catch (error) {
+            console.log('Could not read validation report:', error.message);
+          }
+          
+    - name: Fail if validation errors
+      run: |
+        if [ -f validation-report.json ]; then
+          failed=$(python -c "
+          import json
+          with open('validation-report.json') as f:
+              report = json.load(f)
+          print(report['summary']['failed'])
+          ")
+          if [ "$failed" -gt "0" ]; then
+            echo "❌ $failed task(s) failed validation"
+            exit 1
+          else
+            echo "✅ All tasks passed validation"
+          fi
+        else
+          echo "❌ Validation report not found"
+          exit 1
+        fi
