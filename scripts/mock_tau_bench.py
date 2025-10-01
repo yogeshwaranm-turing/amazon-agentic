@@ -110,4 +110,13 @@ tau_bench_envs_fund_finance_tools.ALL_TOOLS_INTERFACE_3 = []
 tau_bench_envs_fund_finance_tools.ALL_TOOLS_INTERFACE_4 = []
 tau_bench_envs_fund_finance_tools.ALL_TOOLS_INTERFACE_5 = []
 
+# Add the missing class that the environment is looking for
+class MockFundFinanceDomainEnv(Env):
+    """Mock fund finance domain environment class"""
+    def __init__(self, *args, **kwargs):
+        pass
+
+# Make it available in the fund_finance module
+tau_bench_envs_fund_finance.MockFundFinanceDomainEnv = MockFundFinanceDomainEnv
+
 print("Mock tau_bench modules installed successfully")

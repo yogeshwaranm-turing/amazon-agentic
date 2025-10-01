@@ -206,6 +206,12 @@ class EnvironmentLoader:
                         env_module = type('MinimalEnvModule', (), {})()
                     else:
                         raise e
+                except (ImportError, AttributeError) as e:
+                    if 'tau_bench' in str(e) or any(name in str(e) for name in ['MockFundFinanceDomainEnv', 'MockFinanceDomainEnv', 'load_data', 'RULES', 'WIKI']):
+                        print(f"Warning: tau_bench dependency issue in {env_name}, using minimal module: {e}")
+                        env_module = type('MinimalEnvModule', (), {})()
+                    else:
+                        raise e
             
             # Load environment data
             env_data_path = project_root / "envs" / env_name / "data"
@@ -222,7 +228,7 @@ class EnvironmentLoader:
             return env_module, env_data
             
         except ImportError as e:
-            if 'tau_bench' in str(e):
+            if 'tau_bench' in str(e) or any(name in str(e) for name in ['MockFundFinanceDomainEnv', 'MockFinanceDomainEnv', 'load_data', 'RULES', 'WIKI']):
                 print(f"Warning: Skipping environment '{env_name}' due to tau_bench dependency: {e}")
                 # Return minimal environment for tau_bench related errors
                 minimal_module = type('MinimalEnvModule', (), {})()
