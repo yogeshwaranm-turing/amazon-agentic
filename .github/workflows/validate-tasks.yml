@@ -164,27 +164,80 @@ jobs:
                 comment += `- **Error:** ${result.error}\n`;
               }
               
-              comment += `\n#### Action Details:\n`;
+              comment += `\n#### Action Details:\n\n`;
+              
+              // Load task data to get ground truth
+              let taskData = null;
+              try {
+                const taskContent = fs.readFileSync(result.task_file, 'utf8');
+                taskData = JSON.parse(taskContent).task;
+              } catch (e) {
+                console.log(`Warning: Could not load task data from ${result.task_file}`);
+              }
               
               for (let i = 0; i < result.action_results.length; i++) {
                 const action = result.action_results[i];
                 const actionStatus = action.success ? '✅' : '❌';
-                comment += `${i + 1}. ${actionStatus} **${action.action_name}** (${action.execution_time_ms || 0}ms)\n`;
+                comment += `**${actionStatus} ACTION ${i + 1}: ${action.action_name}** (${(action.execution_time_ms || 0).toFixed(2)}ms)\n\n`;
                 
-                if (action.error) {
-                  comment += `   - Error: ${action.error}\n`;
+                // Show ground truth
+                if (taskData && taskData.actions && taskData.actions[i]) {
+                  const groundTruth = taskData.actions[i];
+                  comment += `<details>\n<summary>📋 Ground truth action</summary>\n\n`;
+                  comment += '```json\n';
+                  comment += JSON.stringify(groundTruth, null, 2);
+                  comment += '\n```\n</details>\n\n';
                 }
                 
-                // Show comparison if available
-                if (action.expected_output && action.actual_output) {
-                  if (JSON.stringify(action.expected_output) === JSON.stringify(action.actual_output)) {
-                    comment += `   - ✅ Output matches expected result\n`;
-                  } else {
-                    comment += `   - ❌ Output differs from expected\n`;
-                    comment += `   - Expected: \`${JSON.stringify(action.expected_output).substring(0, 100)}${JSON.stringify(action.expected_output).length > 100 ? '...' : ''}\`\n`;
-                    comment += `   - Actual: \`${JSON.stringify(action.actual_output).substring(0, 100)}${JSON.stringify(action.actual_output).length > 100 ? '...' : ''}\`\n`;
+                // Show execution outcome
+                const executionResult = {
+                  name: action.action_name,
+                  arguments: action.arguments || {},
+                  output: action.actual_output || 'No output available'
+                };
+                comment += `<details>\n<summary>🔧 Execution outcome</summary>\n\n`;
+                comment += '```json\n';
+                comment += JSON.stringify(executionResult, null, 2);
+                comment += '\n```\n</details>\n\n';
+                
+                // Show validation result
+                if (action.error) {
+                  comment += `**❌ Error:** ${action.error}\n\n`;
+                } else if (action.success) {
+                  comment += `**✅ VALIDATION:** Outputs match expected ground truth\n\n`;
+                } else {
+                  comment += `**❌ VALIDATION:** Outputs do not match expected ground truth\n\n`;
+                  
+                  // Show differences
+                  if (action.expected_output && action.actual_output) {
+                    const expected = action.expected_output;
+                    const actual = action.actual_output;
+                    
+                    if (typeof expected === 'object' && typeof actual === 'object') {
+                      const expectedKeys = Object.keys(expected || {});
+                      const actualKeys = Object.keys(actual || {});
+                      const missingKeys = expectedKeys.filter(k => !actualKeys.includes(k));
+                      const extraKeys = actualKeys.filter(k => !expectedKeys.includes(k));
+                      
+                      if (missingKeys.length > 0) {
+                        comment += `🔍 **Missing keys:** ${missingKeys.join(', ')}\n\n`;
+                      }
+                      if (extraKeys.length > 0) {
+                        comment += `🔍 **Extra keys:** ${extraKeys.join(', ')}\n\n`;
+                      }
+                      
+                      // Check value differences
+                      const commonKeys = expectedKeys.filter(k => actualKeys.includes(k));
+                      for (const key of commonKeys) {
+                        if (JSON.stringify(expected[key]) !== JSON.stringify(actual[key])) {
+                          comment += `🔍 **Different value for "${key}":** expected \`${JSON.stringify(expected[key]).substring(0, 50)}...\` → got \`${JSON.stringify(actual[key]).substring(0, 50)}...\`\n\n`;
+                        }
+                      }
+                    }
                   }
                 }
+                
+                comment += '---\n\n';
               }
               comment += `\n`;
             }

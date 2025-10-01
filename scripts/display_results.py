@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 """
-Display detailed validation results in the terminal.
+Display detailed validation res            # Show execution outcome
+            execution_result = {
+                "name": action['action_name'],
+                "arguments": action.get('arguments', {}),
+                "output": action.get('actual_output', 'No output available')
+            }
+            print(f'      🔧 Execution outcome:')
+            print(json.dumps(execution_result, indent=6, ensure_ascii=False))
+            print()e terminal.
 """
 
 import argparse
