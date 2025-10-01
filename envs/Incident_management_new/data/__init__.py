@@ -14,3 +14,4 @@ def load_data() -> dict[str, Any]:
             key = filename[:-5]  # Remove .json extension
             with open(os.path.join(FOLDER_PATH, filename)) as f:
                 data[key] = json.load(f)
+    return data
