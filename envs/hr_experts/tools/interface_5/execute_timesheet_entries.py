@@ -264,7 +264,7 @@ class ExecuteTimesheetEntries(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "manage_timesheet_entries",
+                "name": "execute_timesheet_entries",
                 "description": "Create or update timesheet entry records in the HR system. This tool manages employee time tracking with comprehensive validation and workflow controls. For creation, establishes new timesheet entries with proper validation of employee existence, work time logic, and break duration. For updates, modifies existing entries while enforcing proper time validation and status transitions. Validates clock times are in proper order, ensures break durations are non-negative, validates status values, and verifies approver existence. Essential for time tracking, payroll processing, and maintaining accurate work hour records.",
                 "parameters": {
                     "type": "object",
