@@ -5,6 +5,13 @@ from .discover_products import DiscoverProducts
 from .discover_components import DiscoverComponents
 from .discover_client_subscriptions import DiscoverClientSubscriptions
 from .discover_sla_agreements import DiscoverSlaAgreements
+from .discover_change_entities import DiscoverChangeEntities
+from .discover_incident_entities import DiscoverIncidentEntities
+from .discover_incident_report_entities import DiscoverIncidentReportEntities
+from .discover_knowledge_article_entities import DiscoverKnowledgeArticleEntities
+from .discover_metrics_entities import DiscoverMetricsEntities
+from .discover_root_cause_analysis_entities import DiscoverRootCauseAnalysisEntities
+from .discover_workaround_entities import DiscoverWorkaroundEntities
 from .manage_clients import ManageClients
 from .manage_vendors import ManageVendors
 from .manage_users import ManageUsers
@@ -21,6 +28,13 @@ ALL_TOOLS_INTERFACE_1 = [
     'DiscoverComponents',
     'DiscoverClientSubscriptions',
     'DiscoverSlaAgreements',
+    'DiscoverChangeEntities',
+    'DiscoverIncidentEntities',
+    'DiscoverIncidentReportEntities',
+    'DiscoverKnowledgeArticleEntities',
+    'DiscoverMetricsEntities',
+    'DiscoverRootCauseAnalysisEntities',
+    'DiscoverWorkaroundEntities',
     'ManageClients',
     'ManageVendors',
     'ManageUsers',
