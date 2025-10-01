@@ -134,29 +134,25 @@ jobs:
           --input validation-report.json \
           --output validation-report.html
           
+    - name: Create standalone HTML report
+      if: always() && hashFiles('validation-report.json') != ''
+      run: |
+        python scripts/generate_standalone_report.py \
+          --input validation-report.json \
+          --output validation-report-standalone.html \
+          --run-number ${{ github.run_number }}
+          
     - name: Upload validation report
       if: always() && hashFiles('validation-report.json') != ''
       uses: actions/upload-artifact@v4
       with:
-        name: validation-report
+        name: validation-report-${{ github.run_number }}
         path: |
           validation-report.json
           validation-report.html
+          validation-report-standalone.html
         if-no-files-found: ignore
-        
-    - name: Deploy HTML report to GitHub Pages
-      if: always() && hashFiles('validation-report.html') != ''
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: .
-        destination_dir: reports/${{ github.run_number }}
-        keep_files: true
-        enable_jekyll: false
-        exclude_assets: |
-          **/*
-          !validation-report.html
-          !validation-report.json
+        retention-days: 30
           
     - name: Comment PR with results
       if: github.event_name == 'pull_request' && always() && hashFiles('validation-report.json') != ''
@@ -196,7 +192,7 @@ jobs:
               }
             }
             
-            comment += `\n📊 [View HTML report on GitHub Pages](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/reports/${{ github.run_number }}/validation-report.html) | [Download artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts)`;
+            comment += `\n📊 [Download Detailed Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts) - Includes standalone HTML with action sequence comparison`;
             
             github.rest.issues.createComment({
               issue_number: context.issue.number,
@@ -221,39 +217,4 @@ jobs:
         else
           echo "❌ Validation report not found"
           exit 1
-        fi
-
-  cleanup-old-reports:
-    runs-on: ubuntu-latest
-    needs: validate-tasks
-    if: always()
-    
-    steps:
-    - name: Checkout gh-pages
-      uses: actions/checkout@v4
-      with:
-        ref: gh-pages
-        fetch-depth: 0
-        
-    - name: Cleanup old reports (keep last 50)
-      run: |
-        if [ -d "reports" ]; then
-          cd reports
-          # Keep only the 50 most recent report directories
-          ls -1 | sort -n | head -n -50 | xargs -r rm -rf
-          echo "Cleaned up old reports, keeping last 50"
-        else
-          echo "No reports directory found"
-        fi
-        
-    - name: Commit cleanup
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        if [[ $(git status --porcelain) ]]; then
-          git add .
-          git commit -m "Cleanup old validation reports"
-          git push
-        else
-          echo "No cleanup needed"
         fi
