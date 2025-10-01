@@ -183,9 +183,23 @@ class EnvironmentLoader:
             (env_module, env_data): Environment module and loaded data
         """
         try:
-            # Load environment module
+            # Load environment module with better error handling
             env_module_path = f"envs.{env_name}"
-            env_module = importlib.import_module(env_module_path)
+            
+            # Try to suppress tau_bench import errors during module loading
+            import warnings
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                
+                try:
+                    env_module = importlib.import_module(env_module_path)
+                except ModuleNotFoundError as e:
+                    if 'tau_bench' in str(e):
+                        # If it's a tau_bench import error, create a minimal module
+                        print(f"Warning: tau_bench dependency issue in {env_name}, using minimal module")
+                        env_module = type('MinimalEnvModule', (), {})()
+                    else:
+                        raise e
             
             # Load environment data
             env_data_path = project_root / "envs" / env_name / "data"
@@ -196,11 +210,19 @@ class EnvironmentLoader:
                     with open(data_file, 'r') as f:
                         key = data_file.stem  # filename without extension
                         env_data[key] = json.load(f)
+            else:
+                print(f"Warning: No data directory found for environment '{env_name}'")
             
             return env_module, env_data
             
         except ImportError as e:
-            raise ImportError(f"Could not load environment '{env_name}': {e}")
+            if 'tau_bench' in str(e):
+                print(f"Warning: Skipping environment '{env_name}' due to tau_bench dependency: {e}")
+                # Return minimal environment for tau_bench related errors
+                minimal_module = type('MinimalEnvModule', (), {})()
+                return minimal_module, {}
+            else:
+                raise ImportError(f"Could not load environment '{env_name}': {e}")
         except Exception as e:
             raise Exception(f"Error loading environment '{env_name}': {e}")
     
@@ -215,9 +237,22 @@ class EnvironmentLoader:
             interface_num: Interface number (1, 2, 3, etc.)
         """
         try:
+            # Handle minimal environment modules
+            if not hasattr(env_module, '__name__') or 'MinimalEnvModule' in str(type(env_module)):
+                print(f"Warning: Cannot load tool '{tool_name}' from minimal environment module")
+                return None
+            
             # Try to load from tools/interface_X/tool_name.py
             tools_module_path = f"envs.{env_module.__name__.split('.')[-1]}.tools.interface_{interface_num}.{tool_name}"
-            tool_module = importlib.import_module(tools_module_path)
+            
+            try:
+                tool_module = importlib.import_module(tools_module_path)
+            except ModuleNotFoundError as e:
+                if 'tau_bench' in str(e):
+                    print(f"Warning: Cannot load tool '{tool_name}' due to tau_bench dependency: {e}")
+                    return None
+                else:
+                    raise e
             
             # Find the tool class (should be a subclass of Tool)
             for name, obj in inspect.getmembers(tool_module):
@@ -230,7 +265,11 @@ class EnvironmentLoader:
             raise ImportError(f"Tool class not found in {tools_module_path}")
             
         except ImportError as e:
-            raise ImportError(f"Could not load tool '{tool_name}' from interface {interface_num}: {e}")
+            if 'tau_bench' in str(e):
+                print(f"Warning: Cannot load tool '{tool_name}' due to tau_bench dependency: {e}")
+                return None
+            else:
+                raise ImportError(f"Could not load tool '{tool_name}' from interface {interface_num}: {e}")
 
 class TaskExecutor:
     """Executes task action sequences and validates outputs"""
@@ -254,6 +293,18 @@ class TaskExecutor:
             tool_class = EnvironmentLoader.get_tool_class(
                 self.env_module, action_name, self.interface_num
             )
+            
+            # Handle case where tool couldn't be loaded (tau_bench dependency issues)
+            if tool_class is None:
+                execution_time = (datetime.now() - start_time).total_seconds() * 1000
+                return ValidationResult(
+                    action_name=action_name,
+                    success=False,
+                    expected_output=expected_output,
+                    actual_output=None,
+                    error=f"Tool '{action_name}' could not be loaded due to dependency issues",
+                    execution_time_ms=execution_time
+                )
             
             # Prepare arguments by resolving any references to previous outputs
             resolved_args = self._resolve_arguments(action_args)
