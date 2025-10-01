@@ -7,14 +7,14 @@ on:
   push:
     branches: [ main, develop ]
     paths:
-      - 'week_*/**/task.json'
+      - '**/task.json'
       - 'envs/**/*.py'
       - '.github/workflows/validate-tasks.yml'
       - 'scripts/task_validator.py'
   pull_request:
     branches: [ main, develop ]
     paths:
-      - 'week_*/**/task.json' 
+      - '**/task.json' 
       - 'envs/**/*.py'
       - '.github/workflows/validate-tasks.yml'
       - 'scripts/task_validator.py'
@@ -64,12 +64,17 @@ jobs:
         if [ -n "${{ github.event.inputs.task_file }}" ]; then
           echo "tasks=${{ github.event.inputs.task_file }}" >> $GITHUB_OUTPUT
         elif [ "${{ github.event_name }}" = "pull_request" ]; then
-          # Get only changed task.json files (not result.json)
-          tasks=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep 'task\.json$' | head -20 | tr '\n' ' ')
+          # Get all changed files and filter for any file named task.json at any depth
+          all_changed=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          echo "All changed files:"
+          echo "$all_changed"
+          
+          # Filter for files ending with /task.json or just task.json
+          tasks=$(echo "$all_changed" | grep -E '(^|/)task\.json$' | head -20 | tr '\n' ' ')
+          echo "Found task.json files: $tasks"
           echo "tasks=$tasks" >> $GITHUB_OUTPUT
-          echo "Found changed task.json files: $tasks"
         else
-          # For push events, find recent task.json files
+          # For push events, find recent task.json files at any depth
           tasks=$(find week_* -name "task.json" -type f -mtime -1 | head -10 | tr '\n' ' ')
           echo "tasks=$tasks" >> $GITHUB_OUTPUT
         fi
@@ -81,6 +86,8 @@ jobs:
         if [ -z "$tasks" ] || [ "$tasks" = " " ]; then
           echo "No task.json files to validate"
           echo "skip=true" >> $GITHUB_OUTPUT
+          # Create empty report for consistency
+          echo '{"summary": {"total": 0, "passed": 0, "failed": 0, "success_rate": 100.0}, "results": [], "message": "No task.json files found to validate"}' > validation-report.json
         else
           echo "Will validate: $tasks"
           echo "skip=false" >> $GITHUB_OUTPUT
@@ -96,23 +103,24 @@ jobs:
           --report-file validation-report.json
           
     - name: Generate HTML report
-      if: always()
+      if: always() && hashFiles('validation-report.json') != ''
       run: |
         python scripts/generate_report.py \
           --input validation-report.json \
           --output validation-report.html
           
     - name: Upload validation report
-      if: always()
+      if: always() && hashFiles('validation-report.json') != ''
       uses: actions/upload-artifact@v4
       with:
         name: validation-report
         path: |
           validation-report.json
           validation-report.html
+        if-no-files-found: ignore
           
     - name: Comment PR with results
-      if: github.event_name == 'pull_request' && always()
+      if: github.event_name == 'pull_request' && always() && hashFiles('validation-report.json') != ''
       uses: actions/github-script@v6
       with:
         script: |

@@ -20,7 +20,6 @@ import argparse
 import json
 import os
 import sys
-import traceback
 import importlib
 import inspect
 from pathlib import Path
@@ -415,8 +414,27 @@ def main():
     # Parse task files
     task_files = args.tasks.strip().split()
     if not task_files or task_files == ['']:
-        logging.error("No task files provided")
-        sys.exit(1)
+        logging.info("No task files provided - creating empty report")
+        
+        # Create empty report
+        empty_report = {
+            "timestamp": datetime.now().isoformat(),
+            "summary": {
+                "total": 0,
+                "passed": 0,
+                "failed": 0,
+                "success_rate": 100.0
+            },
+            "results": [],
+            "message": "No task files found to validate"
+        }
+        
+        # Save empty report
+        with open(args.report_file, 'w') as f:
+            json.dump(empty_report, f, indent=2)
+        
+        print("✅ No validation needed - no task files found")
+        return 0
     
     logging.info(f"Found {len(task_files)} task files to validate")
     
