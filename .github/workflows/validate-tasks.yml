@@ -127,32 +127,10 @@ jobs:
           --output-format json \
           --report-file validation-report.json
           
-    - name: Generate HTML report
+    - name: Display detailed validation results
       if: always() && hashFiles('validation-report.json') != ''
       run: |
-        python scripts/generate_report.py \
-          --input validation-report.json \
-          --output validation-report.html
-          
-    - name: Create standalone HTML report
-      if: always() && hashFiles('validation-report.json') != ''
-      run: |
-        python scripts/generate_standalone_report.py \
-          --input validation-report.json \
-          --output validation-report-standalone.html \
-          --run-number ${{ github.run_number }}
-          
-    - name: Upload validation report
-      if: always() && hashFiles('validation-report.json') != ''
-      uses: actions/upload-artifact@v4
-      with:
-        name: validation-report-${{ github.run_number }}
-        path: |
-          validation-report.json
-          validation-report.html
-          validation-report-standalone.html
-        if-no-files-found: ignore
-        retention-days: 30
+        python scripts/display_results.py --input validation-report.json
           
     - name: Comment PR with results
       if: github.event_name == 'pull_request' && always() && hashFiles('validation-report.json') != ''
@@ -174,25 +152,44 @@ jobs:
             let comment = `## ${status} Task Validation Results\n\n`;
             comment += `**Summary:** ${passed}/${total} tasks passed (${successRate}%)\n\n`;
             
-            if (failed > 0) {
-              comment += `### ❌ Failed Tasks:\n`;
-              report.results.filter(r => !r.success).forEach(result => {
-                comment += `- **${result.task_file}**: ${result.error || 'Action sequence validation failed'}\n`;
-              });
-              comment += '\n';
-            }
-            
-            if (passed > 0) {
-              comment += `### ✅ Passed Tasks:\n`;
-              report.results.filter(r => r.success).slice(0, 5).forEach(result => {
-                comment += `- **${result.task_file}**: ${result.actions_validated} actions validated\n`;
-              });
-              if (passed > 5) {
-                comment += `- ... and ${passed - 5} more\n`;
+            // Add detailed action results
+            for (const result of report.results) {
+              const taskStatus = result.success ? '✅' : '❌';
+              comment += `### ${taskStatus} ${result.task_file}\n`;
+              comment += `- **Environment:** ${result.environment}\n`;
+              comment += `- **Actions validated:** ${result.actions_validated}\n`;
+              comment += `- **Execution time:** ${result.execution_time_ms.toFixed(2)}ms\n`;
+              
+              if (result.error) {
+                comment += `- **Error:** ${result.error}\n`;
               }
+              
+              comment += `\n#### Action Details:\n`;
+              
+              for (let i = 0; i < result.action_results.length; i++) {
+                const action = result.action_results[i];
+                const actionStatus = action.success ? '✅' : '❌';
+                comment += `${i + 1}. ${actionStatus} **${action.action_name}** (${action.execution_time_ms || 0}ms)\n`;
+                
+                if (action.error) {
+                  comment += `   - Error: ${action.error}\n`;
+                }
+                
+                // Show comparison if available
+                if (action.expected_output && action.actual_output) {
+                  if (JSON.stringify(action.expected_output) === JSON.stringify(action.actual_output)) {
+                    comment += `   - ✅ Output matches expected result\n`;
+                  } else {
+                    comment += `   - ❌ Output differs from expected\n`;
+                    comment += `   - Expected: \`${JSON.stringify(action.expected_output).substring(0, 100)}${JSON.stringify(action.expected_output).length > 100 ? '...' : ''}\`\n`;
+                    comment += `   - Actual: \`${JSON.stringify(action.actual_output).substring(0, 100)}${JSON.stringify(action.actual_output).length > 100 ? '...' : ''}\`\n`;
+                  }
+                }
+              }
+              comment += `\n`;
             }
             
-            comment += `\n📊 [Download Detailed Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts) - Includes standalone HTML with action sequence comparison`;
+            comment += `\n📊 [View full details in workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
             
             github.rest.issues.createComment({
               issue_number: context.issue.number,
