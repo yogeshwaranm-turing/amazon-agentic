@@ -2,7 +2,7 @@ from .escalate_to_human import EscalateToHuman
 from .find_benefits_entities import FindBenefitsEntities
 from .find_department_entities import FindDepartmentEntities
 from .find_document_entities import FindDocumentEntities
-from .find_employee_entities import FindEmployeeEntities
+# from .find_employee_entities import FindEmployeeEntities
 from .find_expense_entities import FindExpenseEntities
 from .find_job_entities import FindJobEntities
 from .find_leave_entities import FindLeaveEntities
@@ -11,7 +11,7 @@ from .find_performance_entities import FindPerformanceEntities
 from .find_recruitment_entities import FindRecruitmentEntities
 from .find_timesheet_entities import FindTimesheetEntities
 from .find_training_entities import FindTrainingEntities
-from .find_user_entities import FindUserEntities
+# from .find_user_entities import FindUserEntities
 from .process_audit_logs import ProcessAuditLogs
 from .process_benefits_plan import ProcessBenefitsPlan
 from .process_candidate import ProcessCandidate
@@ -33,13 +33,15 @@ from .process_skill import ProcessSkill
 from .process_training_programs import ProcessTrainingPrograms
 from .process_user import ProcessUser
 from .verify_approval import VerifyApproval
+from .find_user_employee_entities import FindUserEmployeeEntities
+from .process_timesheet_entries import ProcessTimesheetEntries
 
 ALL_TOOLS_INTERFACE_3 = [
     EscalateToHuman,
     FindBenefitsEntities,
     FindDepartmentEntities,
     FindDocumentEntities,
-    FindEmployeeEntities,
+    # FindEmployeeEntities,
     FindExpenseEntities,
     FindJobEntities,
     FindLeaveEntities,
@@ -48,7 +50,7 @@ ALL_TOOLS_INTERFACE_3 = [
     FindRecruitmentEntities,
     FindTimesheetEntities,
     FindTrainingEntities,
-    FindUserEntities,
+    # FindUserEntities,
     ProcessAuditLogs,
     ProcessBenefitsPlan,
     ProcessCandidate,
@@ -70,4 +72,6 @@ ALL_TOOLS_INTERFACE_3 = [
     ProcessTrainingPrograms,
     ProcessUser,
     VerifyApproval,
+    FindUserEmployeeEntities,
+    ProcessTimesheetEntries,
 ]

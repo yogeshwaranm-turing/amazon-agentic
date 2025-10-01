@@ -22,7 +22,7 @@ from .execute_user import ExecuteUser
 from .retrieve_benefits_entities import RetrieveBenefitsEntities
 from .retrieve_department_entities import RetrieveDepartmentEntities
 from .retrieve_document_entities import RetrieveDocumentEntities
-from .retrieve_employee_entities import RetrieveEmployeeEntities
+# from .retrieve_employee_entities import RetrieveEmployeeEntities
 from .retrieve_expense_entities import RetrieveExpenseEntities
 from .retrieve_job_entities import RetrieveJobEntities
 from .retrieve_leave_entities import RetrieveLeaveEntities
@@ -31,8 +31,10 @@ from .retrieve_performance_entities import RetrievePerformanceEntities
 from .retrieve_recruitment_entities import RetrieveRecruitmentEntities
 from .retrieve_timesheet_entities import RetrieveTimesheetEntities
 from .retrieve_training_entities import RetrieveTrainingEntities
-from .retrieve_user_entities import RetrieveUserEntities
+# from .retrieve_user_entities import RetrieveUserEntities
 from .route_to_human import RouteToHuman
+from .retrieve_user_employee_entities import RetrieveUserEmployeeEntities
+from .execute_timesheet_entries import ExecuteTimesheetEntries
 
 ALL_TOOLS_INTERFACE_5 = [
     AuthenticateApproval,
@@ -59,7 +61,7 @@ ALL_TOOLS_INTERFACE_5 = [
     RetrieveBenefitsEntities,
     RetrieveDepartmentEntities,
     RetrieveDocumentEntities,
-    RetrieveEmployeeEntities,
+    # RetrieveEmployeeEntities,
     RetrieveExpenseEntities,
     RetrieveJobEntities,
     RetrieveLeaveEntities,
@@ -68,6 +70,8 @@ ALL_TOOLS_INTERFACE_5 = [
     RetrieveRecruitmentEntities,
     RetrieveTimesheetEntities,
     RetrieveTrainingEntities,
-    RetrieveUserEntities,
+    # RetrieveUserEntities,
     RouteToHuman,
+    RetrieveUserEmployeeEntities,
+    ExecuteTimesheetEntries,
 ]
