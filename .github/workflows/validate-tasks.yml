@@ -58,14 +58,39 @@ jobs:
         # Install common dependencies for task validation
         pip install jsonschema deepdiff typing-extensions
         
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch full history for git diff
+        
     - name: Find changed task.json files
       id: find-tasks
       run: |
         if [ -n "${{ github.event.inputs.task_file }}" ]; then
           echo "tasks=${{ github.event.inputs.task_file }}" >> $GITHUB_OUTPUT
         elif [ "${{ github.event_name }}" = "pull_request" ]; then
-          # Get all changed files and filter for any file named task.json at any depth
-          all_changed=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          # Get the correct base branch reference
+          base_ref="${{ github.event.pull_request.base.ref }}"
+          head_ref="${{ github.event.pull_request.head.ref }}"
+          
+          echo "Comparing $head_ref against base branch: $base_ref"
+          
+          # Get all changed files using the correct git references
+          all_changed=$(git diff --name-only "origin/$base_ref"...HEAD)
+          
+          # If that fails, try alternative approaches
+          if [ $? -ne 0 ]; then
+            echo "Git diff failed, trying alternative method..."
+            # Try using the merge base
+            merge_base=$(git merge-base HEAD "origin/$base_ref" 2>/dev/null || echo "")
+            if [ -n "$merge_base" ]; then
+              all_changed=$(git diff --name-only "$merge_base"...HEAD)
+            else
+              # Last resort: compare with HEAD~1
+              all_changed=$(git diff --name-only HEAD~1...HEAD)
+            fi
+          fi
+          
           echo "All changed files:"
           echo "$all_changed"
           
@@ -75,7 +100,7 @@ jobs:
           echo "tasks=$tasks" >> $GITHUB_OUTPUT
         else
           # For push events, find recent task.json files at any depth
-          tasks=$(find week_* -name "task.json" -type f -mtime -1 | head -10 | tr '\n' ' ')
+          tasks=$(find . -name "task.json" -type f -mtime -1 | head -10 | tr '\n' ' ')
           echo "tasks=$tasks" >> $GITHUB_OUTPUT
         fi
         
