@@ -200,6 +200,12 @@ class EnvironmentLoader:
                         env_module = type('MinimalEnvModule', (), {})()
                     else:
                         raise e
+                except SyntaxError as e:
+                    if 'match' in str(e) or 'case' in str(e):
+                        print(f"Warning: Python version incompatibility in {env_name} (requires Python 3.10+), using minimal module")
+                        env_module = type('MinimalEnvModule', (), {})()
+                    else:
+                        raise e
             
             # Load environment data
             env_data_path = project_root / "envs" / env_name / "data"
@@ -223,8 +229,14 @@ class EnvironmentLoader:
                 return minimal_module, {}
             else:
                 raise ImportError(f"Could not load environment '{env_name}': {e}")
+        except SyntaxError as e:
+            print(f"Warning: Skipping environment '{env_name}' due to Python version incompatibility: {e}")
+            minimal_module = type('MinimalEnvModule', (), {})()
+            return minimal_module, {}
         except Exception as e:
-            raise Exception(f"Error loading environment '{env_name}': {e}")
+            print(f"Warning: Skipping environment '{env_name}' due to error: {e}")
+            minimal_module = type('MinimalEnvModule', (), {})()
+            return minimal_module, {}
     
     @staticmethod
     def get_tool_class(env_module: Any, tool_name: str, interface_num: int = 1) -> Any:

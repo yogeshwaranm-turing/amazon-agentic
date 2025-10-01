@@ -103,5 +103,10 @@ def mock_search_user_entities(**kwargs):
     return {"success": False, "error": "Mock function - not implemented"}
 
 tau_bench_envs_fund_finance_tools.search_user_entities = mock_search_user_entities
+tau_bench_envs_fund_finance_tools.ALL_TOOLS_INTERFACE_1 = []
+tau_bench_envs_fund_finance_tools.ALL_TOOLS_INTERFACE_2 = []
+tau_bench_envs_fund_finance_tools.ALL_TOOLS_INTERFACE_3 = []
+tau_bench_envs_fund_finance_tools.ALL_TOOLS_INTERFACE_4 = []
+tau_bench_envs_fund_finance_tools.ALL_TOOLS_INTERFACE_5 = []
 
 print("Mock tau_bench modules installed successfully")
