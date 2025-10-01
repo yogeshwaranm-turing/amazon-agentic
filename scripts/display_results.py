@@ -1,10 +1,39 @@
 #!/usr/bin/env python3
 """
-Display detailed validation res            # Show execution outcome
+Display detailed validation res                                    # Show execution outcome
+            print(f'      🔧 Execution outcome:')
             execution_result = {
                 "name": action['action_name'],
                 "arguments": action.get('arguments', {}),
-                "output": action.get('actual_output', 'No output available')
+                "output": action.get('actual_output') if action.get('actual_output') is not None else 'No output available'
+            }
+            print(json.dumps(execution_result, indent=6, ensure_ascii=False))
+            print()
+            
+            # Show any errors
+            if action.get('error'):
+                print(f'      ❌ Error: {action["error"]}')
+                print()ution outcome
+            print(f'      🔧 Execution outcome:')
+            execution_result = {
+                "name": action['action_name'],
+                "arguments": action.get('arguments', {}),
+                "output": action.get('actual_output') if action.get('actual_output') is not None else 'No output available'
+            }
+            print(json.dumps(execution_result, indent=6, ensure_ascii=False))
+            print() execution outcome
+            print(f'      🔧 Execution outcome:')
+            execution_result = {
+                "name": action['action_name'],
+                "arguments": action.get('arguments', {}),
+                "output": action.get('actual_output') if action.get('actual_output') is not None else 'No output available'
+            }
+            print(json.dumps(execution_result, indent=6, ensure_ascii=False))
+            print() execution outcome
+            execution_result = {
+                "name": action['action_name'],
+                "arguments": action.get('arguments', {}),
+                "output": action.get('actual_output') if action.get('actual_output') is not None else 'No output available'
             }
             print(f'      🔧 Execution outcome:')
             print(json.dumps(execution_result, indent=6, ensure_ascii=False))

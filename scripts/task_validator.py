@@ -549,26 +549,49 @@ def main():
     report = {
         "timestamp": datetime.now().isoformat(),
         "summary": summary,
-        "results": [
-            {
-                "task_file": r.task_file,
-                "environment": r.environment,
-                "success": r.success,
-                "actions_validated": r.actions_validated,
-                "execution_time_ms": r.execution_time_ms,
-                "error": r.error,
-                "action_results": [
-                    {
-                        "action_name": ar.action_name,
-                        "success": ar.success,
-                        "error": ar.error,
-                        "data_type_matches": ar.data_type_matches,
-                        "execution_time_ms": ar.execution_time_ms
-                    } for ar in r.action_results
-                ]
-            } for r in results
-        ]
+        "results": []
     }
+    
+    # Process each result with proper argument extraction
+    for r in results:
+        # Load task file to get arguments
+        task_data = None
+        try:
+            task_data = load_task_file(r.task_file)
+        except:
+            pass
+        
+        task_actions = task_data.get('task', {}).get('actions', []) if task_data else []
+        
+        result_entry = {
+            "task_file": r.task_file,
+            "environment": r.environment,
+            "success": r.success,
+            "actions_validated": r.actions_validated,
+            "execution_time_ms": r.execution_time_ms,
+            "error": r.error,
+            "action_results": []
+        }
+        
+        for i, ar in enumerate(r.action_results):
+            # Get arguments from original task if available
+            arguments = {}
+            if i < len(task_actions):
+                arguments = task_actions[i].get('arguments', {})
+            
+            action_result = {
+                "action_name": ar.action_name,
+                "success": ar.success,
+                "error": ar.error,
+                "data_type_matches": ar.data_type_matches,
+                "execution_time_ms": ar.execution_time_ms,
+                "arguments": arguments,
+                "expected_output": ar.expected_output,
+                "actual_output": ar.actual_output
+            }
+            result_entry["action_results"].append(action_result)
+        
+        report["results"].append(result_entry)
     
     # Save report
     with open(args.report_file, 'w') as f:
