@@ -15,6 +15,10 @@ class Tool:
         """Default invoke method - should be overridden by actual tools"""
         return {"success": False, "error": "Tool not implemented"}
 
+class Env:
+    """Mock Env class that replaces tau_bench.envs.base.Env"""
+    pass
+
 class UserStrategy:
     """Mock UserStrategy class"""
     pass
@@ -47,11 +51,25 @@ tau_bench_envs_tool = create_mock_module('tau_bench.envs.tool')
 tau_bench_envs_user = create_mock_module('tau_bench.envs.user')
 tau_bench_types = create_mock_module('tau_bench.types')
 
+# Create environment-specific mock modules
+tau_bench_envs_fund_finance = create_mock_module('tau_bench.envs.fund_finance')
+tau_bench_envs_fund_finance_data = create_mock_module('tau_bench.envs.fund_finance.data')
+tau_bench_envs_fund_finance_rules = create_mock_module('tau_bench.envs.fund_finance.rules')
+tau_bench_envs_fund_finance_tools = create_mock_module('tau_bench.envs.fund_finance.tools')
+tau_bench_envs_fund_finance_wiki = create_mock_module('tau_bench.envs.fund_finance.wiki')
+tau_bench_envs_fund_finance_tasks = create_mock_module('tau_bench.envs.fund_finance.tasks')
+tau_bench_envs_fund_finance_interface_1 = create_mock_module('tau_bench.envs.fund_finance.interface_1_tasks')
+tau_bench_envs_fund_finance_interface_2 = create_mock_module('tau_bench.envs.fund_finance.interface_2_tasks')
+tau_bench_envs_fund_finance_interface_3 = create_mock_module('tau_bench.envs.fund_finance.interface_3_tasks')
+tau_bench_envs_fund_finance_interface_4 = create_mock_module('tau_bench.envs.fund_finance.interface_4_tasks')
+tau_bench_envs_fund_finance_interface_5 = create_mock_module('tau_bench.envs.fund_finance.interface_5_tasks')
+
 # Set up the module attributes
 tau_bench.envs = tau_bench_envs
 tau_bench_envs.base = tau_bench_envs_base
 tau_bench_envs.tool = tau_bench_envs_tool
 tau_bench_envs.user = tau_bench_envs_user
+tau_bench_envs.fund_finance = tau_bench_envs_fund_finance
 tau_bench.types = tau_bench_types
 
 # Add classes to appropriate modules
@@ -63,7 +81,27 @@ tau_bench_types.Task = Task
 
 # Add base classes that might be imported
 tau_bench_envs_base.Tool = Tool
+tau_bench_envs_base.Env = Env
 tau_bench_envs_base.load_user = load_user
 tau_bench_envs_base.UserStrategy = UserStrategy
+
+# Add mock functions and data for fund_finance environment
+tau_bench_envs_fund_finance_data.load_data = lambda: {}
+tau_bench_envs_fund_finance_rules.RULES = {}
+tau_bench_envs_fund_finance_wiki.WIKI = {}
+tau_bench_envs_fund_finance_tasks.tasks = []
+
+# Add mock test interfaces
+tau_bench_envs_fund_finance_interface_1.INTERFACE_1_TEST = []
+tau_bench_envs_fund_finance_interface_2.INTERFACE_2_TEST = []
+tau_bench_envs_fund_finance_interface_3.INTERFACE_3_TEST = []
+tau_bench_envs_fund_finance_interface_4.INTERFACE_4_TEST = []
+tau_bench_envs_fund_finance_interface_5.INTERFACE_5_TEST = []
+
+# Add mock tool functions for fund_finance
+def mock_search_user_entities(**kwargs):
+    return {"success": False, "error": "Mock function - not implemented"}
+
+tau_bench_envs_fund_finance_tools.search_user_entities = mock_search_user_entities
 
 print("Mock tau_bench modules installed successfully")
