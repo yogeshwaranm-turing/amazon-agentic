@@ -20,10 +20,12 @@ When a process halts, the agent immediately stops execution of the current SOP a
 Use this whenever you need to find, search, or verify entities; fetch details for validation or reporting; or when another SOP needs entity information first.
 
 1. **Obtain:**
+
    - Required: entity_type, requester_id
    - Optional: Include any filters for that entity—i.e., the entity's field names (e.g., ID, status, dates) used to narrow the search.
 
 2. Pick one discovery tool that matches the entity type, and pass only the filters you have:
+
    - For users, call `find_user_employee_entities` (filter by user ID, email, role, status, or name)
    - For departments, call `find_department_entities` (filter by department ID, name, manager ID, status)
    - For job positions, skills, job position skills, call `find_job_entities` (filter by position ID, title, department ID, skill ID, skill name, status)
@@ -43,6 +45,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 5. Record what happened by creating an audit entry with `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - The entity_type is missing or invalid
 - The requester is not authorized
 - The discovery tool fails to execute
@@ -50,6 +53,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 ### User Provisioning
 
 1. **Obtain:**
+
    - Required: first_name, last_name, email, role
    - Optional: phone_number, status (active, inactive), mfa_enabled
 
@@ -58,6 +62,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 4. Create an audit entry for user provisioning using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Missing or invalid inputs
 - Email already exists
 - Approval invalid or missing for elevated roles
@@ -68,10 +73,12 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 
 1. **Obtain:**
    **For Creation:**
+
    - Required: department_name, manager_id
    - Optional: budget, status (active, inactive)
 
    **For Update:**
+
    - Required: department_id
    - Optional: department_name, manager_id, budget, status (active, inactive) (at least one must be provided)
 
@@ -81,6 +88,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 5. Create an audit entry for department operation using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Missing or invalid inputs
 - Department not found (for updates)
 - Manager not found or inactive
@@ -92,10 +100,12 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 
 1. **Obtain:**
    **For Creation:**
+
    - Required: title, department_id, job_level (entry, junior, mid, senior, lead, manager, director, executive), employment_type (full_time, part_time, contract, intern), status (draft, open, closed)
    - Optional: hourly_rate_min, hourly_rate_max
 
    **For Update:**
+
    - Required: position_id
    - Optional: title, department_id, job_level (entry, junior, mid, senior, lead, manager, director, executive), employment_type (full_time, part_time, contract, intern), hourly_rate_min, hourly_rate_max, status (draft, open, closed) (at least one must be provided)
 
@@ -105,6 +115,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 5. Create an audit entry for job position operation using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Missing or invalid inputs
 - Position not found (for updates)
 - Department not found or inactive
@@ -116,6 +127,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 ### Post Job Opening
 
 1. **Obtain:**
+
    - Required: position_id
 
 2. Validate that position exists and currently has draft status using `find_job_entities`
@@ -123,6 +135,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 4. Create an audit entry for job posting using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Position not found or not in draft status
 - Position missing required information
 - Job posting failed
@@ -132,10 +145,12 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 
 1. **Obtain:**
    **For Creation:**
+
    - Required: skill_name
    - Optional: status (active, inactive)
 
    **For Update:**
+
    - Required: skill_id
    - Optional: skill_name, status (active, inactive) (at least one must be provided)
 
@@ -145,6 +160,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 5. Create an audit entry for skills operation using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Invalid skill details
 - Skill name already exists (for creation)
 - Skill not found (for updates)
@@ -155,6 +171,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 ### Job Position Skills Management
 
 1. **Obtain:**
+
    - Required: position_id, skill_ids, action (add, remove)
 
 2. Verify that approval is present using `verify_approval` (HR Director or Hiring Manager approval required)
@@ -164,6 +181,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 6. Create an audit entry for position skills management using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Invalid position skills details
 - Position or skills not found
 - Skills already associated (for add) or not associated (for remove)
@@ -174,6 +192,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 ### Close Job Opening
 
 1. **Obtain:**
+
    - Required: position_id
 
 2. Validate that position exists and currently has open status using `find_job_entities`
@@ -181,6 +200,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 4. Create an audit entry for job closing using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Position not found or not in open status
 - Job closing failed
 - Audit trail failure
@@ -188,6 +208,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 ### Adding Candidate Record
 
 1. **Obtain:**
+
    - Required: first_name, last_name, email, source (website, referral, linkedin, job_board, recruiter, other)
    - Optional: phone_number, address, status (new, screening, interviewing, offered, hired, rejected)
 
@@ -196,6 +217,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 4. Create an audit entry for candidate creation using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Missing or invalid inputs
 - Email already exists
 - Invalid source or status
@@ -206,19 +228,26 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 
 1. **Obtain:**
    **For Creation:**
+
    - Required: candidate_id, position_id, application_date, recruiter_id
-   - Optional: status (submitted, screening, interviewing, offered, hired, rejected), ai_screening_score, final_decision (hire, reject, pending)
+   - Optional: status (submitted, under_review, screening, interviewing, offer_made, accepted, rejected, withdrawn), ai_screening_score, final_decision (hire, reject, pending)
 
    **For Update:**
-   - Required: application_id
-   - Optional: candidate_id, position_id, application_date, recruiter_id, status (submitted, screening, interviewing, offered, hired, rejected), ai_screening_score, final_decision (hire, reject, pending) (at least one must be provided)
 
-2. For creation: validate that candidate and position exist and are valid using `find_recruitment_entities` and `find_job_entities` respectively. Also, validate that the assigned recruiter exists and has a "recruiter" role using `find_user_employee_entities`
-3. For updates: validate that application exists using `find_recruitment_entities`
-4. Create or update the job application with the information provided using `process_job_application`
-5. Create an audit entry for application operation using `process_audit_logs`
+   - Required: application_id
+   - Optional: candidate_id, position_id, application_date, recruiter_id, status (submitted, under_review, screening, interviewing, offer_made, accepted, rejected, withdrawn), ai_screening_score, final_decision (hire, reject, pending) (at least one must be provided)
+
+**Process:**
+
+1. For creation: validate that candidate and position exist and are valid using `find_recruitment_entities` and `find_job_entities` respectively. Also, validate that the assigned recruiter exists and has a "recruiter" role using `find_user_entities`
+2. For updates: validate that application exists using `find_recruitment_entities`
+3. Create or update the job application with the information provided using `process_job_application`
+4. Create an audit entry for application operation using `process_audit_logs`
+
+**Halt Conditions:**
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Missing or invalid inputs
 - Candidate, position, or recruiter not found
 - Invalid status transition
@@ -228,6 +257,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 ### Manage Application Stage
 
 1. **Obtain:**
+
    - Required: application_id, new_status (submitted, screening, interviewing, offered, hired, rejected)
    - Optional: ai_screening_score, final_decision (hire, reject, pending)
 
@@ -237,6 +267,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 5. Create an audit entry for stage change using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Invalid application status change
 - Invalid AI screening score or final decision
 - Approval missing for application stage change
@@ -246,6 +277,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 ### Schedule Interview
 
 1. **Obtain:**
+
    - Required: application_id, interviewer_id, interview_type (phone, video, in_person, technical, behavioral), scheduled_date
    - Optional: duration_minutes, status (scheduled, completed, cancelled)
 
@@ -254,6 +286,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 4. Create an audit entry for interview scheduling using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Invalid interview scheduling details
 - Application or interviewer not found
 - Invalid interview type or scheduled date
@@ -263,6 +296,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 ### Record Interview Outcome
 
 1. **Obtain:**
+
    - Required: interview_id
    - Optional: overall_rating, technical_score, communication_score, cultural_fit_score, recommendation (hire, reject, maybe), status (scheduled, completed, cancelled) (at least one must be provided)
 
@@ -272,6 +306,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 5. Create an audit entry for the interview outcome using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Interview not found or invalid status
 - Invalid rating, scores, or recommendation
 - Interview outcome recording failed
@@ -281,6 +316,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 ### Employee Onboarding
 
 1. **Obtain:**
+
    - Required: user_id, position_id, hire_date
    - Optional: manager_id, date_of_birth, address, hourly_rate, employment_status (active, inactive, terminated)
 
@@ -292,6 +328,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 7. Create an audit entry for onboarding using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Approval or compliance verification missing
 - Missing or invalid inputs
 - User already has employee record
@@ -303,6 +340,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 ### Update Employee Profile
 
 1. **Obtain:**
+
    - Required: employee_id
    - Optional: position_id, employment_status (active, inactive, terminated), manager_id, date_of_birth, address, hourly_rate (at least one must be provided)
 
@@ -311,6 +349,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 4. Create an audit entry for employee update using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Employee not found or inactive
 - Invalid employment status or hourly rate
 - Employee profile update failed
@@ -319,6 +358,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 ### Employee Offboarding
 
 1. **Obtain:**
+
    - Required: employee_id
 
 2. Verify that approval is present using `verify_approval` (HR Manager and Compliance Officer approvals required)
@@ -333,6 +373,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 11. Create an audit entry for offboarding using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Required approvals missing
 - Employee not found or not active
 - Pending payroll, benefits, or training found
@@ -342,6 +383,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 ### Timesheet Submission
 
 1. **Obtain:**
+
    - **Required:** employee_id, work_date, clock_in_time, clock_out_time
    - **Optional:** break_duration_minutes, project_code, total_hours, status (submitted, approved, rejected)
 
@@ -350,6 +392,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 4. Create an audit entry for timesheet submission using `manage_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Employee not found or inactive
 - Invalid work date or times
 - Invalid break duration
@@ -359,6 +402,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 ### Timesheet Approval/Correction
 
 1. **Obtain:**
+
    - **Required:** timesheet_id, approver_id, new_status (submitted, approved, rejected)
    - **Optional:** clock_in_time, clock_out_time, break_duration_minutes, total_hours, project_code (at least one must be provided for corrections)
 
@@ -369,6 +413,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 6. Create an audit entry for approval and corrections using `manage_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Unauthorized access
 - Timesheet not found
 - Invalid status transition
@@ -379,6 +424,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 ### Process Payroll Run
 
 1. **Obtain:**
+
    - Required: employee_id, pay_period_start, pay_period_end, hourly_rate
    - Optional: hours_worked, payment_date, status (pending, approved, paid), approved_by
 
@@ -388,6 +434,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 5. Create an audit entry for payroll transactions using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Finance Officer approval required
 - Missing or invalid inputs
 - Invalid pay period dates or hourly rate
@@ -398,6 +445,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 ### Payroll Correction
 
 1. **Obtain:**
+
    - Required: payroll_id
    - Optional: pay_period_start, pay_period_end, hours_worked, hourly_rate, payment_date, status (pending, approved, paid), approved_by (at least one must be provided)
 
@@ -407,6 +455,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 5. Create an audit entry for payroll correction using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Finance Officer approval required
 - Payroll record not found
 - Invalid correction information
@@ -417,10 +466,12 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 
 1. **Obtain:**
    **For Creation:**
+
    - Required: plan_name, plan_type (health, dental, vision, retirement, life_insurance), effective_date
    - Optional: provider, employee_cost, employer_cost, expiration_date, status (active, inactive)
 
    **For Update:**
+
    - Required: plan_id
    - Optional: plan_name, plan_type (health, dental, vision, retirement, life_insurance), provider, employee_cost, employer_cost, status (active, inactive), effective_date, expiration_date (at least one must be provided)
 
@@ -430,6 +481,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 5. Create an audit entry for benefits plan operation using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - HR Director or Finance Officer approval required
 - Missing or invalid inputs
 - Plan not found (for updates)
@@ -441,10 +493,12 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 
 1. **Obtain:**
    **For Enrollment:**
+
    - Required: employee_id, plan_id, enrollment_date, coverage_level (individual, family, employee_spouse, employee_children)
    - Optional: beneficiary_name, beneficiary_relationship, status (active, inactive)
 
    **For Update:**
+
    - Required: enrollment_id
    - Optional: employee_id, plan_id, enrollment_date, status (active, inactive), coverage_level (individual, family, employee_spouse, employee_children), beneficiary_name, beneficiary_relationship (at least one must be provided)
 
@@ -455,6 +509,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 6. Create an audit entry for benefits enrollment change using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Employee or plan not found or inactive
 - Invalid enrollment date or coverage level
 - Employee already enrolled in same plan type
@@ -466,10 +521,12 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 
 1. **Obtain:**
    **For Creation:**
+
    - Required: employee_id, reviewer_id, review_period_start, review_period_end, review_type (annual, quarterly, probationary, mid_year), overall_rating
    - Optional: goals_achievement_score, communication_score, teamwork_score, leadership_score, technical_skills_score, status (draft, submitted, approved)
 
    **For Update:**
+
    - Required: review_id
    - Optional: employee_id, reviewer_id, review_period_start, review_period_end, review_type (annual, quarterly, probationary, mid_year), overall_rating, goals_achievement_score, communication_score, teamwork_score, leadership_score, technical_skills_score, status (draft, submitted, approved) (at least one must be provided)
 
@@ -479,6 +536,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 5. Create an audit entry for performance review using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - HR Manager approval required
 - Employee or reviewer not found or inactive
 - Invalid review period dates or type
@@ -490,10 +548,12 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 
 1. **Obtain:**
    **For Creation:**
+
    - Required: program_name, program_type (onboarding, compliance, technical, leadership, safety), duration_hours, delivery_method (online, in_person, hybrid)
    - Optional: mandatory, status (active, inactive)
 
    **For Update:**
+
    - Required: program_id
    - Optional: program_name, program_type (onboarding, compliance, technical, leadership, safety), duration_hours, delivery_method (online, in_person, hybrid), mandatory, status (active, inactive) (at least one must be provided)
 
@@ -501,6 +561,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 3. Create an audit entry using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Invalid training program details
 - Training program operation failed
 - Audit trail logging failure
@@ -509,9 +570,11 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 
 1. **Obtain:**
    **For Enrollment:**
+
    - Required: employee_id, program_id, enrollment_date
 
    **For Update:**
+
    - Required: training_record_id
    - Optional: employee_id, program_id, enrollment_date, completion_date, status (enrolled, in_progress, completed, failed), score, certificate_issued, expiry_date (at least one must be provided)
 
@@ -520,6 +583,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 4. Create an audit entry for training enrollment and completion using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Invalid training enrollment
 - Employee or program not found
 - Invalid status progression
@@ -529,6 +593,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 ### Document Upload & Management
 
 1. **Obtain:**
+
    - Required: document_name, document_type (contract, policy, handbook, form, certificate, report), file_path, uploaded_by, confidentiality_level (public, internal, confidential, restricted), retention_period_years
    - Optional: employee_id, expiry_date, status (active, archived, deleted)
 
@@ -536,6 +601,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 3. Create an audit entry for document creation using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Invalid document metadata
 - Unsupported document type
 - Document upload failed
@@ -544,6 +610,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 ### Leave Request Processing
 
 1. **Obtain:**
+
    - Required: employee_id, leave_type (vacation, sick, personal, maternity, paternity, bereavement, jury_duty), start_date, end_date
    - Optional: status (pending, approved, rejected), approved_by, requested_days, remaining_balance
 
@@ -552,6 +619,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 4. Create an audit entry for leave request submission using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Employee not found or inactive
 - Invalid leave type or dates
 - Leave request submission failed
@@ -561,10 +629,12 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 
 1. **Obtain:**
    **For Creation:**
+
    - Required: employee_id, expense_date, amount, expense_type (travel, meals, accommodation, supplies, training, other)
    - Optional: receipt_file_path, status (submitted, approved, rejected, paid)
 
    **For Update:**
+
    - Required: reimbursement_id
    - Optional: employee_id, expense_date, amount, expense_type (travel, meals, accommodation, supplies, training, other), receipt_file_path, status (submitted, approved, rejected, paid), approved_by, payment_date (at least one must be provided)
 
@@ -574,6 +644,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 5. Create an audit entry for reimbursement operation using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Employee not found or inactive
 - Invalid expense type, amount, or date
 - Reimbursement not found (for updates)
@@ -584,6 +655,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 ### Process Expense Reimbursement
 
 1. **Obtain:**
+
    - Required: reimbursement_id, approving_user_id, new_status (submitted, approved, rejected, paid)
    - Optional: payment_date
 
@@ -593,6 +665,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 5. Create an audit entry for reimbursement processing using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Reimbursement not found
 - Approving user not found or lacks appropriate role
 - Invalid status transition
@@ -602,6 +675,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 ### Payroll Deductions Management
 
 1. **Obtain:**
+
    - Required: payroll_id, deduction_type (tax, insurance, retirement, garnishment, other), amount, created_by
 
 2. Validate that payroll record exists in the system using `find_payroll_entities`
@@ -610,6 +684,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
 5. Create an audit entry for deduction creation using `process_audit_logs`
 
 **Halt, and use `escalate_to_human` if you receive the following errors; otherwise complete the SOP:**
+
 - Payroll record not found
 - Invalid deduction type or amount
 - Creator not found

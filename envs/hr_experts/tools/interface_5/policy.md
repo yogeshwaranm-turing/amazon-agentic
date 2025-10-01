@@ -252,12 +252,12 @@ For Update:
 For Creation:
 
 - Required: candidate_id, position_id, application_date, recruiter_id
-- Optional: status (submitted, screening, interviewing, offered, hired, rejected), ai_screening_score, final_decision (hire, reject, pending)
+- Optional: status (submitted, under_review, screening, interviewing, offer_made, accepted, rejected, withdrawn), ai_screening_score, final_decision (hire, reject, pending)
 
 For Update:
 
 - Required: application_id
-- Optional: candidate_id, position_id, application_date, recruiter_id, status (submitted, screening, interviewing, offered, hired, rejected), ai_screening_score, final_decision (hire, reject, pending) (at least one must be provided)
+- Optional: candidate_id, position_id, application_date, recruiter_id, status (submitted, under_review, screening, interviewing, offer_made, accepted, rejected, withdrawn), ai_screening_score, final_decision (hire, reject, pending) (at least one must be provided)
 
 **Process:**
 
