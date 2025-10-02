@@ -160,15 +160,6 @@ class MockHRExpertsDomainEnv(Env):
 # Make HR environment available
 tau_bench_envs_hr_experts.MockHRExpertsDomainEnv = MockHRExpertsDomainEnv
 
-# Add mock tool functions for hr_experts (same pattern as fund_finance)
-def mock_discover_user_entities(**kwargs):
-    return {"success": False, "error": "Mock function - not implemented"}
-
-def mock_retrieve_user_employee_entities(**kwargs):
-    return {"success": False, "error": "Mock function - not implemented"}
-
-tau_bench_envs_hr_experts_tools.discover_user_entities = mock_discover_user_entities
-tau_bench_envs_hr_experts_tools.retrieve_user_employee_entities = mock_retrieve_user_employee_entities
 tau_bench_envs_hr_experts_tools.ALL_TOOLS_INTERFACE_1 = []
 tau_bench_envs_hr_experts_tools.ALL_TOOLS_INTERFACE_2 = []
 tau_bench_envs_hr_experts_tools.ALL_TOOLS_INTERFACE_3 = []

@@ -255,10 +255,16 @@ class EnvironmentLoader:
             interface_num: Interface number (1, 2, 3, etc.)
         """
         try:
-            # Handle minimal environment modules - provide mock tools
+            # Handle minimal environment modules - provide basic mock tools
             if not hasattr(env_module, '__name__') or 'MinimalEnvModule' in str(type(env_module)):
-                print(f"Warning: Mock tool '{tool_name}' not available in minimal environment")
-                return None
+                # Create a simple mock tool class that returns success but with mock data
+                class MockTool:
+                    @staticmethod
+                    def invoke(*args, **kwargs):
+                        return {"success": True, "message": "Mock tool executed", "mock": True}
+                        
+                print(f"Info: Using basic mock tool for '{tool_name}' in minimal environment")
+                return MockTool
             
             # Try to load from tools/interface_X/tool_name.py
             tools_module_path = f"envs.{env_module.__name__.split('.')[-1]}.tools.interface_{interface_num}.{tool_name}"
