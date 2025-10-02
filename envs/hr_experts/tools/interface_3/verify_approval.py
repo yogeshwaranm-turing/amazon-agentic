@@ -64,26 +64,7 @@ class VerifyApproval(Tool):
             "timesheet_correction": ["payroll_administrator", "hiring_manager"]
         }
         
-        # Define simplified action to approval keyword mapping
-        action_keywords = {
-            "user_provisioning": ["user provisioning", "elevated roles"],
-            "create_department": ["department creation"],
-            "update_department": ["department update", "department manager"],
-            "create_benefits_plan": ["benefits plan creation"],
-            "update_benefits_plan": ["benefits plan update"],
-            "create_job_position": ["job position", "publishable"],
-            "update_job_position": ["job position", "publishable"],
-            "job_position_skills_management": ["job position", "skills"],
-            "manage_application_stage": ["application stage"],
-            "employee_onboarding": ["onboarding"],
-            "employee_offboarding": ["offboarding"],
-            "timesheet_approval": ["timesheet approval"],
-            "timesheet_correction": ["timesheet correction"],
-            "process_payroll_run": ["payroll run"],
-            "payroll_correction": ["payroll correction"],
-            "performance_review_final_approval": ["performance review"],
-            "skills_management": ["skills management"]
-        }
+
         
         # Find the requester's role
         users = data.get("users", {})
@@ -122,18 +103,15 @@ class VerifyApproval(Tool):
         # For approval-based actions, check the approvals data
         approvals = data.get("approvals", {})
         
-        # Find matching approvals using keywords
+        # Find matching approvals by direct action name comparison
         matching_approvals = []
-        keywords = action_keywords.get(action, [action])
         
         for approval in approvals.values():
-            action_name = approval.get("action_name", "").lower()
+            action_name = approval.get("action_name", "")
             
-            # Check if any keyword matches the approval action name
-            for keyword in keywords:
-                if keyword.lower() in action_name:
-                    matching_approvals.append(approval)
-                    break
+            # Direct match with the input action
+            if action_name == action:
+                matching_approvals.append(approval)
         
         if not matching_approvals:
             return json.dumps({
