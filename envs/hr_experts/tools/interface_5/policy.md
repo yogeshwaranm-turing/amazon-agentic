@@ -28,7 +28,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
    - For departments, call `retrieve_department_entities` (filter by department ID, name, manager ID, status)
    - For job positions, skills, job position skills, call `retrieve_job_entities` (filter by position ID, title, department ID, skill ID, skill name, status)
    - For candidates, job applications, interviews, call `retrieve_recruitment_entities` (filter by candidate ID, application ID, position ID, recruiter ID, interview ID, interviewer ID, status)
-   - For employees, call `retrieve_employee_entities` (filter by employee ID, user ID, position ID, manager ID, employment status)
+   - For employees, call `retrieve_user_employee_entities` (filter by employee ID, user ID, position ID, manager ID, employment status)
    - For timesheets, call `retrieve_timesheet_entities` (filter by timesheet ID, employee ID, work date, status)
    - For payroll records, payroll deductions, call `retrieve_payroll_entities` (filter by payroll ID, employee ID, pay period dates, deduction ID, deduction type, status)
    - For benefits plans, employee benefits, call `retrieve_benefits_entities` (filter by plan ID, plan name, plan type, enrollment ID, employee ID, status)
@@ -75,7 +75,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
    - Optional: department_name, manager_id, budget, status (active, inactive) (at least one must be provided)
 
 2. Verify that approval is present using `authenticate_approval` (HR Director approval required)
-3. For creation, validate that the department name is provided and the assigned manager exists in the employee system and has active status using `retrieve_employee_entities`. For updates, validate that department exists and has active status using `retrieve_department_entities`
+3. For creation, validate that the department name is provided and the assigned manager exists in the employee system and has active status using `retrieve_user_employee_entities`. For updates, validate that department exists and has active status using `retrieve_department_entities`
 4. Create or update the department using `execute_department`
 5. Create an audit entry for department operation using `execute_audit_logs`
 
@@ -284,7 +284,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
    - Optional: manager_id, date_of_birth, address, hourly_rate, employment_status (active, inactive, terminated)
 
 2. Verify that approval is present using `authenticate_approval` (HR Manager approval and Compliance verification required)
-3. Validate that all required information is provided and the user account exists and is not already associated with an employee record using `retrieve_user_employee_entities` and `retrieve_employee_entities`
+3. Validate that all required information is provided and the user account exists and is not already associated with an employee record using `retrieve_user_employee_entities` and `retrieve_user_employee_entities`
 4. Validate that assigned position exists and has active status using `retrieve_job_entities`
 5. Create the employee record using `execute_employee`
 6. Update user account to active status using `execute_user`
@@ -305,7 +305,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
    - Required: employee_id
    - Optional: position_id, employment_status (active, inactive, terminated), manager_id, date_of_birth, address, hourly_rate (at least one must be provided)
 
-2. Validate that employee exists and has "active" status using `retrieve_employee_entities`
+2. Validate that employee exists and has "active" status using `retrieve_user_employee_entities`
 3. Update employee record information using `execute_employee`
 4. Create an audit entry for employee update using `execute_audit_logs`
 
@@ -321,7 +321,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
    - Required: employee_id
 
 2. Verify that approval is present using `authenticate_approval` (HR Manager and Compliance Officer approvals required)
-3. Validate that employee exists and has active employment status using `retrieve_employee_entities`
+3. Validate that employee exists and has active employment status using `retrieve_user_employee_entities`
 4. Check for pending payroll records that have not been finalized using `retrieve_payroll_entities`
 5. Check for active benefits enrollments using `retrieve_benefits_entities`
 6. Check for incomplete training programs using `retrieve_training_entities`
@@ -447,7 +447,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
    - Required: enrollment_id
    - Optional: employee_id, plan_id, enrollment_date, status (active, inactive), coverage_level (individual, family, employee_spouse, employee_children), beneficiary_name, beneficiary_relationship (at least one must be provided)
 
-2. For enrollment: validate that employee and benefits plan exist and have active status using `retrieve_employee_entities` and `retrieve_benefits_entities` respectively
+2. For enrollment: validate that employee and benefits plan exist and have active status using `retrieve_user_employee_entities` and `retrieve_benefits_entities` respectively
 3. Check that the employee is not already enrolled in the same plan type using `retrieve_benefits_entities`
 4. For updates: validate that enrollment record exists using `retrieve_benefits_entities`
 5. Create or update benefits enrollment using `execute_employee_benefits`
@@ -473,7 +473,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
    - Optional: employee_id, reviewer_id, review_period_start, review_period_end, review_type (annual, quarterly, probationary, mid_year), overall_rating, goals_achievement_score, communication_score, teamwork_score, leadership_score, technical_skills_score, status (draft, submitted, approved) (at least one must be provided)
 
 2. Verify that approval is present using `authenticate_approval` (HR Manager approval required for final approval)
-3. Validate that employee and reviewer exist and have active status using `retrieve_employee_entities`
+3. Validate that employee and reviewer exist and have active status using `retrieve_user_employee_entities`
 4. Create or update the performance review using `execute_performance_review`
 5. Create an audit entry for performance review using `execute_audit_logs`
 
@@ -514,7 +514,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
    - Required: training_record_id
    - Optional: employee_id, program_id, enrollment_date, completion_date, status (enrolled, in_progress, completed, failed), score, certificate_issued, expiry_date (at least one must be provided)
 
-2. Validate that the employee and training program are valid using `retrieve_employee_entities` and `retrieve_training_entities` respectively
+2. Validate that the employee and training program are valid using `retrieve_user_employee_entities` and `retrieve_training_entities` respectively
 3. Create or update the employee training record using `execute_employee_training`
 4. Create an audit entry for training enrollment and completion using `execute_audit_logs`
 
@@ -546,7 +546,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
    - Required: employee_id, leave_type (vacation, sick, personal, maternity, paternity, bereavement, jury_duty), start_date, end_date
    - Optional: status (pending, approved, rejected), approved_by, requested_days, remaining_balance
 
-2. Validate that employee exists and has active status using `retrieve_employee_entities`
+2. Validate that employee exists and has active status using `retrieve_user_employee_entities`
 3. Create the leave request using `execute_leave_requests`
 4. Create an audit entry for leave request submission using `execute_audit_logs`
 
@@ -567,7 +567,7 @@ Use this whenever you need to find, search, or verify entities; fetch details fo
    - Required: reimbursement_id
    - Optional: employee_id, expense_date, amount, expense_type (travel, meals, accommodation, supplies, training, other), receipt_file_path, status (submitted, approved, rejected, paid), approved_by, payment_date (at least one must be provided)
 
-2. For creation, validate that employee, expense date, amount, and expense type are provided and the employee exists and has active status using `retrieve_employee_entities`
+2. For creation, validate that employee, expense date, amount, and expense type are provided and the employee exists and has active status using `retrieve_user_employee_entities`
 3. For updates, validate that reimbursement record exists and has submitted status using `retrieve_expense_entities`
 4. Create or update the reimbursement using `execute_expense_reimbursements`
 5. Create an audit entry for reimbursement operation using `execute_audit_logs`
