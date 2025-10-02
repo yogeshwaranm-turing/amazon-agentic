@@ -183,35 +183,41 @@ class EnvironmentLoader:
             (env_module, env_data): Environment module and loaded data
         """
         try:
-            # Load environment module with better error handling
-            env_module_path = f"envs.{env_name}"
-            
-            # Try to suppress tau_bench import errors during module loading
-            import warnings
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
+            # For hr_experts, we load data directly and create a minimal module
+            # since we're bypassing tau_bench entirely
+            if env_name == "hr_experts":
+                print(f"Loading {env_name} environment with direct data access")
+                env_module = type('HRExpertsModule', (), {'__name__': 'hr_experts'})()
+            else:
+                # Load environment module with better error handling
+                env_module_path = f"envs.{env_name}"
                 
-                try:
-                    env_module = importlib.import_module(env_module_path)
-                except ModuleNotFoundError as e:
-                    if 'tau_bench' in str(e):
-                        # If it's a tau_bench import error, create a minimal module
-                        print(f"Warning: tau_bench dependency issue in {env_name}, using minimal module")
-                        env_module = type('MinimalEnvModule', (), {})()
-                    else:
-                        raise e
-                except SyntaxError as e:
-                    if 'match' in str(e) or 'case' in str(e):
-                        print(f"Warning: Python version incompatibility in {env_name} (requires Python 3.10+), using minimal module")
-                        env_module = type('MinimalEnvModule', (), {})()
-                    else:
-                        raise e
-                except (ImportError, AttributeError) as e:
-                    if 'tau_bench' in str(e) or any(name in str(e) for name in ['MockFundFinanceDomainEnv', 'MockFinanceDomainEnv', 'load_data', 'RULES', 'WIKI']):
-                        print(f"Warning: tau_bench dependency issue in {env_name}, using minimal module: {e}")
-                        env_module = type('MinimalEnvModule', (), {})()
-                    else:
-                        raise e
+                # Try to suppress tau_bench import errors during module loading
+                import warnings
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    
+                    try:
+                        env_module = importlib.import_module(env_module_path)
+                    except ModuleNotFoundError as e:
+                        if 'tau_bench' in str(e):
+                            # If it's a tau_bench import error, create a minimal module
+                            print(f"Warning: tau_bench dependency issue in {env_name}, using minimal module")
+                            env_module = type('MinimalEnvModule', (), {})()
+                        else:
+                            raise e
+                    except SyntaxError as e:
+                        if 'match' in str(e) or 'case' in str(e):
+                            print(f"Warning: Python version incompatibility in {env_name} (requires Python 3.10+), using minimal module")
+                            env_module = type('MinimalEnvModule', (), {})()
+                        else:
+                            raise e
+                    except (ImportError, AttributeError) as e:
+                        if 'tau_bench' in str(e) or any(name in str(e) for name in ['MockFundFinanceDomainEnv', 'MockFinanceDomainEnv', 'load_data', 'RULES', 'WIKI']):
+                            print(f"Warning: tau_bench dependency issue in {env_name}, using minimal module: {e}")
+                            env_module = type('MinimalEnvModule', (), {})()
+                        else:
+                            raise e
             
             # Load environment data
             env_data_path = project_root / "envs" / env_name / "data"
@@ -222,6 +228,7 @@ class EnvironmentLoader:
                     with open(data_file, 'r') as f:
                         key = data_file.stem  # filename without extension
                         env_data[key] = json.load(f)
+                print(f"Loaded data files for {env_name}: {list(env_data.keys())}")
             else:
                 print(f"Warning: No data directory found for environment '{env_name}'")
             
@@ -248,95 +255,95 @@ class EnvironmentLoader:
     def get_tool_class(env_module: Any, tool_name: str, interface_num: int = 1) -> Any:
         """
         Get the tool class from the environment module.
+        Load actual tools directly from the tool files, bypassing tau_bench dependencies.
         
         Args:
-            env_module: Loaded environment module
+            env_module: Loaded environment module (not used for direct tool loading)
             tool_name: Name of the tool to load
             interface_num: Interface number (1, 2, 3, etc.)
         """
         try:
-            # Handle minimal environment modules - provide basic mock tools
-            if not hasattr(env_module, '__name__') or 'MinimalEnvModule' in str(type(env_module)):
-                # Create a simple mock tool class that tries to match expected output format
-                class MockTool:
-                    @staticmethod
-                    def invoke(*args, **kwargs):
-                        # For hr_experts tools, try to return format similar to expected output
-                        if 'retrieve_' in tool_name or 'discover_' in tool_name:
-                            # Return mock data that matches the structure
-                            entity_type = kwargs.get("entity_type", "unknown")
-                            filters = kwargs.get("filters", {})
-                            
-                            # Create a basic mock result
-                            mock_result = {
-                                "id": "mock_id",
-                                "name": "Mock Entity",
-                                "created_at": "2025-01-01T00:00:00",
-                                "updated_at": "2025-01-01T00:00:00"
-                            }
-                            
-                            # Add specific fields based on entity type
-                            if entity_type == "users":
-                                mock_result.update({
-                                    "user_id": "mock_user_id", 
-                                    "first_name": "Mock",
-                                    "last_name": "User",
-                                    "email": filters.get("email", "mock@example.com"),
-                                    "role": "mock_role",
-                                    "status": "active"
-                                })
-                            
-                            return {
-                                "success": True,
-                                "entity_type": entity_type,
-                                "count": 1,
-                                "results": [mock_result]
-                            }
-                        elif 'authenticate_' in tool_name or 'check_' in tool_name:
-                            return {
-                                "approval_valid": True,
-                                "approved_by": ["mock_approver"],
-                                "message": "Mock approval granted"
-                            }
-                        elif 'execute_' in tool_name or 'manage_' in tool_name:
-                            return {
-                                "success": True,
-                                "message": "Mock operation completed"
-                            }
-                        else:
-                            return {"success": True, "message": "Mock tool executed"}
-                        
-                print(f"Info: Using basic mock tool for '{tool_name}' in minimal environment")
-                return MockTool
+            # Handle tool name mappings for hr_experts
+            tool_name_mappings = {
+                'discover_user_entities': 'discover_user_employee_entities',
+                'discover_employee_entities': 'discover_user_employee_entities',
+                'discover_department_entities': 'discover_department_entities',
+                'discover_job_entities': 'discover_job_entities',
+                'discover_recruitment_entities': 'discover_recruitment_entities'
+            }
             
-            # Try to load from tools/interface_X/tool_name.py
-            tools_module_path = f"envs.{env_module.__name__.split('.')[-1]}.tools.interface_{interface_num}.{tool_name}"
+            actual_tool_name = tool_name_mappings.get(tool_name, tool_name)
             
-            try:
-                tool_module = importlib.import_module(tools_module_path)
-            except ModuleNotFoundError as e:
-                if 'tau_bench' in str(e):
-                    print(f"Warning: Cannot load tool '{tool_name}' due to tau_bench dependency: {e}")
-                    return None
-                else:
-                    raise e
+            # Load tool file directly from filesystem
+            tool_file_path = project_root / "envs" / "hr_experts" / "tools" / f"interface_{interface_num}" / f"{actual_tool_name}.py"
             
-            # Find the tool class (should be a subclass of Tool)
-            for name, obj in inspect.getmembers(tool_module):
+            if not tool_file_path.exists():
+                print(f"Warning: Tool file '{tool_file_path}' does not exist")
+                return None
+            
+            # Read and execute the tool file directly
+            with open(tool_file_path, 'r') as f:
+                tool_code = f.read()
+            
+            # Remove tau_bench imports and replace with mock Tool class
+            mock_tool_code = tool_code.replace(
+                "from tau_bench.envs.tool import Tool", 
+                "class Tool:\n    pass"
+            )
+            
+            # Create a namespace for executing the tool code
+            tool_namespace = {}
+            
+            # Execute the modified tool code
+            exec(mock_tool_code, tool_namespace)
+            
+            # Find the tool class
+            for name, obj in tool_namespace.items():
                 if (inspect.isclass(obj) and 
                     hasattr(obj, 'invoke') and 
-                    name != 'Tool' and
-                    name.lower().replace('_', '') == tool_name.lower().replace('_', '')):
+                    name != 'Tool'):
+                    
+                    # Create wrapper classes for mapped tools to handle argument transformation
+                    if tool_name != actual_tool_name:
+                        if tool_name == 'discover_user_entities':
+                            class DiscoverUserEntitiesWrapper:
+                                @staticmethod
+                                def invoke(data, **kwargs):
+                                    # Transform arguments: move other args to filters and set entity_type
+                                    filters = {k: v for k, v in kwargs.items()}
+                                    result = obj.invoke(data, entity_type="users", filters=filters)
+                                    # Parse JSON response and return just the results array to match expected format
+                                    if isinstance(result, str):
+                                        parsed = json.loads(result)
+                                        return parsed.get("results", [])
+                                    elif isinstance(result, dict) and "results" in result:
+                                        return result["results"]
+                                    return result
+                            return DiscoverUserEntitiesWrapper
+                        elif tool_name == 'discover_employee_entities':
+                            class DiscoverEmployeeEntitiesWrapper:
+                                @staticmethod
+                                def invoke(data, **kwargs):
+                                    # Transform arguments: move other args to filters and set entity_type
+                                    filters = {k: v for k, v in kwargs.items()}
+                                    result = obj.invoke(data, entity_type="employees", filters=filters)
+                                    # Parse JSON response and return just the results array to match expected format
+                                    if isinstance(result, str):
+                                        parsed = json.loads(result)
+                                        return parsed.get("results", [])
+                                    elif isinstance(result, dict) and "results" in result:
+                                        return result["results"]
+                                    return result
+                            return DiscoverEmployeeEntitiesWrapper
+                    
                     return obj
             
-            raise ImportError(f"Tool class not found in {tools_module_path}")
+            print(f"Warning: Tool class not found in '{tool_file_path}'")
+            return None
             
-        except ImportError as e:
-            if 'tau_bench' in str(e):
-                print(f"Warning: Cannot load tool '{tool_name}' due to tau_bench dependency: {e}")
-                return None
-            else:
-                raise ImportError(f"Could not load tool '{tool_name}' from interface {interface_num}: {e}")
+        except Exception as e:
+            print(f"Warning: Could not load tool '{tool_name}' from interface {interface_num}: {e}")
+            return None
 
 class TaskExecutor:
     """Executes task action sequences and validates outputs"""
