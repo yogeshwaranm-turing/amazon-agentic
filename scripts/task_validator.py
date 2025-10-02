@@ -257,35 +257,8 @@ class EnvironmentLoader:
         try:
             # Handle minimal environment modules - provide mock tools
             if not hasattr(env_module, '__name__') or 'MinimalEnvModule' in str(type(env_module)):
-                # Import the mock tools we've created
-                try:
-                    import scripts.mock_tau_bench as mock_module
-                    
-                    # Map tool names to mock classes for hr_experts
-                    hr_tools_map = {
-                        'discover_user_entities': getattr(mock_module, 'DiscoverUserEntities', None),
-                        'discover_department_entities': getattr(mock_module, 'DiscoverDepartmentEntities', None),
-                        'discover_job_entities': getattr(mock_module, 'DiscoverJobEntities', None),
-                        'discover_employee_entities': getattr(mock_module, 'DiscoverEmployeeEntities', None),
-                        'discover_recruitment_entities': getattr(mock_module, 'DiscoverRecruitmentEntities', None),
-                        'check_approval': getattr(mock_module, 'CheckApproval', None),
-                        'manage_job_position': getattr(mock_module, 'ManageJobPosition', None),
-                        'manage_job_position_skills': getattr(mock_module, 'ManageJobPositionSkills', None),
-                        'manage_job_application': getattr(mock_module, 'ManageJobApplication', None),
-                        'manage_interview': getattr(mock_module, 'ManageInterview', None),
-                        'manage_audit_logs': getattr(mock_module, 'ManageAuditLogs', None)
-                    }
-                    
-                    if tool_name in hr_tools_map and hr_tools_map[tool_name]:
-                        print(f"Info: Using mock tool '{tool_name}' for testing")
-                        return hr_tools_map[tool_name]
-                    else:
-                        print(f"Warning: Mock tool '{tool_name}' not available")
-                        return None
-                        
-                except Exception as e:
-                    print(f"Warning: Cannot load mock tools: {e}")
-                    return None
+                print(f"Warning: Mock tool '{tool_name}' not available in minimal environment")
+                return None
             
             # Try to load from tools/interface_X/tool_name.py
             tools_module_path = f"envs.{env_module.__name__.split('.')[-1]}.tools.interface_{interface_num}.{tool_name}"
