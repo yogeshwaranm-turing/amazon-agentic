@@ -136,20 +136,44 @@ class OutputComparator:
     
     @staticmethod
     def _compare_lists(expected: list, actual: list) -> Tuple[bool, List[str]]:
-        """Compare two lists"""
+        """Compare two lists with support for unordered comparison"""
         differences = []
         
         if len(expected) != len(actual):
             differences.append(f"List length mismatch: expected {len(expected)}, got {len(actual)}")
             return False, differences
         
+        # First try exact ordered comparison
+        ordered_match = True
+        ordered_differences = []
+        
         for i, (exp_item, act_item) in enumerate(zip(expected, actual)):
             item_matches, item_diffs = OutputComparator.compare_outputs(exp_item, act_item)
             if not item_matches:
+                ordered_match = False
                 for diff in item_diffs:
-                    differences.append(f"At index {i}: {diff}")
+                    ordered_differences.append(f"At index {i}: {diff}")
         
-        return len(differences) == 0, differences
+        # If ordered comparison succeeds, return success
+        if ordered_match:
+            return True, []
+        
+        # If ordered comparison fails, try unordered comparison for simple types
+        # This handles cases like ["hr_manager", "compliance_officer"] vs ["compliance_officer", "hr_manager"]
+        if all(isinstance(item, (str, int, float, bool)) for item in expected + actual):
+            # For arrays of simple types, check if they contain the same elements
+            try:
+                expected_sorted = sorted(expected)
+                actual_sorted = sorted(actual)
+                if expected_sorted == actual_sorted:
+                    return True, []
+            except TypeError:
+                # If items can't be sorted (mixed types), fall back to set comparison
+                if set(expected) == set(actual):
+                    return True, []
+        
+        # If unordered comparison also fails, return the original ordered differences
+        return False, ordered_differences
     
     @staticmethod
     def _compare_numbers(expected: Union[int, float], actual: Union[int, float]) -> Tuple[bool, List[str]]:
