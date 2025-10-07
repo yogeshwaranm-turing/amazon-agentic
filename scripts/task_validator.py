@@ -16,6 +16,14 @@ try:
 except ImportError:
     pass  # If mock not available, continue (for local development)
 
+# Import our simple environment loader
+try:
+    from simple_env_loader import load_environment, get_available_environments
+    SIMPLE_LOADER_AVAILABLE = True
+except ImportError:
+    print("Warning: Simple environment loader not available, falling back to complex method")
+    SIMPLE_LOADER_AVAILABLE = False
+
 import argparse
 import json
 import os
@@ -198,6 +206,9 @@ class OutputComparator:
 class EnvironmentLoader:
     """Dynamically loads and manages different environments"""
     
+    # Cache for loaded tools to avoid reloading
+    _tool_cache = {}
+    
     @staticmethod
     def load_environment(env_name: str) -> Tuple[Any, Dict[str, Any]]:
         """
@@ -277,10 +288,149 @@ class EnvironmentLoader:
             return minimal_module, {}
     
     @staticmethod
+    def load_all_tools(env_name: str, interface_num: int = 1) -> Dict[str, Any]:
+        """
+        Bulk load all tools from an environment to avoid loading them one by one.
+        Returns a dictionary of tool_name -> tool_class.
+        """
+        cache_key = f"{env_name}_{interface_num}"
+        
+        # Check cache first
+        if cache_key in EnvironmentLoader._tool_cache:
+            return EnvironmentLoader._tool_cache[cache_key]
+        
+        tools = {}
+        tools_dir = project_root / "envs" / env_name / "tools" / f"interface_{interface_num}"
+        
+        if not tools_dir.exists():
+            print(f"Warning: Tools directory '{tools_dir}' does not exist")
+            return tools
+        
+        print(f"Bulk loading tools from {env_name}/interface_{interface_num}...")
+        
+        # Load all .py files in the tools directory
+        for tool_file in tools_dir.glob("*.py"):
+            if tool_file.name in ['__init__.py', 'policy.md']:
+                continue
+                
+            tool_name = tool_file.stem
+            try:
+                # Read and execute the tool file directly
+                with open(tool_file, 'r') as f:
+                    tool_code = f.read()
+                
+                # Remove tau_bench imports and replace with mock Tool class
+                mock_tool_code = tool_code.replace(
+                    "from tau_bench.envs.tool import Tool", 
+                    "class Tool:\n    pass"
+                )
+                
+                # Create a namespace for executing the tool code
+                tool_namespace = {}
+                
+                # Execute the modified tool code
+                exec(mock_tool_code, tool_namespace)
+                
+                # Find the tool class
+                for name, obj in tool_namespace.items():
+                    if (inspect.isclass(obj) and 
+                        hasattr(obj, 'invoke') and 
+                        name != 'Tool'):
+                        
+                        # Apply environment-specific wrappers
+                        wrapped_tool = EnvironmentLoader._apply_tool_wrapper(
+                            obj, tool_name, env_name
+                        )
+                        tools[tool_name] = wrapped_tool
+                        break
+                        
+            except Exception as e:
+                print(f"Warning: Could not load tool '{tool_name}': {e}")
+                continue
+        
+        print(f"Loaded {len(tools)} tools: {list(tools.keys())}")
+        
+        # Cache the loaded tools
+        EnvironmentLoader._tool_cache[cache_key] = tools
+        return tools
+    
+    @staticmethod
+    def _apply_tool_wrapper(original_tool: Any, tool_name: str, env_name: str) -> Any:
+        """Apply environment-specific wrappers to tools"""
+        
+        # HR Experts wrappers
+        if env_name == 'hr_experts':
+            hr_experts_mappings = {
+                'discover_user_entities': 'users',
+                'discover_employee_entities': 'employees'
+            }
+            
+            if tool_name in hr_experts_mappings:
+                entity_type = hr_experts_mappings[tool_name]
+                
+                class HRExpertsWrapper:
+                    @staticmethod
+                    def invoke(data, **kwargs):
+                        filters = {k: v for k, v in kwargs.items()}
+                        result = original_tool.invoke(data, entity_type=entity_type, filters=filters)
+                        # Return just the results array for hr_experts format
+                        if isinstance(result, str):
+                            parsed = json.loads(result)
+                            return parsed.get("results", [])
+                        elif isinstance(result, dict) and "results" in result:
+                            return result["results"]
+                        return result
+                return HRExpertsWrapper
+        
+        # Fund Finance wrappers  
+        elif env_name == 'fund_finance' and 'discover_' in tool_name:
+            class FundFinanceDiscoverWrapper:
+                @staticmethod
+                def invoke(data, **kwargs):
+                    # If entity_type is already provided, use the original tool directly
+                    if 'entity_type' in kwargs:
+                        result = original_tool.invoke(data, **kwargs)
+                        # Return full response for fund_finance format
+                        if isinstance(result, str):
+                            return json.loads(result)
+                        return result
+                    else:
+                        # Map tool names to entity types for legacy calls
+                        entity_type_map = {
+                            'discover_fund_entities': 'funds',
+                            'discover_investor_entities': 'investors',
+                            'discover_instrument_entities': 'instruments',
+                            'discover_portfolio_entities': 'portfolios',
+                            'discover_trading_entities': 'trades',
+                            'discover_billing_entities': 'invoices',
+                            'discover_reporting_entities': 'reports',
+                            'discover_user_entities': 'users',
+                            'discover_valuation_entities': 'nav_records',
+                            'discover_investment_flow_entities': 'commitments',
+                            'discover_system_entities': 'audit_trails'
+                        }
+                        
+                        expected_entity_type = entity_type_map.get(tool_name)
+                        if expected_entity_type:
+                            filters = kwargs if kwargs else None
+                            result = original_tool.invoke(data, entity_type=expected_entity_type, filters=filters)
+                            # Return just the results array for legacy format
+                            if isinstance(result, str):
+                                parsed = json.loads(result)
+                                return parsed.get("results", [])
+                            elif isinstance(result, dict) and "results" in result:
+                                return result["results"]
+                        return result
+            return FundFinanceDiscoverWrapper
+        
+        # Return original tool if no wrapper needed
+        return original_tool
+    
+    @staticmethod
     def get_tool_class(env_module: Any, tool_name: str, interface_num: int = 1) -> Any:
         """
         Get the tool class from the environment module.
-        Load actual tools directly from the tool files, bypassing tau_bench dependencies.
+        Uses bulk-loaded tools for efficiency.
         
         Args:
             env_module: Loaded environment module 
@@ -295,141 +445,28 @@ class EnvironmentLoader:
             elif 'fund_finance' in env_name.lower() or 'fundfinance' in env_name.lower():
                 env_name = 'fund_finance'
             
-            # Handle tool name mappings for different environments
-            hr_experts_mappings = {
-                'discover_user_entities': 'discover_user_employee_entities',
-                'discover_employee_entities': 'discover_user_employee_entities',
-            }
+            # Get all tools for this environment (bulk load)
+            all_tools = EnvironmentLoader.load_all_tools(env_name, interface_num)
             
-            fund_finance_mappings = {
-                # fund_finance tools mostly match their names, but need entity_type injection
-            }
-            
+            # Handle tool name mappings for hr_experts
             if env_name == 'hr_experts':
+                hr_experts_mappings = {
+                    'discover_user_entities': 'discover_user_employee_entities',
+                    'discover_employee_entities': 'discover_user_employee_entities',
+                }
                 actual_tool_name = hr_experts_mappings.get(tool_name, tool_name)
-            elif env_name == 'fund_finance':
-                actual_tool_name = fund_finance_mappings.get(tool_name, tool_name)
             else:
                 actual_tool_name = tool_name
             
-            # Load tool file directly from filesystem
-            tool_file_path = project_root / "envs" / env_name / "tools" / f"interface_{interface_num}" / f"{actual_tool_name}.py"
-            
-            if not tool_file_path.exists():
-                print(f"Warning: Tool file '{tool_file_path}' does not exist")
+            # Look for the tool in our loaded tools
+            if actual_tool_name in all_tools:
+                return all_tools[actual_tool_name]
+            elif tool_name in all_tools:
+                return all_tools[tool_name]
+            else:
+                print(f"Warning: Tool '{tool_name}' not found in {env_name}/interface_{interface_num}")
+                print(f"Available tools: {list(all_tools.keys())}")
                 return None
-            
-            # Read and execute the tool file directly
-            with open(tool_file_path, 'r') as f:
-                tool_code = f.read()
-            
-            # Remove tau_bench imports and replace with mock Tool class
-            mock_tool_code = tool_code.replace(
-                "from tau_bench.envs.tool import Tool", 
-                "class Tool:\n    pass"
-            )
-            
-            # Create a namespace for executing the tool code
-            tool_namespace = {}
-            
-            # Execute the modified tool code
-            exec(mock_tool_code, tool_namespace)
-            
-            # Find the tool class
-            for name, obj in tool_namespace.items():
-                if (inspect.isclass(obj) and 
-                    hasattr(obj, 'invoke') and 
-                    name != 'Tool'):
-                    
-                    # Create wrapper classes for mapped tools to handle argument transformation
-                    if env_name == 'hr_experts' and tool_name != actual_tool_name:
-                        if tool_name == 'discover_user_entities':
-                            class DiscoverUserEntitiesWrapper:
-                                @staticmethod
-                                def invoke(data, **kwargs):
-                                    # Transform arguments: move other args to filters and set entity_type
-                                    filters = {k: v for k, v in kwargs.items()}
-                                    result = obj.invoke(data, entity_type="users", filters=filters)
-                                    # Parse JSON response and return just the results array to match expected format
-                                    if isinstance(result, str):
-                                        parsed = json.loads(result)
-                                        return parsed.get("results", [])
-                                    elif isinstance(result, dict) and "results" in result:
-                                        return result["results"]
-                                    return result
-                            return DiscoverUserEntitiesWrapper
-                        elif tool_name == 'discover_employee_entities':
-                            class DiscoverEmployeeEntitiesWrapper:
-                                @staticmethod
-                                def invoke(data, **kwargs):
-                                    # Transform arguments: move other args to filters and set entity_type
-                                    filters = {k: v for k, v in kwargs.items()}
-                                    result = obj.invoke(data, entity_type="employees", filters=filters)
-                                    # Parse JSON response and return just the results array to match expected format
-                                    if isinstance(result, str):
-                                        parsed = json.loads(result)
-                                        return parsed.get("results", [])
-                                    elif isinstance(result, dict) and "results" in result:
-                                        return result["results"]
-                                    return result
-                            return DiscoverEmployeeEntitiesWrapper
-                    
-                    # Create wrapper classes for fund_finance tools that expect entity_type
-                    elif env_name == 'fund_finance' and 'discover_' in tool_name:
-                        # Check if the tool is being called with entity_type already provided
-                        # If so, we don't need to wrap it - the original tool can handle it directly
-                        # We'll determine this at execution time by checking the arguments
-                        
-                        class FundFinanceDiscoverWrapper:
-                            @staticmethod
-                            def invoke(data, **kwargs):
-                                # If entity_type is already provided, use the original tool directly
-                                if 'entity_type' in kwargs:
-                                    result = obj.invoke(data, **kwargs)
-                                    # For consistency with expected output format, still check if we need to unwrap
-                                    if isinstance(result, str):
-                                        parsed = json.loads(result)
-                                        # Check if the task expects the full response or just results
-                                        # If it has "success" field in expected output, return full response
-                                        return parsed
-                                    return result
-                                else:
-                                    # Map tool names to their expected entity types for legacy calls
-                                    entity_type_map = {
-                                        'discover_fund_entities': 'funds',
-                                        'discover_investor_entities': 'investors',
-                                        'discover_instrument_entities': 'instruments',
-                                        'discover_portfolio_entities': 'portfolios',
-                                        'discover_trading_entities': 'trades',
-                                        'discover_billing_entities': 'invoices',
-                                        'discover_reporting_entities': 'reports',
-                                        'discover_user_entities': 'users',
-                                        'discover_valuation_entities': 'nav_records',
-                                        'discover_investment_flow_entities': 'commitments',
-                                        'discover_system_entities': 'audit_trails'
-                                    }
-                                    
-                                    expected_entity_type = entity_type_map.get(tool_name)
-                                    if expected_entity_type:
-                                        # Add entity_type and pass filters if any
-                                        filters = kwargs if kwargs else None
-                                        result = obj.invoke(data, entity_type=expected_entity_type, filters=filters)
-                                        # Parse JSON response and return just the results array to match expected format
-                                        if isinstance(result, str):
-                                            parsed = json.loads(result)
-                                            return parsed.get("results", [])
-                                        elif isinstance(result, dict) and "results" in result:
-                                            return result["results"]
-                                        return result
-                                    else:
-                                        # Fallback to original tool
-                                        return obj.invoke(data, **kwargs)
-                        return FundFinanceDiscoverWrapper
-                    
-                    return obj
-            
-            print(f"Warning: Tool class not found in '{tool_file_path}'")
-            return None
             
         except Exception as e:
             print(f"Warning: Could not load tool '{tool_name}' from interface {interface_num}: {e}")
@@ -441,7 +478,17 @@ class TaskExecutor:
     def __init__(self, env_name: str, interface_num: int = 1):
         self.env_name = env_name
         self.interface_num = interface_num
-        self.env_module, self.env_data = EnvironmentLoader.load_environment(env_name)
+        
+        # Use simple environment loader if available
+        if SIMPLE_LOADER_AVAILABLE:
+            self.simple_env = load_environment(env_name)
+            self.env_data = self.simple_env.data
+            self.env_tools = self.simple_env.tools
+        else:
+            # Fallback to complex method
+            self.env_module, self.env_data = EnvironmentLoader.load_environment(env_name)
+            self.env_tools = None
+            
         self.execution_context = {}  # Store outputs from previous actions
         
     def execute_action(self, action: Dict[str, Any]) -> ValidationResult:
@@ -453,35 +500,59 @@ class TaskExecutor:
         start_time = datetime.now()
         
         try:
-            # Load the tool class
-            tool_class = EnvironmentLoader.get_tool_class(
-                self.env_module, action_name, self.interface_num
-            )
-            
-            # Handle case where tool couldn't be loaded (tau_bench dependency issues)
-            if tool_class is None:
-                execution_time = (datetime.now() - start_time).total_seconds() * 1000
-                return ValidationResult(
-                    action_name=action_name,
-                    success=False,
-                    expected_output=expected_output,
-                    actual_output=None,
-                    error=f"Tool '{action_name}' could not be loaded due to dependency issues",
-                    execution_time_ms=execution_time
-                )
-            
-            # Prepare arguments by resolving any references to previous outputs
-            resolved_args = self._resolve_arguments(action_args)
-            
-            # Execute the tool
-            if hasattr(tool_class, 'invoke'):
-                # Add environment data to arguments if the tool expects it
-                if 'data' in inspect.signature(tool_class.invoke).parameters:
-                    actual_output = tool_class.invoke(data=self.env_data, **resolved_args)
-                else:
-                    actual_output = tool_class.invoke(**resolved_args)
+            # Use simple environment loader if available
+            if SIMPLE_LOADER_AVAILABLE and self.env_tools:
+                # Simple approach - just get the tool from the loaded tools
+                if action_name not in self.env_tools:
+                    execution_time = (datetime.now() - start_time).total_seconds() * 1000
+                    return ValidationResult(
+                        action_name=action_name,
+                        success=False,
+                        expected_output=expected_output,
+                        actual_output=None,
+                        error=f"Tool '{action_name}' not found in environment",
+                        execution_time_ms=execution_time
+                    )
+                
+                tool = self.env_tools[action_name]
+                
+                # Prepare arguments by resolving any references to previous outputs
+                resolved_args = self._resolve_arguments(action_args)
+                
+                # Execute the tool with environment data
+                actual_output = tool.invoke(self.env_data, **resolved_args)
+                
             else:
-                raise AttributeError(f"Tool {action_name} does not have invoke method")
+                # Fallback to complex method
+                # Load the tool class
+                tool_class = EnvironmentLoader.get_tool_class(
+                    self.env_module, action_name, self.interface_num
+                )
+                
+                # Handle case where tool couldn't be loaded (tau_bench dependency issues)
+                if tool_class is None:
+                    execution_time = (datetime.now() - start_time).total_seconds() * 1000
+                    return ValidationResult(
+                        action_name=action_name,
+                        success=False,
+                        expected_output=expected_output,
+                        actual_output=None,
+                        error=f"Tool '{action_name}' could not be loaded due to dependency issues",
+                        execution_time_ms=execution_time
+                    )
+                
+                # Prepare arguments by resolving any references to previous outputs
+                resolved_args = self._resolve_arguments(action_args)
+                
+                # Execute the tool
+                if hasattr(tool_class, 'invoke'):
+                    # Add environment data to arguments if the tool expects it
+                    if 'data' in inspect.signature(tool_class.invoke).parameters:
+                        actual_output = tool_class.invoke(data=self.env_data, **resolved_args)
+                    else:
+                        actual_output = tool_class.invoke(**resolved_args)
+                else:
+                    raise AttributeError(f"Tool {action_name} does not have invoke method")
             
             # Parse JSON output if it's a string
             if isinstance(actual_output, str):
@@ -528,10 +599,23 @@ class TaskExecutor:
             )
     
     def _resolve_arguments(self, args: Dict[str, Any]) -> Dict[str, Any]:
-        """Resolve argument references to previous action outputs"""
-        # For now, return args as-is since the example doesn't show cross-references
-        # This can be enhanced to resolve edge connections if needed
-        return args
+        """
+        Resolve argument references to previous action outputs and parse JSON strings.
+        """
+        resolved = {}
+        
+        for key, value in args.items():
+            # Parse JSON strings that look like JSON objects/arrays
+            if isinstance(value, str) and value.strip().startswith(('{', '[')):
+                try:
+                    resolved[key] = json.loads(value)
+                except json.JSONDecodeError:
+                    # If it's not valid JSON, keep as string
+                    resolved[key] = value
+            else:
+                resolved[key] = value
+        
+        return resolved
     
     def validate_task(self, task_data: Dict[str, Any]) -> TaskValidationResult:
         """Validate an entire task by executing all actions in sequence"""
