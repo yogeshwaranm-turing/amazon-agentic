@@ -376,37 +376,55 @@ class EnvironmentLoader:
                     
                     # Create wrapper classes for fund_finance tools that expect entity_type
                     elif env_name == 'fund_finance' and 'discover_' in tool_name:
-                        # Map tool names to their expected entity types
-                        entity_type_map = {
-                            'discover_fund_entities': 'funds',
-                            'discover_investor_entities': 'investors',
-                            'discover_instrument_entities': 'instruments',
-                            'discover_portfolio_entities': 'portfolios',
-                            'discover_trading_entities': 'trades',
-                            'discover_billing_entities': 'invoices',
-                            'discover_reporting_entities': 'reports',
-                            'discover_user_entities': 'users',
-                            'discover_valuation_entities': 'nav_records',
-                            'discover_investment_flow_entities': 'commitments',
-                            'discover_system_entities': 'audit_trails'
-                        }
+                        # Check if the tool is being called with entity_type already provided
+                        # If so, we don't need to wrap it - the original tool can handle it directly
+                        # We'll determine this at execution time by checking the arguments
                         
-                        expected_entity_type = entity_type_map.get(tool_name)
-                        if expected_entity_type:
-                            class FundFinanceDiscoverWrapper:
-                                @staticmethod
-                                def invoke(data, **kwargs):
-                                    # Add entity_type and pass filters if any
-                                    filters = kwargs if kwargs else None
-                                    result = obj.invoke(data, entity_type=expected_entity_type, filters=filters)
-                                    # Parse JSON response and return just the results array to match expected format
+                        class FundFinanceDiscoverWrapper:
+                            @staticmethod
+                            def invoke(data, **kwargs):
+                                # If entity_type is already provided, use the original tool directly
+                                if 'entity_type' in kwargs:
+                                    result = obj.invoke(data, **kwargs)
+                                    # For consistency with expected output format, still check if we need to unwrap
                                     if isinstance(result, str):
                                         parsed = json.loads(result)
-                                        return parsed.get("results", [])
-                                    elif isinstance(result, dict) and "results" in result:
-                                        return result["results"]
+                                        # Check if the task expects the full response or just results
+                                        # If it has "success" field in expected output, return full response
+                                        return parsed
                                     return result
-                            return FundFinanceDiscoverWrapper
+                                else:
+                                    # Map tool names to their expected entity types for legacy calls
+                                    entity_type_map = {
+                                        'discover_fund_entities': 'funds',
+                                        'discover_investor_entities': 'investors',
+                                        'discover_instrument_entities': 'instruments',
+                                        'discover_portfolio_entities': 'portfolios',
+                                        'discover_trading_entities': 'trades',
+                                        'discover_billing_entities': 'invoices',
+                                        'discover_reporting_entities': 'reports',
+                                        'discover_user_entities': 'users',
+                                        'discover_valuation_entities': 'nav_records',
+                                        'discover_investment_flow_entities': 'commitments',
+                                        'discover_system_entities': 'audit_trails'
+                                    }
+                                    
+                                    expected_entity_type = entity_type_map.get(tool_name)
+                                    if expected_entity_type:
+                                        # Add entity_type and pass filters if any
+                                        filters = kwargs if kwargs else None
+                                        result = obj.invoke(data, entity_type=expected_entity_type, filters=filters)
+                                        # Parse JSON response and return just the results array to match expected format
+                                        if isinstance(result, str):
+                                            parsed = json.loads(result)
+                                            return parsed.get("results", [])
+                                        elif isinstance(result, dict) and "results" in result:
+                                            return result["results"]
+                                        return result
+                                    else:
+                                        # Fallback to original tool
+                                        return obj.invoke(data, **kwargs)
+                        return FundFinanceDiscoverWrapper
                     
                     return obj
             
