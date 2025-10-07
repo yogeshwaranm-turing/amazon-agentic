@@ -610,13 +610,8 @@ class TaskExecutor:
                 try:
                     resolved[key] = json.loads(value)
                 except json.JSONDecodeError:
-                    # Try to fix Python-style booleans and retry
-                    try:
-                        fixed_value = value.replace('True', 'true').replace('False', 'false').replace('None', 'null')
-                        resolved[key] = json.loads(fixed_value)
-                    except json.JSONDecodeError:
-                        # If still not valid JSON, keep as string
-                        resolved[key] = value
+                    # If it's not valid JSON, keep as string
+                    resolved[key] = value
             else:
                 resolved[key] = value
         
