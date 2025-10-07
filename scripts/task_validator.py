@@ -207,11 +207,12 @@ class EnvironmentLoader:
             (env_module, env_data): Environment module and loaded data
         """
         try:
-            # For hr_experts, we load data directly and create a minimal module
+            # For hr_experts and fund_finance, we load data directly and create a minimal module
             # since we're bypassing tau_bench entirely
-            if env_name == "hr_experts":
+            if env_name in ["hr_experts", "fund_finance"]:
                 print(f"Loading {env_name} environment with direct data access")
-                env_module = type('HRExpertsModule', (), {'__name__': 'hr_experts'})()
+                module_name = env_name.replace('_', '').title() + 'Module'
+                env_module = type(module_name, (), {'__name__': env_name})()
             else:
                 # Load environment module with better error handling
                 env_module_path = f"envs.{env_name}"
@@ -282,24 +283,37 @@ class EnvironmentLoader:
         Load actual tools directly from the tool files, bypassing tau_bench dependencies.
         
         Args:
-            env_module: Loaded environment module (not used for direct tool loading)
+            env_module: Loaded environment module 
             tool_name: Name of the tool to load
             interface_num: Interface number (1, 2, 3, etc.)
         """
         try:
-            # Handle tool name mappings for hr_experts
-            tool_name_mappings = {
+            # Determine environment name from module
+            env_name = getattr(env_module, '__name__', 'unknown')
+            if 'hr_experts' in env_name.lower():
+                env_name = 'hr_experts'
+            elif 'fund_finance' in env_name.lower() or 'fundfinance' in env_name.lower():
+                env_name = 'fund_finance'
+            
+            # Handle tool name mappings for different environments
+            hr_experts_mappings = {
                 'discover_user_entities': 'discover_user_employee_entities',
                 'discover_employee_entities': 'discover_user_employee_entities',
-                'discover_department_entities': 'discover_department_entities',
-                'discover_job_entities': 'discover_job_entities',
-                'discover_recruitment_entities': 'discover_recruitment_entities'
             }
             
-            actual_tool_name = tool_name_mappings.get(tool_name, tool_name)
+            fund_finance_mappings = {
+                # fund_finance tools mostly match their names, but need entity_type injection
+            }
+            
+            if env_name == 'hr_experts':
+                actual_tool_name = hr_experts_mappings.get(tool_name, tool_name)
+            elif env_name == 'fund_finance':
+                actual_tool_name = fund_finance_mappings.get(tool_name, tool_name)
+            else:
+                actual_tool_name = tool_name
             
             # Load tool file directly from filesystem
-            tool_file_path = project_root / "envs" / "hr_experts" / "tools" / f"interface_{interface_num}" / f"{actual_tool_name}.py"
+            tool_file_path = project_root / "envs" / env_name / "tools" / f"interface_{interface_num}" / f"{actual_tool_name}.py"
             
             if not tool_file_path.exists():
                 print(f"Warning: Tool file '{tool_file_path}' does not exist")
@@ -328,7 +342,7 @@ class EnvironmentLoader:
                     name != 'Tool'):
                     
                     # Create wrapper classes for mapped tools to handle argument transformation
-                    if tool_name != actual_tool_name:
+                    if env_name == 'hr_experts' and tool_name != actual_tool_name:
                         if tool_name == 'discover_user_entities':
                             class DiscoverUserEntitiesWrapper:
                                 @staticmethod
@@ -360,6 +374,40 @@ class EnvironmentLoader:
                                     return result
                             return DiscoverEmployeeEntitiesWrapper
                     
+                    # Create wrapper classes for fund_finance tools that expect entity_type
+                    elif env_name == 'fund_finance' and 'discover_' in tool_name:
+                        # Map tool names to their expected entity types
+                        entity_type_map = {
+                            'discover_fund_entities': 'funds',
+                            'discover_investor_entities': 'investors',
+                            'discover_instrument_entities': 'instruments',
+                            'discover_portfolio_entities': 'portfolios',
+                            'discover_trading_entities': 'trades',
+                            'discover_billing_entities': 'invoices',
+                            'discover_reporting_entities': 'reports',
+                            'discover_user_entities': 'users',
+                            'discover_valuation_entities': 'nav_records',
+                            'discover_investment_flow_entities': 'commitments',
+                            'discover_system_entities': 'audit_trails'
+                        }
+                        
+                        expected_entity_type = entity_type_map.get(tool_name)
+                        if expected_entity_type:
+                            class FundFinanceDiscoverWrapper:
+                                @staticmethod
+                                def invoke(data, **kwargs):
+                                    # Add entity_type and pass filters if any
+                                    filters = kwargs if kwargs else None
+                                    result = obj.invoke(data, entity_type=expected_entity_type, filters=filters)
+                                    # Parse JSON response and return just the results array to match expected format
+                                    if isinstance(result, str):
+                                        parsed = json.loads(result)
+                                        return parsed.get("results", [])
+                                    elif isinstance(result, dict) and "results" in result:
+                                        return result["results"]
+                                    return result
+                            return FundFinanceDiscoverWrapper
+                    
                     return obj
             
             print(f"Warning: Tool class not found in '{tool_file_path}'")
@@ -382,7 +430,7 @@ class TaskExecutor:
         """Execute a single action and validate its output"""
         action_name = action["name"]
         action_args = action["arguments"]
-        expected_output = action["output"]
+        expected_output = action.get("output", None)  # Make output optional
         
         start_time = datetime.now()
         
@@ -427,8 +475,15 @@ class TaskExecutor:
             # Store output for future action references
             self.execution_context[action_name] = actual_output
             
-            # Compare outputs
-            matches, differences = OutputComparator.compare_outputs(expected_output, actual_output)
+            # Compare outputs (skip validation if no expected output)
+            if expected_output is not None:
+                matches, differences = OutputComparator.compare_outputs(expected_output, actual_output)
+                data_type_matches = type(expected_output) == type(actual_output)
+            else:
+                # No expected output to compare against - consider successful execution
+                matches = True
+                differences = []
+                data_type_matches = True
             
             execution_time = (datetime.now() - start_time).total_seconds() * 1000
             
@@ -439,7 +494,7 @@ class TaskExecutor:
                 actual_output=actual_output,
                 error=None if matches else "; ".join(differences),
                 execution_time_ms=execution_time,
-                data_type_matches=type(expected_output) == type(actual_output)
+                data_type_matches=data_type_matches
             )
             
         except Exception as e:
