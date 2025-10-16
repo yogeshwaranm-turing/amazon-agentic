@@ -1,3 +1,5 @@
+
+
 from .discover_candidate_entities import DiscoverCandidateEntities
 from .discover_interview_offer_entities import DiscoverInterviewOfferEntities
 from .manage_employee_operations import ManageEmployeeOperations
@@ -10,6 +12,19 @@ from .manage_payroll_earning_operations import ManagePayrollEarningOperations
 from .manage_payslip_operations import ManagePayslipOperations
 from .discover_payroll_entities import DiscoverPayrollEntities
 from .discover_benefit_entities import DiscoverBenefitEntities
+from .discover_employee_entities import DiscoverEmployeeEntities
+from .discover_document_task_entities import DiscoverDocumentTaskEntities
+from .manage_document_operations import ManageDocumentOperations
+from .manage_notification_operations import ManageNotificationOperations
+from .create_audit_entry import CreateAuditEntry
+
+__all__ = [
+    "DiscoverEmployeeEntities",
+    "DiscoverDocumentTaskEntities",
+    "ManageDocumentOperations",
+    "ManageNotificationOperations",
+    "CreateAuditEntry",
+]
 
 ALL_TOOLS_INTERFACE_1 = [
     DiscoverCandidateEntities,
@@ -23,5 +38,10 @@ ALL_TOOLS_INTERFACE_1 = [
     ManagePayrollEarningOperations,
     ManagePayslipOperations,
     DiscoverPayrollEntities,
-    DiscoverBenefitEntities
+    DiscoverBenefitEntities,
+    DiscoverEmployeeEntities,
+    DiscoverDocumentTaskEntities,
+    ManageDocumentOperations,
+    ManageNotificationOperations,
+    CreateAuditEntry,
 ]
