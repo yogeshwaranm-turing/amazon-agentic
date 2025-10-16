@@ -86,7 +86,8 @@ class ManageApplicationOperations(Tool):
                 "screened_date": None,
                 "shortlist_approved_by": None,
                 "shortlist_approval_date": None,
-                "created_at": "2025-01-01T12:00:00"
+                "created_at": "2025-01-01T12:00:00",
+                "updated_at": "2025-01-01T12:00:00"
             }
             applications[app_id] = new_application
             
@@ -116,6 +117,7 @@ class ManageApplicationOperations(Tool):
             if kwargs.get("screened_date"):
                 application["screened_date"] = kwargs["screened_date"]
                 application["screened_by"] = kwargs["user_id"]
+                application["updated_at"] = "2025-01-01T12:00:00"
             
             return json.dumps({"success": True, "application_id": kwargs["application_id"], "message": f"Application {kwargs['application_id']} status updated successfully"})
         
@@ -145,6 +147,7 @@ class ManageApplicationOperations(Tool):
             application["shortlist_approved_by"] = kwargs["approved_by"]
             application["shortlist_approval_date"] = kwargs["approval_date"]
             application["status"] = "shortlisted"
+            application["updated_at"] = "2025-01-01T12:00:00"
             
             return json.dumps({"success": True, "application_id": kwargs["application_id"], "message": f"Application {kwargs['application_id']} shortlist approved"})
     

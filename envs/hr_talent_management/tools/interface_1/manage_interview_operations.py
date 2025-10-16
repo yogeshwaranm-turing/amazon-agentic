@@ -74,7 +74,8 @@ class ManageInterviewOperations(Tool):
                 "recommendation": None,
                 "completed_by": None,
                 "completed_date": None,
-                "created_at": "2025-01-01T12:00:00"
+                "created_at": "2025-01-01T12:00:00",
+                "updated_at": "2025-01-01T12:00:00"
             }
             interviews[interview_id] = new_interview
             
@@ -161,6 +162,7 @@ class ManageInterviewOperations(Tool):
             interview["completed_by"] = kwargs["completed_by"]
             interview["completed_date"] = kwargs["completed_date"]
             interview["interview_status"] = "completed"
+            interview["updated_at"] = "2025-01-01T12:00:00"
             
             return json.dumps({"success": True, "interview_id": kwargs["interview_id"], "message": f"Interview {kwargs['interview_id']} evaluation recorded successfully"})
     

@@ -203,7 +203,8 @@ class ManageJobOperations(Tool):
                 "portal_type": kwargs["portal_type"],
                 "status": "active",
                 "closed_date": None,
-                "created_at": "2025-01-01T12:00:00"
+                "created_at": "2025-01-01T12:00:00",
+                "updated_at": "2025-01-01T12:00:00"
             }
             job_postings[posting_id] = new_posting
             
@@ -236,6 +237,8 @@ class ManageJobOperations(Tool):
                 posting["portal_type"] = kwargs["portal_type"]
             if kwargs.get("status"):
                 posting["status"] = kwargs["status"]
+            
+            posting["updated_at"] = "2025-01-01T12:00:00"
             
             return json.dumps({"success": True, "posting_id": kwargs["posting_id"], "message": f"Posting {kwargs['posting_id']} updated successfully"})
     
