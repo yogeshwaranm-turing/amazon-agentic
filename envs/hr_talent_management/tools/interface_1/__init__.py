@@ -22,26 +22,14 @@ from .discover_document_task_entities import DiscoverDocumentTaskEntities
 from .manage_document_operations import ManageDocumentOperations
 from .manage_notification_operations import ManageNotificationOperations
 from .create_audit_entry import CreateAuditEntry
+from .manage_employee_exit_operations import ManageEmployeeExitOperations
+from .manage_benefit_enrollment_operations import ManageBenefitEnrollmentOperations
+from .discover_payment_entities import DiscoverPaymentEntities
+from .discover_system_entities import DiscoverSystemEntities
+from .manage_payment_operations import ManagePaymentOperations
+
 
 ALL_TOOLS_INTERFACE_1 = [
-    DiscoverCandidateEntities,
-    DiscoverInterviewOfferEntities,
-    ManageEmployeeOperations,
-    ManageItProvisioningOperations,
-    ManageOfferOperations,
-    ManageOnboardingOperations,
-    ManagePayrollCycleOperations,
-    ManagePayrollInputOperations, 
-    ManagePayrollEarningOperations,
-    ManagePayslipOperations,
-    DiscoverPayrollEntities,
-    DiscoverBenefitEntities,
-    DiscoverReferenceEntities,
-    DiscoverJobEntities,
-    ManageJobOperations,
-    ManageCandidateOperations,
-    ManageApplicationOperations,
-    ManageInterviewOperations,
     DiscoverCandidateEntities,
     DiscoverInterviewOfferEntities,
     ManageEmployeeOperations,
@@ -60,9 +48,15 @@ ALL_TOOLS_INTERFACE_1 = [
     ManageCandidateOperations,
     ManageApplicationOperations,
     ManageInterviewOperations,
+    ManageEmployeeExitOperations,
+    ManageBenefitEnrollmentOperations,
+    DiscoverPaymentEntities,
+    DiscoverSystemEntities,
+    ManagePaymentOperations,
     DiscoverEmployeeEntities,
     DiscoverDocumentTaskEntities,
     ManageDocumentOperations,
     ManageNotificationOperations,
     CreateAuditEntry,
 ]
+
