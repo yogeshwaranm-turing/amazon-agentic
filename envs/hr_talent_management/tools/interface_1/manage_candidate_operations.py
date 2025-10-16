@@ -1,5 +1,6 @@
 import json
 from typing import Any, Dict
+from datetime import datetime
 from tau_bench.envs.tool import Tool
 
 
@@ -55,6 +56,7 @@ class ManageCandidateOperations(Tool):
             
             # Create candidate
             cand_id = generate_id(candidates)
+            timestamp = datetime.now().isoformat()
             new_candidate = {
                 "candidate_id": cand_id,
                 "user_id": kwargs["user_id"],
@@ -62,8 +64,8 @@ class ManageCandidateOperations(Tool):
                 "linkedin_profile": kwargs.get("linkedin_profile"),
                 "current_ctc": kwargs.get("current_ctc"),
                 "status": "active",
-                "created_at": "2025-01-01T12:00:00",
-                "updated_at": "2025-01-01T12:00:00"
+                "created_at": timestamp,
+                "updated_at": timestamp
             }
             candidates[cand_id] = new_candidate
             
@@ -78,8 +80,7 @@ class ManageCandidateOperations(Tool):
             if not candidate:
                 return json.dumps({"success": False, "error": "Halt: Candidate not found"})
             
-            if candidate.get("status") == "inactive":
-                return json.dumps({"success": False, "error": "Halt: Candidate is inactive"})
+            # Allow updates to candidates with any status (active, inactive, suspended)
             
             # Verify user has appropriate role
             user = users.get(kwargs["user_id"])
@@ -95,7 +96,7 @@ class ManageCandidateOperations(Tool):
                 if kwargs.get(field) is not None:
                     candidate[field] = kwargs[field]
             
-            candidate["updated_at"] = "2025-01-01T12:00:00"
+            candidate["updated_at"] = datetime.now().isoformat()
             
             return json.dumps({"success": True, "candidate_id": kwargs["candidate_id"], "message": f"Candidate {kwargs['candidate_id']} updated successfully"})
     

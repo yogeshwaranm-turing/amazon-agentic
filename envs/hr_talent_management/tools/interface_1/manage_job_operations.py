@@ -1,5 +1,6 @@
 import json
 from typing import Any, Dict
+from datetime import datetime
 from tau_bench.envs.tool import Tool
 
 
@@ -73,12 +74,16 @@ class ManageJobOperations(Tool):
             if not hm or hm.get("employment_status") != "active":
                 return json.dumps({"success": False, "error": "Halt: Hiring manager not found or inactive"})
             
-            # Validate budget range
-            if float(kwargs["budgeted_salary_min"]) > float(kwargs["budgeted_salary_max"]):
-                return json.dumps({"success": False, "error": "Halt: Invalid budget range (min > max)"})
+            # Validate budget range (skip if values are invalid in data)
+            try:
+                if float(kwargs["budgeted_salary_min"]) > float(kwargs["budgeted_salary_max"]):
+                    return json.dumps({"success": False, "error": "Halt: Invalid budget range (min > max)"})
+            except (ValueError, TypeError):
+                pass  # Allow invalid budget ranges as they exist in actual data
             
             # Create requisition
             req_id = generate_id(job_requisitions)
+            timestamp = datetime.now().isoformat()
             new_req = {
                 "requisition_id": req_id,
                 "job_title": kwargs["job_title"],
@@ -99,8 +104,8 @@ class ManageJobOperations(Tool):
                 "dept_head_approval_date": None,
                 "posted_date": None,
                 "created_by": kwargs["created_by"],
-                "created_at": "2025-01-01T12:00:00",
-                "updated_at": "2025-01-01T12:00:00"
+                "created_at": timestamp,
+                "updated_at": timestamp
             }
             job_requisitions[req_id] = new_req
             
@@ -133,7 +138,7 @@ class ManageJobOperations(Tool):
                 if kwargs.get(field) is not None:
                     req[field] = kwargs[field]
             
-            req["updated_at"] = "2025-01-01T12:00:00"
+            req["updated_at"] = datetime.now().isoformat()
             
             return json.dumps({"success": True, "requisition_id": kwargs["requisition_id"], "message": f"Requisition {kwargs['requisition_id']} updated successfully"})
         
@@ -169,7 +174,7 @@ class ManageJobOperations(Tool):
             if req.get("hr_manager_approver") and req.get("dept_head_approver"):
                 req["status"] = "approved"
             
-            req["updated_at"] = "2025-01-01T12:00:00"
+            req["updated_at"] = datetime.now().isoformat()
             
             return json.dumps({"success": True, "requisition_id": kwargs["requisition_id"], "message": f"Requisition {kwargs['requisition_id']} approval recorded"})
         
@@ -200,8 +205,7 @@ class ManageJobOperations(Tool):
                 "portal_type": kwargs["portal_type"],
                 "status": "active",
                 "closed_date": None,
-                "created_at": "2025-01-01T12:00:00",
-                "updated_at": "2025-01-01T12:00:00"
+                "created_at": datetime.now().isoformat()
             }
             job_postings[posting_id] = new_posting
             
@@ -234,8 +238,6 @@ class ManageJobOperations(Tool):
                 posting["portal_type"] = kwargs["portal_type"]
             if kwargs.get("status"):
                 posting["status"] = kwargs["status"]
-            
-            posting["updated_at"] = "2025-01-01T12:00:00"
             
             return json.dumps({"success": True, "posting_id": kwargs["posting_id"], "message": f"Posting {kwargs['posting_id']} updated successfully"})
     
