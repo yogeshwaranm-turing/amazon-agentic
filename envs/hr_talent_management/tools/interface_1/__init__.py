@@ -17,21 +17,8 @@ from .manage_candidate_operations import ManageCandidateOperations
 from .manage_application_operations import ManageApplicationOperations
 from .manage_interview_operations import ManageInterviewOperations
 
-
 ALL_TOOLS_INTERFACE_1 = [
-    DiscoverCandidateEntities,
-    DiscoverInterviewOfferEntities,
-    ManageEmployeeOperations,
-    ManageItProvisioningOperations,
-    ManageOfferOperations,
-    ManageOnboardingOperations,
-    ManagePayrollCycleOperations,
-    ManagePayrollInputOperations, 
-    ManagePayrollEarningOperations,
-    ManagePayslipOperations,
-    DiscoverPayrollEntities,
-    DiscoverBenefitEntities,
-    DiscoverReferenceEntities,
+ DiscoverReferenceEntities,
     DiscoverJobEntities,
     ManageJobOperations,
     ManageCandidateOperations,
