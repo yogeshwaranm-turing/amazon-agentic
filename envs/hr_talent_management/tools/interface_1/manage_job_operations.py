@@ -1,6 +1,5 @@
 import json
 from typing import Any, Dict
-from datetime import datetime
 from tau_bench.envs.tool import Tool
 
 
@@ -83,7 +82,6 @@ class ManageJobOperations(Tool):
             
             # Create requisition
             req_id = generate_id(job_requisitions)
-            timestamp = datetime.now().isoformat()
             new_req = {
                 "requisition_id": req_id,
                 "job_title": kwargs["job_title"],
@@ -104,8 +102,8 @@ class ManageJobOperations(Tool):
                 "dept_head_approval_date": None,
                 "posted_date": None,
                 "created_by": kwargs["created_by"],
-                "created_at": timestamp,
-                "updated_at": timestamp
+                "created_at": "2025-01-01T12:00:00",
+                "updated_at": "2025-01-01T12:00:00"
             }
             job_requisitions[req_id] = new_req
             
@@ -138,7 +136,7 @@ class ManageJobOperations(Tool):
                 if kwargs.get(field) is not None:
                     req[field] = kwargs[field]
             
-            req["updated_at"] = datetime.now().isoformat()
+            req["updated_at"] = "2025-01-01T12:00:00"
             
             return json.dumps({"success": True, "requisition_id": kwargs["requisition_id"], "message": f"Requisition {kwargs['requisition_id']} updated successfully"})
         
@@ -174,7 +172,7 @@ class ManageJobOperations(Tool):
             if req.get("hr_manager_approver") and req.get("dept_head_approver"):
                 req["status"] = "approved"
             
-            req["updated_at"] = datetime.now().isoformat()
+            req["updated_at"] = "2025-01-01T12:00:00"
             
             return json.dumps({"success": True, "requisition_id": kwargs["requisition_id"], "message": f"Requisition {kwargs['requisition_id']} approval recorded"})
         
@@ -205,7 +203,7 @@ class ManageJobOperations(Tool):
                 "portal_type": kwargs["portal_type"],
                 "status": "active",
                 "closed_date": None,
-                "created_at": datetime.now().isoformat()
+                "created_at": "2025-01-01T12:00:00"
             }
             job_postings[posting_id] = new_posting
             

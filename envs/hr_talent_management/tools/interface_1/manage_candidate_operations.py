@@ -1,6 +1,5 @@
 import json
 from typing import Any, Dict
-from datetime import datetime
 from tau_bench.envs.tool import Tool
 
 
@@ -56,7 +55,6 @@ class ManageCandidateOperations(Tool):
             
             # Create candidate
             cand_id = generate_id(candidates)
-            timestamp = datetime.now().isoformat()
             new_candidate = {
                 "candidate_id": cand_id,
                 "user_id": kwargs["user_id"],
@@ -64,8 +62,8 @@ class ManageCandidateOperations(Tool):
                 "linkedin_profile": kwargs.get("linkedin_profile"),
                 "current_ctc": kwargs.get("current_ctc"),
                 "status": "active",
-                "created_at": timestamp,
-                "updated_at": timestamp
+                "created_at": "2025-01-01T12:00:00",
+                "updated_at": "2025-01-01T12:00:00"
             }
             candidates[cand_id] = new_candidate
             
@@ -96,7 +94,7 @@ class ManageCandidateOperations(Tool):
                 if kwargs.get(field) is not None:
                     candidate[field] = kwargs[field]
             
-            candidate["updated_at"] = datetime.now().isoformat()
+            candidate["updated_at"] = "2025-01-01T12:00:00"
             
             return json.dumps({"success": True, "candidate_id": kwargs["candidate_id"], "message": f"Candidate {kwargs['candidate_id']} updated successfully"})
     

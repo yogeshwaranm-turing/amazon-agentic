@@ -1,6 +1,5 @@
 import json
 from typing import Any, Dict
-from datetime import datetime
 from tau_bench.envs.tool import Tool
 
 
@@ -87,7 +86,7 @@ class ManageApplicationOperations(Tool):
                 "screened_date": None,
                 "shortlist_approved_by": None,
                 "shortlist_approval_date": None,
-                "created_at": datetime.now().isoformat()
+                "created_at": "2025-01-01T12:00:00"
             }
             applications[app_id] = new_application
             

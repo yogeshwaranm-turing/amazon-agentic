@@ -1,6 +1,5 @@
 import json
 from typing import Any, Dict
-from datetime import datetime
 from tau_bench.envs.tool import Tool
 
 
@@ -75,7 +74,7 @@ class ManageInterviewOperations(Tool):
                 "recommendation": None,
                 "completed_by": None,
                 "completed_date": None,
-                "created_at": datetime.now().isoformat()
+                "created_at": "2025-01-01T12:00:00"
             }
             interviews[interview_id] = new_interview
             
@@ -117,7 +116,7 @@ class ManageInterviewOperations(Tool):
                 "panel_member_id": member_id,
                 "interview_id": kwargs["interview_id"],
                 "user_id": kwargs["panel_member_id"],
-                "created_at": datetime.now().isoformat()
+                "created_at": "2025-01-01T12:00:00"
             }
             interview_panel_members[member_id] = new_member
             
