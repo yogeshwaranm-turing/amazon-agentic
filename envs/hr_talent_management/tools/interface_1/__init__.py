@@ -1,3 +1,4 @@
+# interface_1/tool_registry.py
 from .discover_candidate_entities import DiscoverCandidateEntities
 from .discover_interview_offer_entities import DiscoverInterviewOfferEntities
 from .manage_employee_operations import ManageEmployeeOperations
@@ -16,8 +17,13 @@ from .manage_job_operations import ManageJobOperations
 from .manage_candidate_operations import ManageCandidateOperations
 from .manage_application_operations import ManageApplicationOperations
 from .manage_interview_operations import ManageInterviewOperations
+from .discover_employee_entities import DiscoverEmployeeEntities
+from .discover_document_task_entities import DiscoverDocumentTaskEntities
+from .manage_document_operations import ManageDocumentOperations
+from .manage_notification_operations import ManageNotificationOperations
+from .create_audit_entry import CreateAuditEntry
 from .manage_employee_exit_operations import ManageEmployeeExitOperations
-from manage_benefit_enrollment_operations import ManageBenefitEnrollmentOperations
+from .manage_benefit_enrollment_operations import ManageBenefitEnrollmentOperations
 from .discover_payment_entities import DiscoverPaymentEntities
 from .discover_system_entities import DiscoverSystemEntities
 from .manage_payment_operations import ManagePaymentOperations
@@ -31,7 +37,7 @@ ALL_TOOLS_INTERFACE_1 = [
     ManageOfferOperations,
     ManageOnboardingOperations,
     ManagePayrollCycleOperations,
-    ManagePayrollInputOperations, 
+    ManagePayrollInputOperations,
     ManagePayrollEarningOperations,
     ManagePayslipOperations,
     DiscoverPayrollEntities,
@@ -42,21 +48,15 @@ ALL_TOOLS_INTERFACE_1 = [
     ManageCandidateOperations,
     ManageApplicationOperations,
     ManageInterviewOperations,
-    DiscoverCandidateEntities,
-    DiscoverInterviewOfferEntities,
-    ManageEmployeeOperations,
-    ManageItProvisioningOperations,
-    ManageOfferOperations,
-    ManageOnboardingOperations,
-    ManagePayrollCycleOperations,
-    ManagePayrollInputOperations,
-    ManagePayrollEarningOperations,
-    ManagePayslipOperations,
-    DiscoverPayrollEntities,
-    DiscoverBenefitEntities,
     ManageEmployeeExitOperations,
     ManageBenefitEnrollmentOperations,
     DiscoverPaymentEntities,
     DiscoverSystemEntities,
-    ManagePaymentOperations
+    ManagePaymentOperations,
+    DiscoverEmployeeEntities,
+    DiscoverDocumentTaskEntities,
+    ManageDocumentOperations,
+    ManageNotificationOperations,
+    CreateAuditEntry,
 ]
+
