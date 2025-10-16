@@ -1,3 +1,4 @@
+# interface_1/tool_registry.py
 from .discover_candidate_entities import DiscoverCandidateEntities
 from .discover_interview_offer_entities import DiscoverInterviewOfferEntities
 from .manage_employee_operations import ManageEmployeeOperations
@@ -16,7 +17,11 @@ from .manage_job_operations import ManageJobOperations
 from .manage_candidate_operations import ManageCandidateOperations
 from .manage_application_operations import ManageApplicationOperations
 from .manage_interview_operations import ManageInterviewOperations
-
+from .discover_employee_entities import DiscoverEmployeeEntities
+from .discover_document_task_entities import DiscoverDocumentTaskEntities
+from .manage_document_operations import ManageDocumentOperations
+from .manage_notification_operations import ManageNotificationOperations
+from .create_audit_entry import CreateAuditEntry
 
 ALL_TOOLS_INTERFACE_1 = [
     DiscoverCandidateEntities,
@@ -48,5 +53,16 @@ ALL_TOOLS_INTERFACE_1 = [
     ManagePayrollEarningOperations,
     ManagePayslipOperations,
     DiscoverPayrollEntities,
-    DiscoverBenefitEntities
+    DiscoverBenefitEntities,
+    DiscoverReferenceEntities,
+    DiscoverJobEntities,
+    ManageJobOperations,
+    ManageCandidateOperations,
+    ManageApplicationOperations,
+    ManageInterviewOperations,
+    DiscoverEmployeeEntities,
+    DiscoverDocumentTaskEntities,
+    ManageDocumentOperations,
+    ManageNotificationOperations,
+    CreateAuditEntry,
 ]
