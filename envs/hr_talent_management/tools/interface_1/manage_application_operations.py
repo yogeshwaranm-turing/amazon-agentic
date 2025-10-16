@@ -117,8 +117,7 @@ class ManageApplicationOperations(Tool):
             if kwargs.get("screened_date"):
                 application["screened_date"] = kwargs["screened_date"]
                 application["screened_by"] = kwargs["user_id"]
-            
-            application["updated_at"] = "2025-01-01T12:00:00"
+                application["updated_at"] = "2025-01-01T12:00:00"
             
             return json.dumps({"success": True, "application_id": kwargs["application_id"], "message": f"Application {kwargs['application_id']} status updated successfully"})
         

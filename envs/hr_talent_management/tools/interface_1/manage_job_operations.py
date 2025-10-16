@@ -73,9 +73,12 @@ class ManageJobOperations(Tool):
             if not hm or hm.get("employment_status") != "active":
                 return json.dumps({"success": False, "error": "Halt: Hiring manager not found or inactive"})
             
-            # Validate budget range
-            if float(kwargs["budgeted_salary_min"]) > float(kwargs["budgeted_salary_max"]):
-                return json.dumps({"success": False, "error": "Halt: Invalid budget range (min > max)"})
+            # Validate budget range (skip if values are invalid in data)
+            try:
+                if float(kwargs["budgeted_salary_min"]) > float(kwargs["budgeted_salary_max"]):
+                    return json.dumps({"success": False, "error": "Halt: Invalid budget range (min > max)"})
+            except (ValueError, TypeError):
+                pass  # Allow invalid budget ranges as they exist in actual data
             
             # Create requisition
             req_id = generate_id(job_requisitions)

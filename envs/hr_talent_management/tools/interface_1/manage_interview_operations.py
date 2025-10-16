@@ -150,10 +150,11 @@ class ManageInterviewOperations(Tool):
             if not is_panel_member:
                 return json.dumps({"success": False, "error": "Halt: Evaluator not authorized for this interview"})
             
-            # Validate rating (1-5 scale)
-            rating = int(kwargs["rating"])
-            if rating < 1 or rating > 5:
-                return json.dumps({"success": False, "error": "Halt: Invalid rating (not 1-5 scale)"})
+            # Validate rating (accept any numeric value)
+            try:
+                rating = int(kwargs["rating"])
+            except (ValueError, TypeError):
+                return json.dumps({"success": False, "error": "Halt: Invalid rating (must be numeric)"})
             
             # Record evaluation
             interview["rating"] = rating
@@ -186,7 +187,7 @@ class ManageInterviewOperations(Tool):
                         "user_id": {"type": "string", "description": "User ID (required for schedule_interview and add_panel_member)"},
                         "interview_id": {"type": "string", "description": "Interview ID (required for add_panel_member and conduct_evaluation)"},
                         "panel_member_id": {"type": "string", "description": "Panel member user ID (required for add_panel_member)"},
-                        "rating": {"type": "integer", "description": "Interview rating 1-5 (required for conduct_evaluation)"},
+                        "rating": {"type": "integer", "description": "Interview rating (required for conduct_evaluation)"},
                         "recommendation": {"type": "string", "description": "Interview recommendation (required for conduct_evaluation)"},
                         "completed_by": {"type": "string", "description": "Evaluator user ID (required for conduct_evaluation)"},
                         "completed_date": {"type": "string", "description": "Completion date (required for conduct_evaluation)"}

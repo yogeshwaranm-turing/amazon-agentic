@@ -77,7 +77,7 @@ class ManageCandidateOperations(Tool):
             candidate = candidates.get(kwargs["candidate_id"])
             if not candidate:
                 return json.dumps({"success": False, "error": "Halt: Candidate not found"})
-            
+
             if candidate.get("status") == "inactive":
                 return json.dumps({"success": False, "error": "Halt: Candidate is inactive"})
             
