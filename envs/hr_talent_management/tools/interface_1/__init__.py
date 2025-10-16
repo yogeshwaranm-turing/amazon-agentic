@@ -16,6 +16,11 @@ from .manage_job_operations import ManageJobOperations
 from .manage_candidate_operations import ManageCandidateOperations
 from .manage_application_operations import ManageApplicationOperations
 from .manage_interview_operations import ManageInterviewOperations
+from .manage_employee_exit_operations import ManageEmployeeExitOperations
+from manage_benefit_enrollment_operations import ManageBenefitEnrollmentOperations
+from .discover_payment_entities import DiscoverPaymentEntities
+from .discover_system_entities import DiscoverSystemEntities
+from .manage_payment_operations import ManagePaymentOperations
 
 
 ALL_TOOLS_INTERFACE_1 = [
@@ -48,5 +53,10 @@ ALL_TOOLS_INTERFACE_1 = [
     ManagePayrollEarningOperations,
     ManagePayslipOperations,
     DiscoverPayrollEntities,
-    DiscoverBenefitEntities
+    DiscoverBenefitEntities,
+    ManageEmployeeExitOperations,
+    ManageBenefitEnrollmentOperations,
+    DiscoverPaymentEntities,
+    DiscoverSystemEntities,
+    ManagePaymentOperations
 ]
