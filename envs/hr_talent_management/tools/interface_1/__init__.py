@@ -18,7 +18,6 @@ from .manage_document_operations import ManageDocumentOperations
 from .manage_notification_operations import ManageNotificationOperations
 from .create_audit_entry import CreateAuditEntry
 
-
 ALL_TOOLS_INTERFACE_1 = [
     DiscoverCandidateEntities,
     DiscoverInterviewOfferEntities,
