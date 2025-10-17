@@ -157,7 +157,7 @@ class ManagePayrollInputOperations(Tool):
             audit_entry = {
                 "audit_id": audit_id,
                 "reference_id": new_input_id,
-                "reference_type": "payroll_input",
+                "reference_type": "payroll",
                 "action": "create",
                 "user_id": requesting_user_id,
                 "field_name": None,
@@ -251,7 +251,7 @@ class ManagePayrollInputOperations(Tool):
             audit_entry = {
                 "audit_id": audit_id,
                 "reference_id": input_id,
-                "reference_type": "payroll_input",
+                "reference_type": "payroll",
                 "action": "approve" if manager_approval_status == "approved" else "reject",
                 "user_id": manager_approved_by,
                 "field_name": "manager_approval_status",

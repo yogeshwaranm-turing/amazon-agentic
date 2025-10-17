@@ -139,7 +139,7 @@ class ManagePayrollEarningOperations(Tool):
             audit_entry = {
                 "audit_id": audit_id,
                 "reference_id": new_earning_id,
-                "reference_type": "payroll_earning",
+                "reference_type": "payroll",
                 "action": "create",
                 "user_id": user_id,
                 "field_name": None,
@@ -240,7 +240,7 @@ class ManagePayrollEarningOperations(Tool):
             audit_entry = {
                 "audit_id": audit_id,
                 "reference_id": earning_id,
-                "reference_type": "payroll_earning",
+                "reference_type": "payroll",
                 "action": "approve" if approval_status == "approved" else "reject",
                 "user_id": approved_by,
                 "field_name": "approval_status",

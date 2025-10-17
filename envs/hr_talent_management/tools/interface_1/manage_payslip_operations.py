@@ -193,7 +193,7 @@ class ManagePayslipOperations(Tool):
             audit_entry = {
                 "audit_id": audit_id,
                 "reference_id": new_payslip_id,
-                "reference_type": "payslip",
+                "reference_type": "payroll",
                 "action": "create",
                 "user_id": user_id,
                 "field_name": None,
@@ -277,7 +277,7 @@ class ManagePayslipOperations(Tool):
             audit_entry = {
                 "audit_id": audit_id,
                 "reference_id": payslip_id,
-                "reference_type": "payslip",
+                "reference_type": "payroll",
                 "action": "update",
                 "user_id": user_id,
                 "field_name": "payslip_status",
@@ -398,7 +398,7 @@ class ManagePayslipOperations(Tool):
             audit_entry = {
                 "audit_id": audit_id,
                 "reference_id": new_payment_id,
-                "reference_type": "payment",
+                "reference_type": "payroll",
                 "action": "create",
                 "user_id": user_id,
                 "field_name": None,

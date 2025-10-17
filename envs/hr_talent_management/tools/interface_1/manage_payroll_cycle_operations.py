@@ -145,7 +145,7 @@ class ManagePayrollCycleOperations(Tool):
             audit_entry = {
                 "audit_id": audit_id,
                 "reference_id": new_cycle_id,
-                "reference_type": "payroll_cycle",
+                "reference_type": "payroll",
                 "action": "create",
                 "user_id": requesting_user_id,
                 "field_name": None,
