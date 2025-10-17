@@ -6,18 +6,14 @@ from tau_bench.envs.tool import Tool
 class CreateAuditEntry(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], reference_id: str, reference_type: str, action: str, field_name: str = None, old_value: str = None, new_value: str = None) -> str:
-        # Validate enums
-        valid_reference_types = [
-            "requisition","application","offer","employee","payroll","benefit","exit","document","shortlist"
-        ]
+        valid_reference_types = ['requisition', 'application', 'offer', 'employee', 'payroll', 'benefit', 'exit', 'document', 'shortlist']
         if reference_type not in valid_reference_types:
             raise ValueError(f"Invalid reference_type. Must be one of {valid_reference_types}")
 
-        valid_actions = ["create","update","delete","approve","reject","lock","unlock","submit","verify"]
+        valid_actions = ['create', 'update', 'delete', 'approve', 'reject', 'lock', 'unlock', 'submit', 'verify']
         if action not in valid_actions:
             raise ValueError(f"Invalid action. Must be one of {valid_actions}")
 
-        # Create new audit record
         audit_trails = data.setdefault("audit_trails", {})
         new_id = str(max([int(k) for k in audit_trails.keys()] + [0]) + 1)
         rec = {
@@ -40,7 +36,7 @@ class CreateAuditEntry(Tool):
             "type": "function",
             "function": {
                 "name": "create_audit_entry",
-                "description": 'Append an audit_trails record (idempotent).',
+                "description": 'Append a record to audit_trails adhering to HR audit policy.',
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -56,6 +52,5 @@ class CreateAuditEntry(Tool):
             }
         }
 
-# Convenience function wrapper (function-style tool usage)
 def create_audit_entry(data: Dict[str, Any], **kwargs) -> str:
     return CreateAuditEntry.invoke(data, **kwargs)
