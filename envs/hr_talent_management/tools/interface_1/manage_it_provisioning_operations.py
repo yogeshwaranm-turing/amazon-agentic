@@ -89,6 +89,63 @@ class ManageItProvisioningOperations(Tool):
                     "message": f"Invalid task_type. Must be one of: {', '.join(valid_task_types)}"
                 })
 
+            # Additional validations
+            # 1) Verify that the employee's status is active
+            employee_record = employees.get(str(kwargs["employee_id"]), {})
+            employee_status = str(employee_record.get("status", "")).strip().lower()
+            if employee_status and employee_status != "active":
+                return json.dumps({
+                    "success": False,
+                    "task_id": None,
+                    "message": f"Employee {kwargs['employee_id']} is not active"
+                })
+
+            # 2) Check that assigned_by is an active IT administrator
+            assigner_record = users.get(str(kwargs["assigned_by"]), {})
+            assigner_status = str(assigner_record.get("status", "")).strip().lower()
+            assigner_role = str(assigner_record.get("role", "")).strip().lower()
+
+            if assigner_status and assigner_status != "active":
+                return json.dumps({
+                    "success": False,
+                    "task_id": None,
+                    "message": f"Assigned-by user {kwargs['assigned_by']} is not active"
+                })
+
+            # 3) Ensure only an IT administrator can create a task
+            # Accept common role labels for IT admin
+            valid_it_admin_indicators = [
+                "it admin",
+                "it administrator",
+                "it-admin",
+                "administrator it",
+                "it",
+                "admin"
+            ]
+            is_it_admin = False
+            # Exact matches for clear role names
+            exact_admin_roles = {"it admin", "it administrator", "it-admin"}
+            if assigner_role in exact_admin_roles:
+                is_it_admin = True
+            # Fallback: role contains both 'it' and 'admin' tokens
+            if not is_it_admin:
+                tokens = set(assigner_role.split())
+                if "it" in tokens and ("admin" in tokens or "administrator" in tokens):
+                    is_it_admin = True
+            # Final fallback: substring indicators (less strict but inclusive of common variants)
+            if not is_it_admin:
+                for indicator in valid_it_admin_indicators:
+                    if indicator in assigner_role:
+                        is_it_admin = True
+                        break
+
+            if not is_it_admin:
+                return json.dumps({
+                    "success": False,
+                    "task_id": None,
+                    "message": f"Only an active IT administrator can create a task"
+                })
+
             # Create task
             new_task_id = generate_id(it_tasks)
             timestamp = "2025-10-01T12:00:00"
