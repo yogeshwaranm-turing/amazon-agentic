@@ -57,7 +57,7 @@ class DiscoverEmployeeEntities(Tool):
             "type": "function",
             "function": {
                 "name": "discover_employee_entities",
-                "description": 'Search/return employee & onboarding checklist data (masked).',
+                "description": 'Search or fetch employee records (masked) and onboarding checklists.',
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -75,6 +75,5 @@ class DiscoverEmployeeEntities(Tool):
             }
         }
 
-# Convenience function wrapper (function-style tool usage)
 def discover_employee_entities(data: Dict[str, Any], **kwargs) -> str:
     return DiscoverEmployeeEntities.invoke(data, **kwargs)

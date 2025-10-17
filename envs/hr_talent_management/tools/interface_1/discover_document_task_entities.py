@@ -14,6 +14,8 @@ class DiscoverDocumentTaskEntities(Tool):
 
         if mode == "documents.search":
             docs = data.get("documents", {})
+            valid_categories = ['verification_id_proof', 'verification_address_proof', 'verification_educational_certificate', 'verification_experience_letter', 'verification_work_visa', 'verification_pr_card', 'verification_bank_proof', 'offer_letter', 'contract', 'policy_acknowledgment', 'tax_form', 'insurance_form', 'nda', 'resume', 'cover_letter', 'job_description', 'budget_justification', 'budget_approval', 'workforce_plan', 'recruitment_checklist', 'promotion_letter', 'transfer_memo', 'other']
+            valid_related = ['employee', 'candidate', 'offer', 'onboarding', 'job_requisition', 'job_posting', 'application']
             out = []
             for _, d in docs.items():
                 if document_id and d.get("document_id") != document_id: continue
@@ -22,6 +24,9 @@ class DiscoverDocumentTaskEntities(Tool):
                 if document_category and d.get("document_category") != document_category: continue
                 if document_status and d.get("document_status") != document_status: continue
                 if verification_status and d.get("verification_status") != verification_status: continue
+                # optional sanity hints (do not block)
+                if document_category and document_category not in valid_categories: pass
+                if related_entity_type and related_entity_type not in valid_related: pass
                 out.append(d)
             return json.dumps({"items": out[offset:offset+limit], "next_offset": offset + min(len(out), limit)})
 
@@ -41,7 +46,7 @@ class DiscoverDocumentTaskEntities(Tool):
             "type": "function",
             "function": {
                 "name": "discover_document_task_entities",
-                "description": 'Search/return documents and IT provisioning tasks.',
+                "description": 'Search documents and IT provisioning tasks with updated filters.',
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -64,6 +69,5 @@ class DiscoverDocumentTaskEntities(Tool):
             }
         }
 
-# Convenience function wrapper (function-style tool usage)
 def discover_document_task_entities(data: Dict[str, Any], **kwargs) -> str:
     return DiscoverDocumentTaskEntities.invoke(data, **kwargs)
