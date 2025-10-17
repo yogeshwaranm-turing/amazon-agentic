@@ -1,5 +1,6 @@
 import json
 import re
+from datetime import datetime
 from typing import Any, Dict, Optional
 from tau_bench.envs.tool import Tool
 
@@ -117,7 +118,7 @@ class ManageOnboardingOperations(Tool):
             
             # Generate new checklist ID and create record
             new_checklist_id = generate_id(onboarding_checklists)
-            timestamp = "2025-10-01T12:00:00"
+            timestamp = datetime.now().isoformat()
             
             new_checklist = {
                 "checklist_id": str(new_checklist_id),
@@ -142,7 +143,7 @@ class ManageOnboardingOperations(Tool):
             
             return json.dumps({
                 "success": True,
-                "checklist_id": str(new_checklist_id),
+                "checklist": new_checklist,
                 "message": f"Onboarding checklist {new_checklist_id} created successfully for employee {kwargs['employee_id']}"
             })
         
