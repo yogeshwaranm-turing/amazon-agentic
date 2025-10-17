@@ -4,16 +4,7 @@ from tau_bench.envs.tool import Tool
 
 class DiscoverBenefitEntities(Tool):
     @staticmethod
-    def invoke(data: Dict[str, Any], entity_type: str, plan_id: str = None, benefit_type: str = None, 
-               plan_name: str = None, provider_name: str = None, plan_status: str = None,
-               effective_from_from: str = None, effective_from_to: str = None,
-               effective_until_from: str = None, effective_until_to: str = None,
-               enrollment_id: str = None, employee_id: str = None, cycle_id: str = None,
-               effective_date_from: str = None, effective_date_to: str = None,
-               enrollment_window_start_from: str = None, enrollment_window_start_to: str = None,
-               enrollment_window_end_from: str = None, enrollment_window_end_to: str = None,
-               enrollment_status: str = None, hr_manager_approval_status: str = None,
-               approved_by: str = None, approval_date_from: str = None, approval_date_to: str = None) -> str:
+    def invoke(data: Dict[str, Any], entity_type: str, filters: Optional[Dict[str, Any]] = None, requesting_user_id: str = None) -> str:
         """
         Discover benefit entities including plans and enrollments with optional filtering.
         
@@ -47,18 +38,49 @@ class DiscoverBenefitEntities(Tool):
             
             return False
         
-        def apply_filters(entities: Dict[str, Any], filter_params: Dict[str, Any]) -> Dict[str, Any]:
-            """Apply filters to entities and return matching results"""
-            # Remove None values from filter parameters
-            active_filters = {k: v for k, v in filter_params.items() if v is not None}
+        def validate_filter_conflicts(filters: Dict[str, Any]) -> Optional[str]:
+            """Validate that filter parameters don't result in conflicting results"""
+            if not filters:
+                return None
             
-            if not active_filters:
+            # Check for conflicting date ranges
+            date_conflicts = []
+            for base_field in ["effective_from", "effective_until", "effective_date", "enrollment_window_start", "enrollment_window_end", "approval_date"]:
+                from_key = f"{base_field}_from"
+                to_key = f"{base_field}_to"
+                
+                if from_key in filters and to_key in filters:
+                    from_value = filters[from_key]
+                    to_value = filters[to_key]
+                    if from_value > to_value:
+                        date_conflicts.append(f"{base_field} range: {from_value} > {to_value}")
+            
+            if date_conflicts:
+                return f"Search parameters result in ambiguous or conflicting results: {', '.join(date_conflicts)}"
+            
+            return None
+        
+        def apply_filters(entities: Dict[str, Any], valid_filters: List[str], filters: Dict[str, Any]) -> Dict[str, Any]:
+            """Apply filters to entities and return matching results"""
+            if not filters:
                 return entities
+            
+            # Validate filter conflicts
+            conflict_error = validate_filter_conflicts(filters)
+            if conflict_error:
+                return {"error": f"Halt: {conflict_error}"}
+            
+            # Validate filter keys
+            invalid_filters = [key for key in filters.keys() if key not in valid_filters]
+            if invalid_filters:
+                return {
+                    "error": f"Halt: Discovery tool execution failed due to system errors - invalid filter keys: {', '.join(invalid_filters)}. Valid filters are: {', '.join(valid_filters)}"
+                }
             
             filtered_entities = {}
             for entity_id, entity in entities.items():
                 matches = True
-                for filter_key, filter_value in active_filters.items():
+                for filter_key, filter_value in filters.items():
                     if not matches_filter(entity, filter_key, filter_value):
                         matches = False
                         break
@@ -71,66 +93,88 @@ class DiscoverBenefitEntities(Tool):
         if not isinstance(data, dict):
             return json.dumps({
                 "success": False,
-                "error": "Invalid data format for benefit entity discovery"
+                "error": "Halt: Discovery tool execution failed due to system errors - invalid data format"
             })
         
         if entity_type not in ["benefit_plans", "benefit_enrollments"]:
             return json.dumps({
                 "success": False,
-                "error": f"Invalid entity_type '{entity_type}'. Must be one of: benefit_plans, benefit_enrollments"
+                "error": "Halt: Missing entity_type or invalid entity_type - must be one of: benefit_plans, benefit_enrollments"
             })
+        
+        # Validate requesting user authorization
+        if requesting_user_id:
+            users = data.get("users", {})
+            if requesting_user_id not in users:
+                return json.dumps({
+                    "success": False,
+                    "error": "Halt: Unauthorized requester attempting to access restricted entities - user not found"
+                })
+            
+            user = users[requesting_user_id]
+            user_role = user.get("role")
+            valid_roles = ["hr_payroll_administrator", "hr_manager", "hr_director", "finance_manager", "department_manager"]
+            
+            if user_role not in valid_roles:
+                return json.dumps({
+                    "success": False,
+                    "error": "Halt: Unauthorized requester attempting to access restricted entities - insufficient permissions"
+                })
+            
+            if user.get("employment_status") != "active":
+                return json.dumps({
+                    "success": False,
+                    "error": "Halt: Unauthorized requester attempting to access restricted entities - user not active"
+                })
         
         if entity_type == "benefit_plans":
             entities = data.get("benefit_plans", {})
-            filter_params = {
-                "plan_id": plan_id,
-                "benefit_type": benefit_type,
-                "plan_name": plan_name,
-                "provider_name": provider_name,
-                "plan_status": plan_status,
-                "effective_from_from": effective_from_from,
-                "effective_from_to": effective_from_to,
-                "effective_until_from": effective_until_from,
-                "effective_until_to": effective_until_to
-            }
+            valid_filters = [
+                "plan_id", "benefit_type", "plan_name", "provider_name", "plan_status",
+                "effective_from_from", "effective_from_to", "effective_until_from", "effective_until_to"
+            ]
             
-            entities = apply_filters(entities, filter_params)
+            if filters:
+                filtered_entities = apply_filters(entities, valid_filters, filters)
+                if "error" in filtered_entities:
+                    return json.dumps({
+                        "success": False,
+                        "error": filtered_entities["error"]
+                    })
+                entities = filtered_entities
             
             return json.dumps({
                 "success": True,
                 "entity_type": "benefit_plans",
                 "count": len(entities),
                 "entities": entities,
-                "filters_applied": {k: v for k, v in filter_params.items() if v is not None}
+                "filters_applied": filters or {}
             })
         
         elif entity_type == "benefit_enrollments":
             entities = data.get("benefit_enrollments", {})
-            filter_params = {
-                "enrollment_id": enrollment_id,
-                "employee_id": employee_id,
-                "plan_id": plan_id,
-                "effective_date_from": effective_date_from,
-                "effective_date_to": effective_date_to,
-                "enrollment_window_start_from": enrollment_window_start_from,
-                "enrollment_window_start_to": enrollment_window_start_to,
-                "enrollment_window_end_from": enrollment_window_end_from,
-                "enrollment_window_end_to": enrollment_window_end_to,
-                "enrollment_status": enrollment_status,
-                "hr_manager_approval_status": hr_manager_approval_status,
-                "approved_by": approved_by,
-                "approval_date_from": approval_date_from,
-                "approval_date_to": approval_date_to
-            }
+            valid_filters = [
+                "enrollment_id", "employee_id", "plan_id", "effective_date_from", "effective_date_to",
+                "enrollment_window_start_from", "enrollment_window_start_to", "enrollment_window_end_from", 
+                "enrollment_window_end_to", "enrollment_status", "hr_manager_approval_status", 
+                "approved_by", "approval_date_from", "approval_date_to"
+            ]
             
-            entities = apply_filters(entities, filter_params)
+            if filters:
+                filtered_entities = apply_filters(entities, valid_filters, filters)
+                if "error" in filtered_entities:
+                    return json.dumps({
+                        "success": False,
+                        "error": filtered_entities["error"]
+                    })
+                entities = filtered_entities
             
             return json.dumps({
                 "success": True,
                 "entity_type": "benefit_enrollments",
                 "count": len(entities),
                 "entities": entities,
-                "filters_applied": {k: v for k, v in filter_params.items() if v is not None}
+                "filters_applied": filters or {}
             })
     
     @staticmethod
@@ -147,6 +191,10 @@ class DiscoverBenefitEntities(Tool):
                             "type": "string",
                             "description": "Type of benefit entity to discover",
                             "enum": ["benefit_plans", "benefit_enrollments"]
+                        },
+                        "requesting_user_id": {
+                            "type": "string",
+                            "description": "User ID of the requester (optional, must be active hr_payroll_administrator, hr_manager, hr_director, finance_manager, or department_manager)"
                         },
                         "filters": {
                             "type": "object",

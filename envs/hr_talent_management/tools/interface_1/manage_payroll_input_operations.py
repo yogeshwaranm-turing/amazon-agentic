@@ -61,7 +61,7 @@ class ManagePayrollInputOperations(Tool):
                     "error": "Halt: Missing mandatory fields - employee_id, cycle_id, and requesting_user_id are required"
                 })
             
-            # Verify the user is an active HR Payroll Administrator
+            # Verify the user is an active HR Payroll Administrator, HR Manager, or HR Director
             if requesting_user_id not in users:
                 return json.dumps({
                     "success": False,
@@ -69,10 +69,13 @@ class ManagePayrollInputOperations(Tool):
                 })
             
             user = users[requesting_user_id]
-            if user.get("role") != "hr_payroll_administrator":
+            user_role = user.get("role")
+            valid_roles = ["hr_payroll_administrator", "hr_manager", "hr_director"]
+            
+            if user_role not in valid_roles:
                 return json.dumps({
                     "success": False,
-                    "error": "Halt: Missing or invalid inputs - user must be an HR Payroll Administrator"
+                    "error": "Halt: Missing or invalid inputs - user must be an HR Payroll Administrator, HR Manager, or HR Director"
                 })
             
             if user.get("employment_status") != "active":
@@ -299,7 +302,7 @@ class ManagePayrollInputOperations(Tool):
                         },
                         "requesting_user_id": {
                             "type": "string",
-                            "description": "User ID of the HR Payroll Administrator creating the input (required for create_input, must be active hr_payroll_administrator)"
+                            "description": "User ID creating the input (required for create_input, must be active hr_payroll_administrator, hr_manager, or hr_director)"
                         },
                         "input_id": {
                             "type": "string",

@@ -62,7 +62,7 @@ class ManagePayslipOperations(Tool):
                     "error": "Halt: Missing mandatory fields - employee_id, cycle_id, gross_pay, base_salary, total_deductions, net_pay, and user_id are required"
                 })
             
-            # Verify the user is an active HR Payroll Administrator
+            # Verify the user is an active HR Payroll Administrator, HR Manager, or HR Director
             if user_id not in users:
                 return json.dumps({
                     "success": False,
@@ -70,10 +70,13 @@ class ManagePayslipOperations(Tool):
                 })
             
             user = users[user_id]
-            if user.get("role") != "hr_payroll_administrator":
+            user_role = user.get("role")
+            valid_roles = ["hr_payroll_administrator", "hr_manager", "hr_director"]
+            
+            if user_role not in valid_roles:
                 return json.dumps({
                     "success": False,
-                    "error": "Halt: Missing or invalid inputs - user must be an HR Payroll Administrator"
+                    "error": "Halt: Missing or invalid inputs - user must be an HR Payroll Administrator, HR Manager, or HR Director"
                 })
             
             if user.get("employment_status") != "active":
@@ -124,6 +127,14 @@ class ManagePayslipOperations(Tool):
                 return json.dumps({
                     "success": False,
                     "error": "Halt: Negative amounts detected - all amounts must be non-negative"
+                })
+            
+            # Validate calculation: net_pay should equal gross_pay minus total_deductions
+            calculated_net_pay = gross_pay - total_deductions
+            if abs(net_pay - calculated_net_pay) > 0.01:  # Allow for small rounding differences
+                return json.dumps({
+                    "success": False,
+                    "error": "Halt: Calculation validation failed (gross_pay or net_pay mismatch) - net_pay must equal gross_pay minus total_deductions"
                 })
             
             # Validate optional amounts if provided
@@ -208,7 +219,7 @@ class ManagePayslipOperations(Tool):
                     "error": "Halt: Missing mandatory fields - payslip_id, user_id, and released_date are required"
                 })
             
-            # Verify the user is an active HR Payroll Administrator
+            # Verify the user is an active HR Payroll Administrator, HR Manager, or HR Director
             if user_id not in users:
                 return json.dumps({
                     "success": False,
@@ -216,10 +227,13 @@ class ManagePayslipOperations(Tool):
                 })
             
             user = users[user_id]
-            if user.get("role") != "hr_payroll_administrator":
+            user_role = user.get("role")
+            valid_roles = ["hr_payroll_administrator", "hr_manager", "hr_director"]
+            
+            if user_role not in valid_roles:
                 return json.dumps({
                     "success": False,
-                    "error": "Halt: Missing or invalid inputs - user must be an HR Payroll Administrator"
+                    "error": "Halt: Missing or invalid inputs - user must be an HR Payroll Administrator, HR Manager, or HR Director"
                 })
             
             if user.get("employment_status") != "active":
@@ -443,7 +457,7 @@ class ManagePayslipOperations(Tool):
                         },
                         "user_id": {
                             "type": "string",
-                            "description": "User ID (required for all operations, must be active hr_payroll_administrator for create_payslip/update_payslip_status, finance_manager for create_payment)"
+                            "description": "User ID (required for all operations, must be active hr_payroll_administrator/hr_manager/hr_director for create_payslip/update_payslip_status, finance_manager for create_payment)"
                         },
                         "bonus_earned": {
                             "type": "number",
