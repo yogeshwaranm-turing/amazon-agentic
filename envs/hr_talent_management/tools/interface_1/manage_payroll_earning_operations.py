@@ -60,12 +60,12 @@ class ManagePayrollEarningOperations(Tool):
             
             user = users[user_id]
             user_role = user.get("role")
-            valid_roles = ["hr_payroll_administrator", "hr_manager", "hr_director"]
+            valid_roles = ["hr_payroll_administrator", "hr_manager", "hr_admin"]
             
             if user_role not in valid_roles:
                 return json.dumps({
                     "success": False,
-                    "error": "Halt: User is not an active HR Payroll Administrator - user must be HR Payroll Administrator, HR Manager, or HR Director"
+                    "error": "Halt: User is not an active HR Payroll Administrator - user must be HR Payroll Administrator, HR Manager, or HR Admin"
                 })
             
             if user.get("employment_status") != "active":
@@ -292,7 +292,7 @@ class ManagePayrollEarningOperations(Tool):
                         },
                         "user_id": {
                             "type": "string",
-                            "description": "User ID creating the earning (required for create_earning, must be active hr_payroll_administrator, hr_manager, or hr_director)"
+                            "description": "User ID creating the earning (required for create_earning, must be active hr_payroll_administrator, hr_manager, or hr_admin)"
                         },
                         "earning_id": {
                             "type": "string",

@@ -71,12 +71,12 @@ class ManagePayslipOperations(Tool):
             
             user = users[user_id]
             user_role = user.get("role")
-            valid_roles = ["hr_payroll_administrator", "hr_manager", "hr_director"]
+            valid_roles = ["hr_payroll_administrator", "hr_manager", "hr_admin"]
             
             if user_role not in valid_roles:
                 return json.dumps({
                     "success": False,
-                    "error": "Halt: Missing or invalid inputs - user must be an HR Payroll Administrator, HR Manager, or HR Director"
+                    "error": "Halt: Missing or invalid inputs - user must be an HR Payroll Administrator, HR Manager, or HR Admin"
                 })
             
             if user.get("employment_status") != "active":
@@ -228,12 +228,12 @@ class ManagePayslipOperations(Tool):
             
             user = users[user_id]
             user_role = user.get("role")
-            valid_roles = ["hr_payroll_administrator", "hr_manager", "hr_director"]
+            valid_roles = ["hr_payroll_administrator", "hr_manager", "hr_admin"]
             
             if user_role not in valid_roles:
                 return json.dumps({
                     "success": False,
-                    "error": "Halt: Missing or invalid inputs - user must be an HR Payroll Administrator, HR Manager, or HR Director"
+                    "error": "Halt: Missing or invalid inputs - user must be an HR Payroll Administrator, HR Manager, or HR Admin"
                 })
             
             if user.get("employment_status") != "active":
@@ -457,7 +457,7 @@ class ManagePayslipOperations(Tool):
                         },
                         "user_id": {
                             "type": "string",
-                            "description": "User ID (required for all operations, must be active hr_payroll_administrator/hr_manager/hr_director for create_payslip/update_payslip_status, finance_manager for create_payment)"
+                            "description": "User ID (required for all operations, must be active hr_payroll_administrator/hr_manager/hr_admin for create_payslip/update_payslip_status, finance_manager for create_payment)"
                         },
                         "bonus_earned": {
                             "type": "number",

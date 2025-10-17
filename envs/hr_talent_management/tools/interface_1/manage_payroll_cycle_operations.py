@@ -66,12 +66,12 @@ class ManagePayrollCycleOperations(Tool):
             
             user = users[requesting_user_id]
             user_role = user.get("role")
-            valid_roles = ["hr_payroll_administrator", "hr_manager", "hr_director"]
+            valid_roles = ["hr_payroll_administrator", "hr_manager", "hr_admin"]
             
             if user_role not in valid_roles:
                 return json.dumps({
                     "success": False,
-                    "error": "Halt: Missing or invalid inputs - user must be an HR Payroll Administrator, HR Manager, or HR Director"
+                    "error": "Halt: Missing or invalid inputs - user must be an HR Payroll Administrator, HR Manager, or HR Admin"
                 })
             
             if user.get("employment_status") != "active":
@@ -197,7 +197,7 @@ class ManagePayrollCycleOperations(Tool):
                         },
                         "requesting_user_id": {
                             "type": "string",
-                            "description": "User ID creating the cycle (required, must be active hr_payroll_administrator, hr_manager, or hr_director)"
+                            "description": "User ID creating the cycle (required, must be active hr_payroll_administrator, hr_manager, or hr_admin)"
                         }
                     },
                     "required": ["operation_type", "cycle_start_date", "cycle_end_date", "frequency", "cutoff_date", "requesting_user_id"]

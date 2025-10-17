@@ -148,7 +148,7 @@ class DiscoverPayrollEntities(Tool):
             
             user = users[requesting_user_id]
             user_role = user.get("role")
-            valid_roles = ["hr_payroll_administrator", "hr_manager", "hr_director", "finance_manager", "department_manager"]
+            valid_roles = ["hr_payroll_administrator", "hr_manager", "hr_admin", "finance_manager"]
             
             if user_role not in valid_roles:
                 return json.dumps({
@@ -254,7 +254,7 @@ class DiscoverPayrollEntities(Tool):
                         },
                         "requesting_user_id": {
                             "type": "string",
-                            "description": "User ID of the requester (optional, must be active hr_payroll_administrator, hr_manager, hr_director, finance_manager, or department_manager)"
+                            "description": "User ID of the requester (optional, must be active hr_payroll_administrator, hr_manager, hr_admin, or finance_manager)"
                         },
                         "filters": {
                             "type": "object",
