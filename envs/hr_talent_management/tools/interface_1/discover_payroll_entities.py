@@ -4,7 +4,7 @@ from tau_bench.envs.tool import Tool
 
 class DiscoverPayrollEntities(Tool):
     @staticmethod
-    def invoke(data: Dict[str, Any], entity_type: str, filters: Optional[Dict[str, Any]] = None) -> str:
+    def invoke(data: Dict[str, Any], entity_type: str, filters: Optional[Dict[str, Any]] = None, requesting_user_id: str = None) -> str:
         """
         Discover payroll entities including cycles, inputs, and earnings with optional filtering.
         
@@ -60,16 +60,56 @@ class DiscoverPayrollEntities(Tool):
             
             return False
         
+        def validate_filter_conflicts(filters: Dict[str, Any]) -> Optional[str]:
+            """Validate that filter parameters don't result in conflicting results"""
+            if not filters:
+                return None
+            
+            # Check for conflicting date ranges
+            date_conflicts = []
+            for base_field in ["cycle_start_date", "cycle_end_date", "cutoff_date", "approval_date"]:
+                from_key = f"{base_field}_from"
+                to_key = f"{base_field}_to"
+                
+                if from_key in filters and to_key in filters:
+                    from_value = filters[from_key]
+                    to_value = filters[to_key]
+                    if from_value > to_value:
+                        date_conflicts.append(f"{base_field} range: {from_value} > {to_value}")
+            
+            # Check for conflicting numeric ranges
+            numeric_conflicts = []
+            for base_field in ["hours_worked", "overtime_hours", "amount"]:
+                min_key = f"{base_field}_min"
+                max_key = f"{base_field}_max"
+                
+                if min_key in filters and max_key in filters:
+                    min_value = filters[min_key]
+                    max_value = filters[max_key]
+                    if min_value > max_value:
+                        numeric_conflicts.append(f"{base_field} range: {min_value} > {max_value}")
+            
+            if date_conflicts or numeric_conflicts:
+                all_conflicts = date_conflicts + numeric_conflicts
+                return f"Search parameters result in ambiguous or conflicting results: {', '.join(all_conflicts)}"
+            
+            return None
+        
         def apply_filters(entities: Dict[str, Any], valid_filters: List[str], filters: Dict[str, Any]) -> Dict[str, Any]:
             """Apply filters to entities and return matching results"""
             if not filters:
                 return entities
             
+            # Validate filter conflicts
+            conflict_error = validate_filter_conflicts(filters)
+            if conflict_error:
+                return {"error": f"Halt: {conflict_error}"}
+            
             # Validate filter keys
             invalid_filters = [key for key in filters.keys() if key not in valid_filters]
             if invalid_filters:
                 return {
-                    "error": f"Invalid filter keys: {', '.join(invalid_filters)}. Valid filters are: {', '.join(valid_filters)}"
+                    "error": f"Halt: Discovery tool execution failed due to system errors - invalid filter keys: {', '.join(invalid_filters)}. Valid filters are: {', '.join(valid_filters)}"
                 }
             
             filtered_entities = {}
@@ -88,14 +128,39 @@ class DiscoverPayrollEntities(Tool):
         if not isinstance(data, dict):
             return json.dumps({
                 "success": False,
-                "error": "Invalid data format for payroll entity discovery"
+                "error": "Halt: Discovery tool execution failed due to system errors - invalid data format"
             })
         
         if entity_type not in ["payroll_cycles", "payroll_inputs", "payroll_earnings"]:
             return json.dumps({
                 "success": False,
-                "error": f"Invalid entity_type '{entity_type}'. Must be one of: payroll_cycles, payroll_inputs, payroll_earnings"
+                "error": "Halt: Missing entity_type or invalid entity_type - must be one of: payroll_cycles, payroll_inputs, payroll_earnings"
             })
+        
+        # Validate requesting user authorization
+        if requesting_user_id:
+            users = data.get("users", {})
+            if requesting_user_id not in users:
+                return json.dumps({
+                    "success": False,
+                    "error": "Halt: Unauthorized requester attempting to access restricted entities - user not found"
+                })
+            
+            user = users[requesting_user_id]
+            user_role = user.get("role")
+            valid_roles = ["hr_payroll_administrator", "hr_manager", "hr_admin", "finance_manager"]
+            
+            if user_role not in valid_roles:
+                return json.dumps({
+                    "success": False,
+                    "error": "Halt: Unauthorized requester attempting to access restricted entities - insufficient permissions"
+                })
+            
+            if user.get("employment_status") != "active":
+                return json.dumps({
+                    "success": False,
+                    "error": "Halt: Unauthorized requester attempting to access restricted entities - user not active"
+                })
         
         if entity_type == "payroll_cycles":
             entities = data.get("payroll_cycles", {})
@@ -186,6 +251,10 @@ class DiscoverPayrollEntities(Tool):
                             "type": "string",
                             "description": "Type of payroll entity to discover",
                             "enum": ["payroll_cycles", "payroll_inputs", "payroll_earnings"]
+                        },
+                        "requesting_user_id": {
+                            "type": "string",
+                            "description": "User ID of the requester (optional, must be active hr_payroll_administrator, hr_manager, hr_admin, or finance_manager)"
                         },
                         "filters": {
                             "type": "object",
