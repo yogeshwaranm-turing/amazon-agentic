@@ -4,7 +4,7 @@ from tau_bench.envs.tool import Tool
 
 class ManagePayrollCycleOperations(Tool):
     @staticmethod
-    def invoke(data: Dict[str, Any], operation_type: str, cycle_start_date: str = None, cycle_end_date: str = None, frequency: str = None, cutoff_date: str = None, requesting_user_id: str = None) -> str:
+    def invoke(data: Dict[str, Any], operation_type: str, cycle_start_date: str, cycle_end_date: str, frequency: str, cutoff_date: str, requesting_user_id: str) -> str:
         """
         Manage payroll cycle operations including creation, updates, and status changes.
         
