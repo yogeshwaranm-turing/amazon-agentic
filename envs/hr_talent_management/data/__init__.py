@@ -13,3 +13,4 @@ def load_data() -> dict[str, Any]:
             with open(os.path.join(FOLDER_PATH, filename)) as f:
                 data[key] = json.load(f)
     return data
+
