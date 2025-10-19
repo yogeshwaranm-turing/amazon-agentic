@@ -89,6 +89,37 @@ class ManageItProvisioningOperations(Tool):
                     "message": f"Invalid task_type. Must be one of: {', '.join(valid_task_types)}"
                 })
 
+            # Additional validations
+            # 1) Verify that the employee's status is active
+            employee_record = employees.get(str(kwargs["employee_id"]), {})
+            employee_status = str(employee_record.get("status", "")).strip().lower()
+            if employee_status and employee_status != "active":
+                return json.dumps({
+                    "success": False,
+                    "task_id": None,
+                    "message": f"Employee {kwargs['employee_id']} is not active"
+                })
+
+            # 2) Check that assigned_by is an active IT administrator
+            assigner_record = users.get(str(kwargs["assigned_by"]), {})
+            assigner_status = str(assigner_record.get("status", "")).strip().lower()
+            assigner_role = str(assigner_record.get("role", "")).strip().lower()
+
+            if assigner_status and assigner_status != "active":
+                return json.dumps({
+                    "success": False,
+                    "task_id": None,
+                    "message": f"Assigned-by user {kwargs['assigned_by']} is not active"
+                })
+
+            # 3) Ensure only an IT administrator can create a task
+            if assigner_role != "it_administrator":
+                return json.dumps({
+                    "success": False,
+                    "task_id": None,
+                    "message": f"Only users with role 'it_administrator' can create IT provisioning tasks"
+                })
+
             # Create task
             new_task_id = generate_id(it_tasks)
             timestamp = "2025-10-01T12:00:00"
@@ -135,6 +166,25 @@ class ManageItProvisioningOperations(Tool):
                     "success": False,
                     "task_id": None,
                     "message": f"User {kwargs['user_id']} not found"
+                })
+
+            # Validate user is active and has IT administrator role
+            user_record = users.get(str(kwargs["user_id"]), {})
+            user_status = str(user_record.get("status", "")).strip().lower()
+            user_role = str(user_record.get("role", "")).strip().lower()
+
+            if user_status and user_status != "active":
+                return json.dumps({
+                    "success": False,
+                    "task_id": None,
+                    "message": f"User {kwargs['user_id']} is not active"
+                })
+
+            if user_role != "it_administrator":
+                return json.dumps({
+                    "success": False,
+                    "task_id": None,
+                    "message": f"Only users with role 'it_administrator' can update IT provisioning tasks"
                 })
 
             # Validate task_status enum
@@ -224,5 +274,3 @@ class ManageItProvisioningOperations(Tool):
                 }
             }
         }
-
-
