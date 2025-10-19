@@ -148,5 +148,3 @@ class DiscoverReferenceEntities(Tool):
             }
         }
 
-
-

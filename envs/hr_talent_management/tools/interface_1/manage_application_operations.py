@@ -1,5 +1,6 @@
 import json
-from typing import Any, Dict
+import re
+from typing import Any, Dict, Optional
 from tau_bench.envs.tool import Tool
 
 
@@ -7,83 +8,151 @@ class ManageApplicationOperations(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], operation_type: str, **kwargs) -> str:
         """
-        Manage application operations including creation, status updates, and shortlist approval.
+        Manage application operations including creation and status updates.
         
         Operations:
-        - create_application: Create a new job application
+        - create_application: Create new job application
         - update_application_status: Update application status
-        - approve_shortlist: Approve candidate for shortlist
         """
         
-        def generate_id(table: Dict[str, Any]) -> str:
+        def generate_id(table: Dict[str, Any]) -> int:
             if not table:
-                return "1"
-            return str(max(int(k) for k in table.keys()) + 1)
+                return 1
+            return max(int(k) for k in table.keys()) + 1
         
-        valid_operations = ["create_application", "update_application_status", "approve_shortlist"]
+        def validate_date_format(date_str: str, field_name: str) -> Optional[str]:
+            if date_str:
+                # Accept both MM-DD-YYYY and YYYY-MM-DD formats
+                date_pattern_1 = r'^\d{2}-\d{2}-\d{4}$'
+                date_pattern_2 = r'^\d{4}-\d{2}-\d{2}$'
+                if not (re.match(date_pattern_1, date_str) or re.match(date_pattern_2, date_str)):
+                    return f"Invalid {field_name} format. Must be MM-DD-YYYY or YYYY-MM-DD"
+            return None
         
+        def convert_date_format(date_str: str) -> str:
+            """Convert MM-DD-YYYY to YYYY-MM-DD"""
+            if date_str and re.match(r'^\d{2}-\d{2}-\d{4}$', date_str):
+                month, day, year = date_str.split('-')
+                return f"{year}-{month}-{day}"
+            return date_str
+        
+        # Validate operation_type
+        valid_operations = ["create_application", "update_application_status"]
         if operation_type not in valid_operations:
             return json.dumps({
                 "success": False,
-                "error": f"Invalid operation_type '{operation_type}'. Must be one of: {', '.join(valid_operations)}"
+                "application_id": None,
+                "message": f"Invalid operation_type '{operation_type}'. Must be one of: {', '.join(valid_operations)}"
             })
         
+        # Access related data
         if not isinstance(data, dict):
             return json.dumps({
                 "success": False,
-                "error": "Invalid data format for application operations"
+                "application_id": None,
+                "message": "Invalid data format for application operations"
             })
         
         applications = data.get("applications", {})
         candidates = data.get("candidates", {})
         job_postings = data.get("job_postings", {})
-        users = data.get("users", {})
         documents = data.get("documents", {})
+        users = data.get("users", {})
         
-        # CREATE APPLICATION
         if operation_type == "create_application":
+            # Validate required fields
             required_fields = ["created_by", "candidate_id", "posting_id", "resume_file_id", "application_date"]
-            missing = [f for f in required_fields if not kwargs.get(f)]
-            if missing:
-                return json.dumps({"success": False, "error": f"Halt: Missing mandatory fields: {', '.join(missing)}"})
+            missing_fields = [field for field in required_fields if field not in kwargs or kwargs[field] is None]
+            if missing_fields:
+                return json.dumps({
+                    "success": False,
+                    "application_id": None,
+                    "message": f"Missing required fields for application creation: {', '.join(missing_fields)}"
+                })
             
-            # Verify creator exists and has appropriate role
-            creator = users.get(kwargs["created_by"])
-            if not creator or creator.get("employment_status") != "active":
-                return json.dumps({"success": False, "error": "Halt: User not authorized"})
+            # Validate creator exists
+            if str(kwargs["created_by"]) not in users:
+                return json.dumps({
+                    "success": False,
+                    "application_id": None,
+                    "message": f"User {kwargs['created_by']} not found"
+                })
             
-            valid_roles = ["hr_recruiter", "hr_manager", "hr_admin", "hr_director"]
-            if creator.get("role") not in valid_roles:
-                return json.dumps({"success": False, "error": "Halt: User not authorized"})
+            # Validate candidate exists and is active
+            cand_id = str(kwargs["candidate_id"])
+            if cand_id not in candidates:
+                return json.dumps({
+                    "success": False,
+                    "application_id": None,
+                    "message": f"Candidate {cand_id} not found"
+                })
             
-            # Verify candidate profile exists and is active
-            candidate = candidates.get(kwargs["candidate_id"])
-            if not candidate or candidate.get("status") != "active":
-                return json.dumps({"success": False, "error": "Halt: Candidate not found or inactive"})
+            candidate = candidates[cand_id]
+            if candidate.get("status") != "active":
+                return json.dumps({
+                    "success": False,
+                    "application_id": None,
+                    "message": f"Candidate {cand_id} is not active"
+                })
             
-            # Verify job posting exists and is active
-            posting = job_postings.get(kwargs["posting_id"])
-            if not posting or posting.get("status") != "active":
-                return json.dumps({"success": False, "error": "Halt: Posting not found or not in 'active' status"})
+            # Validate posting exists and is active
+            posting_id = str(kwargs["posting_id"])
+            if posting_id not in job_postings:
+                return json.dumps({
+                    "success": False,
+                    "application_id": None,
+                    "message": f"Job posting {posting_id} not found"
+                })
             
-            # Verify resume file exists and is active
-            resume_doc = documents.get(kwargs["resume_file_id"])
-            if not resume_doc or resume_doc.get("document_status") != "active":
-                return json.dumps({"success": False, "error": "Halt: Resume file not found or archived/expired"})
+            posting = job_postings[posting_id]
+            if posting.get("status") != "active":
+                return json.dumps({
+                    "success": False,
+                    "application_id": None,
+                    "message": f"Job posting {posting_id} is not active"
+                })
             
-            # Verify cover letter file if provided
-            if kwargs.get("cover_letter_file_id"):
-                cover_doc = documents.get(kwargs["cover_letter_file_id"])
-                if not cover_doc or cover_doc.get("document_status") != "active":
-                    return json.dumps({"success": False, "error": "Halt: Cover letter file not found or archived/expired"})
+            # Validate resume file exists
+            resume_file_id = str(kwargs["resume_file_id"])
+            if resume_file_id not in documents:
+                return json.dumps({
+                    "success": False,
+                    "application_id": None,
+                    "message": f"Resume file {resume_file_id} not found"
+                })
             
-            # Check for duplicate application
-            for app in applications.values():
-                if app.get("candidate_id") == kwargs["candidate_id"] and app.get("posting_id") == kwargs["posting_id"]:
-                    return json.dumps({"success": False, "error": "Halt: Duplicate application (candidate already applied to this posting)"})
+            # Validate cover letter file if provided
+            if "cover_letter_file_id" in kwargs and kwargs["cover_letter_file_id"]:
+                cover_letter_id = str(kwargs["cover_letter_file_id"])
+                if cover_letter_id not in documents:
+                    return json.dumps({
+                        "success": False,
+                        "application_id": None,
+                        "message": f"Cover letter file {cover_letter_id} not found"
+                    })
             
-            # Create application
-            app_id = generate_id(applications)
+            # Check for duplicate application (candidate already applied to this posting)
+            for app_id, app in applications.items():
+                if app.get("candidate_id") == cand_id and app.get("posting_id") == posting_id:
+                    return json.dumps({
+                        "success": False,
+                        "application_id": None,
+                        "message": f"Candidate {cand_id} has already applied to posting {posting_id}"
+                    })
+            
+            # Validate date format
+            date_error = validate_date_format(kwargs["application_date"], "application_date")
+            if date_error:
+                return json.dumps({
+                    "success": False,
+                    "application_id": None,
+                    "message": date_error
+                })
+            
+            # Generate new application ID and create record
+            new_application_id = generate_id(applications)
+            timestamp = "2025-10-10T12:00:00"
+            
             new_application = {
                 "application_id": app_id,
                 "candidate_id": kwargs["candidate_id"],
@@ -99,67 +168,93 @@ class ManageApplicationOperations(Tool):
                 "created_at": "2025-01-01T12:00:00",
                 "updated_at": "2025-01-01T12:00:00"
             }
-            applications[app_id] = new_application
             
-            return json.dumps({"success": True, "application_id": app_id, "message": f"Application {app_id} created successfully"})
+            applications[str(new_application_id)] = new_application
+            
+            return json.dumps({
+                "success": True,
+                "application_id": str(new_application_id),
+                "message": f"Application {new_application_id} created successfully"
+            })
         
-        # UPDATE APPLICATION STATUS
         elif operation_type == "update_application_status":
+            # Validate required fields
             required_fields = ["application_id", "status", "user_id"]
-            missing = [f for f in required_fields if not kwargs.get(f)]
-            if missing:
-                return json.dumps({"success": False, "error": f"Halt: Missing mandatory fields: {', '.join(missing)}"})
+            missing_fields = [field for field in required_fields if field not in kwargs or kwargs[field] is None]
+            if missing_fields:
+                return json.dumps({
+                    "success": False,
+                    "application_id": None,
+                    "message": f"Missing required fields for application status update: {', '.join(missing_fields)}"
+                })
             
-            application = applications.get(kwargs["application_id"])
-            if not application:
-                return json.dumps({"success": False, "error": "Halt: Application not found"})
+            # Validate application exists
+            app_id = str(kwargs["application_id"])
+            if app_id not in applications:
+                return json.dumps({
+                    "success": False,
+                    "application_id": app_id,
+                    "message": f"Application {app_id} not found"
+                })
             
-            # Verify user has appropriate role
-            user = users.get(kwargs["user_id"])
-            if not user or user.get("employment_status") != "active":
-                return json.dumps({"success": False, "error": "Halt: User not found or inactive"})
+            # Validate user exists
+            if str(kwargs["user_id"]) not in users:
+                return json.dumps({
+                    "success": False,
+                    "application_id": app_id,
+                    "message": f"User {kwargs['user_id']} not found"
+                })
             
-            if user.get("role") not in ["hr_recruiter", "hr_manager", "hr_admin"]:
-                return json.dumps({"success": False, "error": "Halt: User lacks authorization to perform this action"})
+            application = applications[app_id]
+            
+            # Validate status
+            valid_statuses = ["pending_review", "incomplete", "screening_passed", "shortlisted", 
+                            "interview_scheduled", "interview_completed", "selected", "rejected", 
+                            "offer_issued", "offer_accepted", "onboarding"]
+            if kwargs["status"] not in valid_statuses:
+                return json.dumps({
+                    "success": False,
+                    "application_id": app_id,
+                    "message": f"Invalid status. Must be one of: {', '.join(valid_statuses)}"
+                })
             
             # Update status
             application["status"] = kwargs["status"]
-            if kwargs.get("screened_date"):
-                application["screened_date"] = kwargs["screened_date"]
-                application["screened_by"] = kwargs["user_id"]
-                application["updated_at"] = "2025-01-01T12:00:00"
             
-            return json.dumps({"success": True, "application_id": kwargs["application_id"], "message": f"Application {kwargs['application_id']} status updated successfully"})
+            # Update optional fields if provided
+            if "screened_date" in kwargs and kwargs["screened_date"]:
+                date_error = validate_date_format(kwargs["screened_date"], "screened_date")
+                if date_error:
+                    return json.dumps({
+                        "success": False,
+                        "application_id": app_id,
+                        "message": date_error
+                    })
+                application["screened_date"] = convert_date_format(kwargs["screened_date"])
+                application["screened_by"] = str(kwargs["user_id"])
+            
+            if "shortlist_approval_date" in kwargs and kwargs["shortlist_approval_date"]:
+                date_error = validate_date_format(kwargs["shortlist_approval_date"], "shortlist_approval_date")
+                if date_error:
+                    return json.dumps({
+                        "success": False,
+                        "application_id": app_id,
+                        "message": date_error
+                    })
+                application["shortlist_approval_date"] = convert_date_format(kwargs["shortlist_approval_date"])
+                application["shortlist_approved_by"] = str(kwargs["user_id"])
+            
+            return json.dumps({
+                "success": True,
+                "application_id": app_id,
+                "message": f"Application {app_id} status updated to {kwargs['status']}"
+            })
         
-        # APPROVE SHORTLIST
-        elif operation_type == "approve_shortlist":
-            required_fields = ["application_id", "approved_by", "approval_date"]
-            missing = [f for f in required_fields if not kwargs.get(f)]
-            if missing:
-                return json.dumps({"success": False, "error": f"Halt: Missing mandatory fields: {', '.join(missing)}"})
-            
-            application = applications.get(kwargs["application_id"])
-            if not application:
-                return json.dumps({"success": False, "error": "Halt: Application not found"})
-            
-            if application.get("status") != "screening_passed":
-                return json.dumps({"success": False, "error": "Halt: Application not in 'screening_passed' status"})
-            
-            # Verify approver is active HR manager
-            approver = users.get(kwargs["approved_by"])
-            if not approver or approver.get("employment_status") != "active":
-                return json.dumps({"success": False, "error": "Halt: Approver not found or inactive"})
-            
-            if approver.get("role") != "hr_manager" and approver.get("role") != "hiring_manager":
-                return json.dumps({"success": False, "error": "Halt: Approver not authorized (not an active hiring manager)"})
-            
-            # Approve shortlist
-            application["shortlist_approved_by"] = kwargs["approved_by"]
-            application["shortlist_approval_date"] = kwargs["approval_date"]
-            application["status"] = "shortlisted"
-            application["updated_at"] = "2025-01-01T12:00:00"
-            
-            return json.dumps({"success": True, "application_id": kwargs["application_id"], "message": f"Application {kwargs['application_id']} shortlist approved"})
+        return json.dumps({
+            "success": False,
+            "application_id": None,
+            "message": "Operation not implemented"
+        })
     
     @staticmethod
     def get_info() -> Dict[str, Any]:
@@ -167,14 +262,13 @@ class ManageApplicationOperations(Tool):
             "type": "function",
             "function": {
                 "name": "manage_application_operations",
-                "description": "Manage job application operations in the HR talent management system.",
+                "description": "Manage application operations including creation and status updates. Operations: create_application, update_application_status.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "operation_type": {
                             "type": "string",
-                            "description": "Type of operation",
-                            "enum": ["create_application", "update_application_status", "approve_shortlist"]
+                            "description": "Type of operation to perform: 'create_application', 'update_application_status'"
                         },
                         "created_by": {"type": "string", "description": "User ID who created application (required for create_application)"},
                         "candidate_id": {"type": "string", "description": "Candidate ID (required for create_application)"},

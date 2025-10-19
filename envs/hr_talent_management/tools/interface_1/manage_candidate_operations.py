@@ -1,5 +1,6 @@
 import json
-from typing import Any, Dict
+import re
+from typing import Any, Dict, Optional
 from tau_bench.envs.tool import Tool
 
 
@@ -10,33 +11,35 @@ class ManageCandidateOperations(Tool):
         Manage candidate operations including creation and updates.
         
         Operations:
-        - create_candidate: Create a new candidate profile
-        - update_candidate: Update existing candidate information
+        - create_candidate: Create new candidate profile
+        - update_candidate: Update candidate profile details
         """
         
-        def generate_id(table: Dict[str, Any]) -> str:
+        def generate_id(table: Dict[str, Any]) -> int:
             if not table:
-                return "1"
-            return str(max(int(k) for k in table.keys()) + 1)
+                return 1
+            return max(int(k) for k in table.keys()) + 1
         
+        # Validate operation_type
         valid_operations = ["create_candidate", "update_candidate"]
-        
         if operation_type not in valid_operations:
             return json.dumps({
                 "success": False,
-                "error": f"Invalid operation_type '{operation_type}'. Must be one of: {', '.join(valid_operations)}"
+                "candidate_id": None,
+                "message": f"Invalid operation_type '{operation_type}'. Must be one of: {', '.join(valid_operations)}"
             })
         
+        # Access related data
         if not isinstance(data, dict):
             return json.dumps({
                 "success": False,
-                "error": "Invalid data format for candidate operations"
+                "candidate_id": None,
+                "message": "Invalid data format for candidate operations"
             })
         
         candidates = data.get("candidates", {})
         users = data.get("users", {})
         
-        # CREATE CANDIDATE
         if operation_type == "create_candidate":
             required_fields = ["first_name", "last_name", "email_address", "contact_number", "country_of_residence", "created_by", "resume_file_name"]
             missing = [f for f in required_fields if not kwargs.get(f)]
@@ -84,39 +87,116 @@ class ManageCandidateOperations(Tool):
                 "created_at": "2025-01-01T12:00:00",
                 "updated_at": "2025-01-01T12:00:00"
             }
-            candidates[cand_id] = new_candidate
             
-            return json.dumps({"success": True, "candidate_id": cand_id, "message": f"Candidate {cand_id} created successfully"})
+            # Generate new candidate ID and create record
+            new_candidate_id = generate_id(candidates)
+            
+            new_candidate = {
+                "candidate_id": str(new_candidate_id),
+                "country_of_residence": kwargs["country_of_residence"],
+                "linkedin_profile": kwargs.get("linkedin_profile", ""),
+                "current_ctc": float(kwargs.get("current_ctc", 0)),
+                "status": "active",
+                "created_at": timestamp,
+                "updated_at": timestamp
+            }
+            
+            candidates[str(new_candidate_id)] = new_candidate
+            
+            return json.dumps({
+                "success": True,
+                "candidate_id": str(new_candidate_id),
+                "message": f"Candidate {new_candidate_id} created successfully"
+            })
         
-        # UPDATE CANDIDATE
         elif operation_type == "update_candidate":
-            if not kwargs.get("candidate_id") or not kwargs.get("user_id"):
-                return json.dumps({"success": False, "error": "Halt: Missing candidate_id or user_id"})
+            # Validate required fields
+            required_fields = ["candidate_id", "user_id"]
+            missing_fields = [field for field in required_fields if field not in kwargs or kwargs[field] is None]
+            if missing_fields:
+                return json.dumps({
+                    "success": False,
+                    "candidate_id": None,
+                    "message": f"Missing required fields for candidate update: {', '.join(missing_fields)}"
+                })
             
-            candidate = candidates.get(kwargs["candidate_id"])
-            if not candidate:
-                return json.dumps({"success": False, "error": "Halt: Candidate not found"})
-
-            if candidate.get("status") == "inactive":
-                return json.dumps({"success": False, "error": "Halt: Candidate is inactive"})
+            # Validate candidate exists
+            cand_id = str(kwargs["candidate_id"])
+            if cand_id not in candidates:
+                return json.dumps({
+                    "success": False,
+                    "candidate_id": cand_id,
+                    "message": f"Candidate {cand_id} not found"
+                })
             
-            # Verify user has appropriate role
-            user = users.get(kwargs["user_id"])
-            if not user or user.get("employment_status") != "active":
-                return json.dumps({"success": False, "error": "Halt: User not found or inactive"})
+            # Validate user exists
+            if str(kwargs["user_id"]) not in users:
+                return json.dumps({
+                    "success": False,
+                    "candidate_id": cand_id,
+                    "message": f"User {kwargs['user_id']} not found"
+                })
             
-            if user.get("role") not in ["hr_recruiter", "hr_manager", "hr_admin"]:
-                return json.dumps({"success": False, "error": "Halt: User lacks authorization to perform this action"})
+            candidate = candidates[cand_id]
             
-            # Update fields if provided
-            updatable_fields = ["country_of_residence", "linkedin_profile", "current_ctc", "status"]
-            for field in updatable_fields:
-                if kwargs.get(field) is not None:
-                    candidate[field] = kwargs[field]
+            # Validate candidate is active
+            if candidate.get("status") != "active":
+                return json.dumps({
+                    "success": False,
+                    "candidate_id": cand_id,
+                    "message": f"Cannot update candidate in '{candidate.get('status')}' status"
+                })
             
-            candidate["updated_at"] = "2025-01-01T12:00:00"
+            # Check for duplicate LinkedIn profile if provided
+            if "linkedin_profile" in kwargs and kwargs["linkedin_profile"]:
+                for check_cand_id, check_cand in candidates.items():
+                    if check_cand_id != cand_id and check_cand.get("linkedin_profile") == kwargs["linkedin_profile"]:
+                        return json.dumps({
+                            "success": False,
+                            "candidate_id": cand_id,
+                            "message": f"Another candidate with LinkedIn profile {kwargs['linkedin_profile']} already exists"
+                        })
             
-            return json.dumps({"success": True, "candidate_id": kwargs["candidate_id"], "message": f"Candidate {kwargs['candidate_id']} updated successfully"})
+            # Update fields
+            timestamp = "2025-10-10T12:00:00"
+            updateable_fields = ["country_of_residence", "linkedin_profile", "current_ctc", "status"]
+            
+            for field in updateable_fields:
+                if field in kwargs and kwargs[field] is not None:
+                    if field == "current_ctc":
+                        try:
+                            candidate[field] = float(kwargs[field])
+                        except (ValueError, TypeError):
+                            return json.dumps({
+                                "success": False,
+                                "candidate_id": cand_id,
+                                "message": "Invalid current_ctc format"
+                            })
+                    elif field == "status":
+                        valid_statuses = ["active", "inactive", "suspended"]
+                        if kwargs[field] not in valid_statuses:
+                            return json.dumps({
+                                "success": False,
+                                "candidate_id": cand_id,
+                                "message": f"Invalid status. Must be one of: {', '.join(valid_statuses)}"
+                            })
+                        candidate[field] = kwargs[field]
+                    else:
+                        candidate[field] = kwargs[field]
+            
+            candidate["updated_at"] = timestamp
+            
+            return json.dumps({
+                "success": True,
+                "candidate_id": cand_id,
+                "message": f"Candidate {cand_id} updated successfully"
+            })
+        
+        return json.dumps({
+            "success": False,
+            "candidate_id": None,
+            "message": "Operation not implemented"
+        })
     
     @staticmethod
     def get_info() -> Dict[str, Any]:
@@ -124,14 +204,13 @@ class ManageCandidateOperations(Tool):
             "type": "function",
             "function": {
                 "name": "manage_candidate_operations",
-                "description": "Manage candidate profile operations in the HR talent management system.",
+                "description": "Manage candidate operations including creation and updates. Operations: create_candidate, update_candidate.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "operation_type": {
                             "type": "string",
-                            "description": "Type of operation",
-                            "enum": ["create_candidate", "update_candidate"]
+                            "description": "Type of operation to perform: 'create_candidate', 'update_candidate'"
                         },
                         "first_name": {"type": "string", "description": "First name (required for create_candidate)"},
                         "last_name": {"type": "string", "description": "Last name (required for create_candidate)"},
