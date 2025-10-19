@@ -1,5 +1,11 @@
+from .discover_reference_entities import DiscoverReferenceEntities
+from .discover_job_entities import DiscoverJobEntities
 from .discover_candidate_entities import DiscoverCandidateEntities
 from .discover_interview_offer_entities import DiscoverInterviewOfferEntities
+from .manage_job_operations import ManageJobOperations
+from .manage_candidate_operations import ManageCandidateOperations
+from .manage_application_operations import ManageApplicationOperations
+from .manage_interview_operations import ManageInterviewOperations
 from .manage_employee_operations import ManageEmployeeOperations
 from .manage_it_provisioning_operations import ManageItProvisioningOperations
 from .manage_offer_operations import ManageOfferOperations
@@ -12,8 +18,14 @@ from .discover_payroll_entities import DiscoverPayrollEntities
 from .discover_benefit_entities import DiscoverBenefitEntities
 
 ALL_TOOLS_INTERFACE_1 = [
+    DiscoverReferenceEntities,
+    DiscoverJobEntities,
     DiscoverCandidateEntities,
     DiscoverInterviewOfferEntities,
+    ManageJobOperations,
+    ManageCandidateOperations,
+    ManageApplicationOperations,
+    ManageInterviewOperations,
     ManageEmployeeOperations,
     ManageItProvisioningOperations,
     ManageOfferOperations,
