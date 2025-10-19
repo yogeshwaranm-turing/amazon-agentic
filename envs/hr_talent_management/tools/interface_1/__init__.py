@@ -27,6 +27,9 @@ from .manage_benefit_enrollment_operations import ManageBenefitEnrollmentOperati
 from .discover_payment_entities import DiscoverPaymentEntities
 from .discover_system_entities import DiscoverSystemEntities
 from .manage_payment_operations import ManagePaymentOperations
+from .manage_user_operations import ManageUserOperations
+from .manage_location_operations import ManageLocationOperations
+from .manage_department_operations import ManageDepartmentOperations
 
 
 ALL_TOOLS_INTERFACE_1 = [
@@ -58,5 +61,8 @@ ALL_TOOLS_INTERFACE_1 = [
     ManageDocumentOperations,
     ManageNotificationOperations,
     CreateAuditEntry,
+    ManageUserOperations,
+    ManageLocationOperations,
+    ManageDepartmentOperations,
 ]
 
