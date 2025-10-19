@@ -154,14 +154,19 @@ class ManageApplicationOperations(Tool):
             timestamp = "2025-10-10T12:00:00"
             
             new_application = {
-                "application_id": str(new_application_id),
-                "candidate_id": cand_id,
-                "posting_id": posting_id,
-                "resume_file_id": resume_file_id,
-                "cover_letter_file_id": kwargs.get("cover_letter_file_id", ""),
-                "application_date": convert_date_format(kwargs["application_date"]),
-                "status": "pending_review",
-                "created_at": timestamp
+                "application_id": app_id,
+                "candidate_id": kwargs["candidate_id"],
+                "posting_id": kwargs["posting_id"],
+                "resume_file_id": kwargs["resume_file_id"],
+                "cover_letter_file_id": kwargs.get("cover_letter_file_id"),
+                "application_date": kwargs["application_date"],
+                "status": "applied",
+                "screened_by": None,
+                "screened_date": None,
+                "shortlist_approved_by": None,
+                "shortlist_approval_date": None,
+                "created_at": "2025-01-01T12:00:00",
+                "updated_at": "2025-01-01T12:00:00"
             }
             
             applications[str(new_application_id)] = new_application
@@ -265,50 +270,18 @@ class ManageApplicationOperations(Tool):
                             "type": "string",
                             "description": "Type of operation to perform: 'create_application', 'update_application_status'"
                         },
-                        "application_id": {
-                            "type": "string",
-                            "description": "Required for update_application_status"
-                        },
-                        "user_id": {
-                            "type": "string",
-                            "description": "Required for update_application_status"
-                        },
-                        "created_by": {
-                            "type": "string",
-                            "description": "Required for create_application"
-                        },
-                        "candidate_id": {
-                            "type": "string",
-                            "description": "Required for create_application"
-                        },
-                        "posting_id": {
-                            "type": "string",
-                            "description": "Required for create_application"
-                        },
-                        "resume_file_id": {
-                            "type": "string",
-                            "description": "Required for create_application"
-                        },
-                        "cover_letter_file_id": {
-                            "type": "string",
-                            "description": "Optional for create_application"
-                        },
-                        "application_date": {
-                            "type": "string",
-                            "description": "Required for create_application. Format: MM-DD-YYYY or YYYY-MM-DD"
-                        },
-                        "status": {
-                            "type": "string",
-                            "description": "Required for update_application_status. Values: pending_review, incomplete, screening_passed, shortlisted, interview_scheduled, interview_completed, selected, rejected, offer_issued, offer_accepted, onboarding"
-                        },
-                        "screened_date": {
-                            "type": "string",
-                            "description": "Optional for update_application_status. Format: MM-DD-YYYY or YYYY-MM-DD"
-                        },
-                        "shortlist_approval_date": {
-                            "type": "string",
-                            "description": "Optional for update_application_status. Format: MM-DD-YYYY or YYYY-MM-DD"
-                        }
+                        "created_by": {"type": "string", "description": "User ID who created application (required for create_application)"},
+                        "candidate_id": {"type": "string", "description": "Candidate ID (required for create_application)"},
+                        "posting_id": {"type": "string", "description": "Job posting ID (required for create_application)"},
+                        "resume_file_id": {"type": "string", "description": "Resume file ID (required for create_application)"},
+                        "cover_letter_file_id": {"type": "string", "description": "Cover letter file ID (optional for create_application)"},
+                        "application_date": {"type": "string", "description": "Application date (required for create_application)"},
+                        "user_id": {"type": "string", "description": "User ID (required for update_application_status)"},
+                        "application_id": {"type": "string", "description": "Application ID (required for update_application_status and approve_shortlist)"},
+                        "status": {"type": "string", "description": "Application status (required for update_application_status)"},
+                        "screened_date": {"type": "string", "description": "Screened date (optional for update_application_status)"},
+                        "approved_by": {"type": "string", "description": "Approver user ID (required for approve_shortlist)"},
+                        "approval_date": {"type": "string", "description": "Approval date (required for approve_shortlist)"}
                     },
                     "required": ["operation_type"]
                 }

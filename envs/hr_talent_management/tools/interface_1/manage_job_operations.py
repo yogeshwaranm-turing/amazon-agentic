@@ -159,9 +159,15 @@ class ManageJobOperations(Tool):
                 "shift_type": kwargs.get("shift_type", ""),
                 "remote_indicator": kwargs.get("remote_indicator", ""),
                 "status": "draft",
-                "created_by": str(kwargs["created_by"]),
-                "created_at": timestamp,
-                "updated_at": timestamp
+                "hr_manager_approver": None,
+                "hr_manager_approval_date": None,
+                "finance_manager_approver": None,
+                "finance_manager_approval_date": None,
+                "dept_head_approver": None,
+                "dept_head_approval_date": None,
+                "created_by": kwargs["created_by"],
+                "created_at": "2025-01-01T12:00:00",
+                "updated_at": "2025-01-01T12:00:00"
             }
             
             job_requisitions[str(new_requisition_id)] = new_requisition
@@ -202,23 +208,115 @@ class ManageJobOperations(Tool):
             
             requisition = job_requisitions[req_id]
             
-            # If updating status, validate current status
-            if "status" in kwargs and kwargs["status"] is not None:
-                valid_statuses = ["draft", "pending_approval", "approved", "closed"]
-                if kwargs["status"] not in valid_statuses:
-                    return json.dumps({
-                        "success": False,
-                        "requisition_id": req_id,
-                        "message": f"Invalid status. Must be one of: {', '.join(valid_statuses)}"
-                    })
+            valid_roles = ["hr_recruiter", "hr_manager", "hr_admin", "hiring_manager"]
+            if user.get("role") not in valid_roles:
+                return json.dumps({"success": False, "error": "Halt: User lacks authorization to perform this action"})
+            
+            # Update fields if provided
+            updatable_fields = ["job_title", "department_id", "location_id", "employment_type", "hiring_manager_id", 
+                              "budgeted_salary_min", "budgeted_salary_max", "job_description", "grade", "shift_type", "remote_indicator"]
+            for field in updatable_fields:
+                if kwargs.get(field) is not None:
+                    req[field] = kwargs[field]
+            
+            req["updated_at"] = "2025-01-01T12:00:00"
+            
+            return json.dumps({"success": True, "requisition_id": kwargs["requisition_id"], "message": f"Requisition {kwargs['requisition_id']} updated successfully"})
+        
+        # APPROVE REQUISITION
+        elif operation_type == "approve_requisition":
+            if not kwargs.get("requisition_id") or not kwargs.get("user_id"):
+                return json.dumps({"success": False, "error": "Halt: Missing requisition_id or user_id"})
+            
+            req = job_requisitions.get(kwargs["requisition_id"])
+            if not req:
+                return json.dumps({"success": False, "error": "Halt: Requisition not found"})
+            
+            if req.get("status") != "pending_approval":
+                return json.dumps({"success": False, "error": "Halt: Requisition not in pending approval status"})
+            
+            user = users.get(kwargs["user_id"])
+            if not user or user.get("employment_status") != "active":
+                return json.dumps({"success": False, "error": "Halt: User not found or inactive"})
+            
+            approval_date = kwargs.get("approval_date", "2025-01-01")
+            
+            # Determine approver type based on role
+            if user.get("role") == "hr_manager":
+                req["hr_manager_approver"] = kwargs["user_id"]
+                req["hr_manager_approval_date"] = approval_date
+            elif user.get("role") == "finance_manager":
+                req["finance_manager_approver"] = kwargs["user_id"]
+                req["finance_manager_approval_date"] = approval_date
+            elif user.get("role") == "department_manager" or user.get("user_id") == req.get("hiring_manager_id"):
+                req["dept_head_approver"] = kwargs["user_id"]
+                req["dept_head_approval_date"] = approval_date
             else:
-                # For non-status updates, check if requisition is in editable state
-                if requisition.get("status") not in ["draft", "pending_approval"]:
-                    return json.dumps({
-                        "success": False,
-                        "requisition_id": req_id,
-                        "message": f"Cannot update requisition in '{requisition.get('status')}' status"
-                    })
+                return json.dumps({"success": False, "error": "Halt: Unauthorized approver (role mismatch)"})
+            
+            # Check if all three approvals are complete
+            if req.get("hr_manager_approver") and req.get("finance_manager_approver") and req.get("dept_head_approver"):
+                req["status"] = "approved"
+            
+            req["updated_at"] = "2025-01-01T12:00:00"
+            
+            return json.dumps({"success": True, "requisition_id": kwargs["requisition_id"], "message": f"Requisition {kwargs['requisition_id']} approval recorded"})
+        
+        # CREATE POSTING
+        elif operation_type == "create_posting":
+            required_fields = ["requisition_id", "posted_date", "portal_type", "user_id"]
+            missing = [f for f in required_fields if not kwargs.get(f)]
+            if missing:
+                return json.dumps({"success": False, "error": f"Halt: Missing required fields: {', '.join(missing)}"})
+            
+            user = users.get(kwargs["user_id"])
+            if not user or user.get("employment_status") != "active":
+                return json.dumps({"success": False, "error": "Halt: User not found or inactive"})
+            
+            if user.get("role") not in ["hr_recruiter", "hr_manager", "hr_admin"]:
+                return json.dumps({"success": False, "error": "Halt: User lacks appropriate role authorization"})
+            
+            req = job_requisitions.get(kwargs["requisition_id"])
+            if not req or req.get("status") != "approved":
+                return json.dumps({"success": False, "error": "Halt: Requisition not found or not in 'approved' status"})
+            
+            # Create posting
+            posting_id = generate_id(job_postings)
+            new_posting = {
+                "posting_id": posting_id,
+                "requisition_id": kwargs["requisition_id"],
+                "posted_date": kwargs["posted_date"],
+                "portal_type": kwargs["portal_type"],
+                "status": "active",
+                "closed_date": None,
+                "created_at": "2025-01-01T12:00:00",
+                "updated_at": "2025-01-01T12:00:00"
+            }
+            job_postings[posting_id] = new_posting
+            
+            # Update requisition posted_date
+            req["posted_date"] = kwargs["posted_date"]
+            
+            return json.dumps({"success": True, "posting_id": posting_id, "message": f"Job posting {posting_id} created successfully"})
+        
+        # UPDATE POSTING
+        elif operation_type == "update_posting":
+            if not kwargs.get("posting_id") or not kwargs.get("user_id"):
+                return json.dumps({"success": False, "error": "Halt: Missing posting_id or user_id"})
+            
+            posting = job_postings.get(kwargs["posting_id"])
+            if not posting:
+                return json.dumps({"success": False, "error": "Halt: Posting not found"})
+            
+            if posting.get("status") != "active":
+                return json.dumps({"success": False, "error": "Halt: Posting not in updatable status"})
+            
+            user = users.get(kwargs["user_id"])
+            if not user or user.get("employment_status") != "active":
+                return json.dumps({"success": False, "error": "Halt: User not found or inactive"})
+            
+            if user.get("role") not in ["hr_recruiter", "hr_manager", "hr_admin"]:
+                return json.dumps({"success": False, "error": "Halt: User lacks authorization to perform this action"})
             
             # Update fields
             timestamp = "2025-10-10T12:00:00"

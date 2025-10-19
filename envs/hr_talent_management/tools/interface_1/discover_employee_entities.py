@@ -1,55 +1,123 @@
-# Auto-generated — DO NOT EDIT BY HAND
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 from tau_bench.envs.tool import Tool
+
 
 class DiscoverEmployeeEntities(Tool):
     @staticmethod
-    def invoke(data: Dict[str, Any], mode: str, employee_id: str = None, email: str = None, department_id: str = None, location_id: str = None, employment_status: str = None, limit: int = None, offset: int = None) -> str:
-        def mask(emp):
-            emp = dict(emp)
-            emp.pop("tax_id", None)
-            emp.pop("bank_account_number", None)
-            emp.pop("routing_number", None)
-            return emp
+    def invoke(data: Dict[str, Any], entity_type: str, filters: Optional[Dict[str, Any]] = None) -> str:
+        """
+        Discover and retrieve employee-related entities including employees and onboarding checklists.
 
-        mode = (mode or "").lower()
-        if mode not in {"employees.search","employees.get","onboarding.search_by_employee"}:
-            raise ValueError("mode must be employees.search|employees.get|onboarding.search_by_employee")
+        entity_type: "employees" | "onboarding_checklists"
+        filters: optional dict with exact-match filtering and date range support
+        Returns: {"entities": list, "count": int, "message": str}
+        """
 
-        employees = data.get("employees", {})
-        onboarding = data.get("onboarding_checklists", {})
-        limit = int(limit or 50)
-        offset = int(offset or 0)
+        if entity_type not in ["employees", "onboarding_checklists"]:
+            return json.dumps({
+                "success": False,
+                "error": "Halt: Missing entity_type or invalid entity_type - must be one of: employees, onboarding_checklists"
+            })
 
-        if mode == "employees.search":
-            out = []
-            for _, rec in employees.items():
-                if employee_id and rec.get("employee_id") != employee_id: continue
-                if email and rec.get("work_email") != email: continue
-                if department_id and rec.get("department_id") != department_id: continue
-                if location_id and rec.get("location_id") != location_id: continue
-                if employment_status and rec.get("employment_status") != employment_status: continue
-                out.append(mask(rec))
-            return json.dumps({"items": out[offset:offset+limit], "next_offset": offset + min(len(out), limit)})
+        if not isinstance(data, dict):
+            return json.dumps({
+                "success": False,
+                "error": "Halt: Discovery tool execution failed due to system errors - invalid data format"
+            })
+         
 
-        if mode == "employees.get":
-            if not employee_id:
-                raise ValueError("employee_id is required for employees.get")
-            rec = None
-            for _, r in employees.items():
-                if r.get("employee_id") == employee_id:
-                    rec = r; break
-            if not rec:
-                raise ValueError(f"Employee {employee_id} not found")
-            return json.dumps({"item": mask(rec)})
+        def apply_exact_filters(record: Dict[str, Any], exact_filter_keys: List[str], filters_obj: Dict[str, Any]) -> bool:
+            for key in exact_filter_keys:
+                if key in filters_obj:
+                    if record.get(key) != filters_obj[key]:
+                        return False
+            return True
 
-        # onboarding.search_by_employee
-        out = []
-        for _, r in onboarding.items():
-            if employee_id and r.get("employee_id") != employee_id: continue
-            out.append(r)
-        return json.dumps({"items": out[offset:offset+limit], "next_offset": offset + min(len(out), limit)})
+        def in_date_range(date_value: Optional[str], start_key: str, end_key: str, filters_obj: Dict[str, Any]) -> bool:
+            if not date_value:
+                return False if (start_key in filters_obj or end_key in filters_obj) else True
+            if start_key in filters_obj and date_value < filters_obj[start_key]:
+                return False
+            if end_key in filters_obj and date_value > filters_obj[end_key]:
+                return False
+            return True
+
+        results: List[Dict[str, Any]] = []
+
+        if entity_type == "employees":
+            employees = data.get("employees", {})
+
+            # Supported employee filters
+            employee_exact_keys = [
+                "employee_id", "candidate_id", "first_name", "last_name", "employee_type", 
+                "department_id", "location_id", "job_title", "tax_id", "work_email", 
+                "phone_number", "manager_id", "tax_filing_status", "employment_status"
+            ]
+
+            for employee_id, employee in employees.items():
+                record = {**employee}
+
+                # Exact-match filters
+                if filters:
+                    if not apply_exact_filters(record, employee_exact_keys, filters):
+                        continue
+
+                    # Date range filters for start_date
+                    if not in_date_range(record.get("start_date"), "start_date_from", "start_date_to", filters):
+                        continue
+
+                # ensure id present as string
+                record["employee_id"] = str(employee_id)
+                results.append(record)
+
+            return json.dumps({
+                "success": True,
+                "entity_type": "employees",
+                "count": len(results),
+                "entities": results,
+                "filters_applied": filters or {}
+            })
+
+        if entity_type == "onboarding_checklists":
+            checklists = data.get("onboarding_checklists", {})
+
+            # Supported onboarding checklist filters
+            checklist_exact_keys = [
+                "checklist_id", "employee_id", "candidate_name", "position", 
+                "hiring_manager_id", "pre_onboarding_status", "background_check_status", 
+                "document_verification_status", "it_provisioning_status", "orientation_completed", 
+                "benefits_enrollment_status", "overall_status"
+            ]
+
+            for checklist_id, checklist in checklists.items():
+                record = {**checklist}
+
+                # Exact-match filters
+                if filters:
+                    if not apply_exact_filters(record, checklist_exact_keys, filters):
+                        continue
+
+                    # Date range filters for start_date
+                    if not in_date_range(record.get("start_date"), "start_date_from", "start_date_to", filters):
+                        continue
+
+                # ensure id present as string
+                record["checklist_id"] = str(checklist_id)
+                results.append(record)
+
+            return json.dumps({
+                "success": True,
+                "entity_type": "onboarding_checklists",
+                "count": len(results),
+                "entities": results,
+                "filters_applied": filters or {}
+            })
+
+        return json.dumps({
+            "success": False,
+            "error": "Halt: Missing entity_type or invalid entity_type"
+        })
 
     @staticmethod
     def get_info() -> Dict[str, Any]:
@@ -57,23 +125,20 @@ class DiscoverEmployeeEntities(Tool):
             "type": "function",
             "function": {
                 "name": "discover_employee_entities",
-                "description": 'Search or fetch employee records (masked) and onboarding checklists.',
+                "description": "Discover and retrieve employee-related entities including employees and onboarding checklists.",
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "mode": {"type": "str"},
-                        "employee_id": {"type": "str"},
-                        "email": {"type": "str"},
-                        "department_id": {"type": "str"},
-                        "location_id": {"type": "str"},
-                        "employment_status": {"type": "str"},
-                        "limit": {"type": "integer"},
-                        "offset": {"type": "integer"}
+                        "entity_type": {
+                            "type": "string",
+                            "description": "Type of employee entity to discover. Valid values: 'employees', 'onboarding_checklists'"
+                        },
+                        "filters": {
+                            "type": "object",
+                            "description": "Optional filters for discovery. For employees: employee_id, candidate_id, first_name, last_name, employee_type, department_id, location_id, job_title, start_date_from, start_date_to, tax_id, work_email, phone_number, manager_id, tax_filing_status, employment_status. For onboarding_checklists: checklist_id, employee_id, candidate_name, start_date_from, start_date_to, position, hiring_manager_id, pre_onboarding_status, background_check_status, document_verification_status, it_provisioning_status, orientation_completed, benefits_enrollment_status, overall_status"
+                        }
                     },
-                    "required": ["mode"]
+                    "required": ["entity_type"]
                 }
             }
         }
-
-def discover_employee_entities(data: Dict[str, Any], **kwargs) -> str:
-    return DiscoverEmployeeEntities.invoke(data, **kwargs)

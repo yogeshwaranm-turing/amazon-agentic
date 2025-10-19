@@ -67,7 +67,7 @@ class ManageEmployeeOperations(Tool):
             return None
         
         # Validate operation_type
-        valid_operations = ["create_employee"]
+        valid_operations = ["create_employee", "update_employee_data"]
         if operation_type not in valid_operations:
             return json.dumps({
                 "success": False,
@@ -256,6 +256,60 @@ class ManageEmployeeOperations(Tool):
                 "message": f"Employee {new_employee_id} created successfully"
             })
         
+        elif operation_type == "update_employee_data":
+            # Validate required fields for employee update
+            required_fields = ["employee_id", "user_id"]
+            missing_fields = [field for field in required_fields if field not in kwargs or kwargs[field] is None]
+            if missing_fields:
+                return json.dumps({
+                    "success": False,
+                    "employee_id": None,
+                    "message": f"Missing required fields for employee update: {', '.join(missing_fields)}"
+                })
+            
+            # Validate employee exists and is active
+            employee = employees.get(str(kwargs["employee_id"]))
+            if not employee or employee.get("employment_status") != "active":
+                return json.dumps({
+                    "success": False,
+                    "employee_id": None,
+                    "message": "Halt: Employee not found or inactive"
+                })
+            
+            # Validate user has appropriate role
+            user = users.get(str(kwargs["user_id"]))
+            if not user or user.get("employment_status") != "active":
+                return json.dumps({
+                    "success": False,
+                    "employee_id": None,
+                    "message": "Halt: User not found or inactive"
+                })
+            
+            valid_roles = ["hr_admin", "hr_manager", "hr_director", "finance_manager"]
+            if user.get("role") not in valid_roles:
+                return json.dumps({
+                    "success": False,
+                    "employee_id": None,
+                    "message": "Halt: User lacks authorization to perform this action"
+                })
+            
+            # Update fields if provided
+            updatable_fields = ["first_name", "last_name", "employee_type", "department_id", "location_id", 
+                              "job_title", "tax_id", "bank_account_number", "routing_number", "manager_id", 
+                              "tax_filing_status", "employment_status"]
+            
+            for field in updatable_fields:
+                if field in kwargs and kwargs[field] is not None:
+                    employee[field] = kwargs[field]
+            
+            employee["updated_at"] = "2025-01-01T12:00:00"
+            
+            return json.dumps({
+                "success": True,
+                "employee_id": kwargs["employee_id"],
+                "message": f"Employee {kwargs['employee_id']} updated successfully"
+            })
+        
         return json.dumps({
             "success": False,
             "employee_id": None,
@@ -274,8 +328,8 @@ class ManageEmployeeOperations(Tool):
                     "properties": {
                         "operation_type": {
                             "type": "string",
-                            "description": "Type of operation to perform: 'create_employee' to establish new employee record",
-                            "enum": ["create_employee"]
+                            "description": "Type of operation to perform: 'create_employee' to establish new employee record, 'update_employee_data' to update existing employee",
+                            "enum": ["create_employee", "update_employee_data"]
                         },
                         "first_name": {
                             "type": "string",
@@ -342,6 +396,10 @@ class ManageEmployeeOperations(Tool):
                             "type": "string",
                             "description": "Tax filing status (optional)",
                             "enum": ["single", "married_filing_joint", "married_filing_separate", "head_of_household", "qualifying_widow"]
+                        },
+                        "employment_status": {
+                            "type": "string",
+                            "description": "Employment status (optional for update_employee_data)"
                         }
                     },
                     "required": ["operation_type"]
