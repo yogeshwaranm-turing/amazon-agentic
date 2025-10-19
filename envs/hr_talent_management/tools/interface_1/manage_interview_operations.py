@@ -1,5 +1,6 @@
 import json
-from typing import Any, Dict
+import re
+from typing import Any, Dict, Optional
 from tau_bench.envs.tool import Tool
 
 
@@ -10,28 +11,47 @@ class ManageInterviewOperations(Tool):
         Manage interview operations including scheduling, panel management, and evaluation.
         
         Operations:
-        - schedule_interview: Schedule an interview for a shortlisted candidate
-        - add_panel_member: Add a panel member to an interview
-        - conduct_evaluation: Record interview evaluation and feedback
+        - schedule_interview: Schedule new interview
+        - add_panel_member: Add panel member to interview
+        - conduct_evaluation: Record interview evaluation
         """
         
-        def generate_id(table: Dict[str, Any]) -> str:
+        def generate_id(table: Dict[str, Any]) -> int:
             if not table:
-                return "1"
-            return str(max(int(k) for k in table.keys()) + 1)
+                return 1
+            return max(int(k) for k in table.keys()) + 1
         
+        def validate_date_format(date_str: str, field_name: str) -> Optional[str]:
+            if date_str:
+                # Accept both MM-DD-YYYY and YYYY-MM-DD formats
+                date_pattern_1 = r'^\d{2}-\d{2}-\d{4}$'
+                date_pattern_2 = r'^\d{4}-\d{2}-\d{2}$'
+                if not (re.match(date_pattern_1, date_str) or re.match(date_pattern_2, date_str)):
+                    return f"Invalid {field_name} format. Must be MM-DD-YYYY or YYYY-MM-DD"
+            return None
+        
+        def convert_date_format(date_str: str) -> str:
+            """Convert MM-DD-YYYY to YYYY-MM-DD"""
+            if date_str and re.match(r'^\d{2}-\d{2}-\d{4}$', date_str):
+                month, day, year = date_str.split('-')
+                return f"{year}-{month}-{day}"
+            return date_str
+        
+        # Validate operation_type
         valid_operations = ["schedule_interview", "add_panel_member", "conduct_evaluation"]
-        
         if operation_type not in valid_operations:
             return json.dumps({
                 "success": False,
-                "error": f"Invalid operation_type '{operation_type}'. Must be one of: {', '.join(valid_operations)}"
+                "interview_id": None,
+                "message": f"Invalid operation_type '{operation_type}'. Must be one of: {', '.join(valid_operations)}"
             })
         
+        # Access related data
         if not isinstance(data, dict):
             return json.dumps({
                 "success": False,
-                "error": "Invalid data format for interview operations"
+                "interview_id": None,
+                "message": "Invalid data format for interview operations"
             })
         
         interviews = data.get("interviews", {})
@@ -39,132 +59,306 @@ class ManageInterviewOperations(Tool):
         applications = data.get("applications", {})
         users = data.get("users", {})
         
-        # SCHEDULE INTERVIEW
         if operation_type == "schedule_interview":
-            required_fields = ["application_id", "interview_type", "scheduled_date", "user_id"]
-            missing = [f for f in required_fields if not kwargs.get(f)]
-            if missing:
-                return json.dumps({"success": False, "error": f"Halt: Missing mandatory fields: {', '.join(missing)}"})
+            # Validate required fields
+            required_fields = ["application_id", "interview_type", "scheduled_date", "panel_member_ids", "user_id"]
+            missing_fields = [field for field in required_fields if field not in kwargs or kwargs[field] is None]
+            if missing_fields:
+                return json.dumps({
+                    "success": False,
+                    "interview_id": None,
+                    "message": f"Missing required fields for interview scheduling: {', '.join(missing_fields)}"
+                })
             
-            # Verify user has appropriate role
-            user = users.get(kwargs["user_id"])
-            if not user or user.get("employment_status") != "active":
-                return json.dumps({"success": False, "error": "Halt: User not found or inactive"})
+            # Validate user exists
+            if str(kwargs["user_id"]) not in users:
+                return json.dumps({
+                    "success": False,
+                    "interview_id": None,
+                    "message": f"User {kwargs['user_id']} not found"
+                })
             
-            if user.get("role") not in ["hr_recruiter", "hr_manager", "hr_admin"]:
-                return json.dumps({"success": False, "error": "Halt: User lacks appropriate role authorization"})
+            # Validate application exists and is shortlisted
+            app_id = str(kwargs["application_id"])
+            if app_id not in applications:
+                return json.dumps({
+                    "success": False,
+                    "interview_id": None,
+                    "message": f"Application {app_id} not found"
+                })
             
-            # Verify application exists and is shortlisted
-            application = applications.get(kwargs["application_id"])
-            if not application:
-                return json.dumps({"success": False, "error": "Halt: Application not found"})
-            
+            application = applications[app_id]
             if application.get("status") != "shortlisted":
-                return json.dumps({"success": False, "error": "Halt: Application not shortlisted"})
+                return json.dumps({
+                    "success": False,
+                    "interview_id": None,
+                    "message": f"Application {app_id} is not shortlisted (current status: {application.get('status')})"
+                })
             
-            # Create interview
-            interview_id = generate_id(interviews)
+            # Validate interview type
+            valid_interview_types = ["technical", "hr", "panel", "final"]
+            if kwargs["interview_type"] not in valid_interview_types:
+                return json.dumps({
+                    "success": False,
+                    "interview_id": None,
+                    "message": f"Invalid interview_type. Must be one of: {', '.join(valid_interview_types)}"
+                })
+            
+            # Validate date format
+            date_error = validate_date_format(kwargs["scheduled_date"], "scheduled_date")
+            if date_error:
+                return json.dumps({
+                    "success": False,
+                    "interview_id": None,
+                    "message": date_error
+                })
+            
+            # Validate panel members exist and are active
+            panel_member_ids = kwargs["panel_member_ids"]
+            if not isinstance(panel_member_ids, list):
+                panel_member_ids = [panel_member_ids]
+            
+            for panel_member_id in panel_member_ids:
+                if str(panel_member_id) not in users:
+                    return json.dumps({
+                        "success": False,
+                        "interview_id": None,
+                        "message": f"Panel member {panel_member_id} not found"
+                    })
+                panel_user = users[str(panel_member_id)]
+                if panel_user.get("employment_status") != "active":
+                    return json.dumps({
+                        "success": False,
+                        "interview_id": None,
+                        "message": f"Panel member {panel_member_id} is not active"
+                    })
+            
+            # Generate new interview ID and create record
+            new_interview_id = generate_id(interviews)
+            timestamp = "2025-10-10T12:00:00"
+            
             new_interview = {
-                "interview_id": interview_id,
-                "application_id": kwargs["application_id"],
+                "interview_id": str(new_interview_id),
+                "application_id": app_id,
                 "interview_type": kwargs["interview_type"],
-                "scheduled_date": kwargs["scheduled_date"],
+                "scheduled_date": convert_date_format(kwargs["scheduled_date"]),
                 "interview_status": "scheduled",
-                "rating": None,
-                "recommendation": None,
-                "completed_by": None,
-                "completed_date": None,
-                "created_at": "2025-01-01T12:00:00",
-                "updated_at": "2025-01-01T12:00:00"
+                "created_at": timestamp
             }
-            interviews[interview_id] = new_interview
             
-            return json.dumps({"success": True, "interview_id": interview_id, "message": f"Interview {interview_id} scheduled successfully"})
+            interviews[str(new_interview_id)] = new_interview
+            
+            # Add panel members
+            for panel_member_id in panel_member_ids:
+                new_panel_member_id = generate_id(interview_panel_members)
+                new_panel_member = {
+                    "panel_member_id": str(new_panel_member_id),
+                    "interview_id": str(new_interview_id),
+                    "user_id": str(panel_member_id),
+                    "created_at": timestamp
+                }
+                interview_panel_members[str(new_panel_member_id)] = new_panel_member
+            
+            return json.dumps({
+                "success": True,
+                "interview_id": str(new_interview_id),
+                "message": f"Interview {new_interview_id} scheduled successfully with {len(panel_member_ids)} panel member(s)"
+            })
         
-        # ADD PANEL MEMBER
         elif operation_type == "add_panel_member":
+            # Validate required fields
             required_fields = ["interview_id", "panel_member_id", "user_id"]
-            missing = [f for f in required_fields if not kwargs.get(f)]
-            if missing:
-                return json.dumps({"success": False, "error": f"Halt: Missing mandatory fields: {', '.join(missing)}"})
+            missing_fields = [field for field in required_fields if field not in kwargs or kwargs[field] is None]
+            if missing_fields:
+                return json.dumps({
+                    "success": False,
+                    "interview_id": None,
+                    "message": f"Missing required fields for adding panel member: {', '.join(missing_fields)}"
+                })
             
-            # Verify user has appropriate role
-            user = users.get(kwargs["user_id"])
-            if not user or user.get("employment_status") != "active":
-                return json.dumps({"success": False, "error": "Halt: User not found or inactive"})
+            # Validate user exists
+            if str(kwargs["user_id"]) not in users:
+                return json.dumps({
+                    "success": False,
+                    "interview_id": None,
+                    "message": f"User {kwargs['user_id']} not found"
+                })
             
-            if user.get("role") not in ["hr_recruiter", "hr_manager", "hr_admin"]:
-                return json.dumps({"success": False, "error": "Halt: User not authorized"})
+            # Validate interview exists and is in scheduled status
+            interview_id = str(kwargs["interview_id"])
+            if interview_id not in interviews:
+                return json.dumps({
+                    "success": False,
+                    "interview_id": interview_id,
+                    "message": f"Interview {interview_id} not found"
+                })
             
-            # Verify interview exists and is scheduled
-            interview = interviews.get(kwargs["interview_id"])
-            if not interview or interview.get("interview_status") != "scheduled":
-                return json.dumps({"success": False, "error": "Halt: Interview not found or not in 'scheduled' status"})
+            interview = interviews[interview_id]
+            if interview.get("interview_status") != "scheduled":
+                return json.dumps({
+                    "success": False,
+                    "interview_id": interview_id,
+                    "message": f"Cannot add panel member to interview in '{interview.get('interview_status')}' status"
+                })
             
-            # Verify panel member exists and is active
-            panel_member = users.get(kwargs["panel_member_id"])
-            if not panel_member or panel_member.get("employment_status") != "active":
-                return json.dumps({"success": False, "error": "Halt: Panel member not found or is inactive"})
+            # Validate panel member exists and is active
+            panel_member_id = str(kwargs["panel_member_id"])
+            if panel_member_id not in users:
+                return json.dumps({
+                    "success": False,
+                    "interview_id": interview_id,
+                    "message": f"Panel member {panel_member_id} not found"
+                })
             
-            # Check for duplicate panel member
-            for member in interview_panel_members.values():
-                if member.get("interview_id") == kwargs["interview_id"] and member.get("user_id") == kwargs["panel_member_id"]:
-                    return json.dumps({"success": False, "error": "Halt: Duplicate panel member assignment"})
+            panel_user = users[panel_member_id]
+            if panel_user.get("employment_status") != "active":
+                return json.dumps({
+                    "success": False,
+                    "interview_id": interview_id,
+                    "message": f"Panel member {panel_member_id} is not active"
+                })
+            
+            # Check if panel member is already assigned
+            for pm_id, pm in interview_panel_members.items():
+                if pm.get("interview_id") == interview_id and pm.get("user_id") == panel_member_id:
+                    return json.dumps({
+                        "success": False,
+                        "interview_id": interview_id,
+                        "message": f"Panel member {panel_member_id} is already assigned to this interview"
+                    })
             
             # Add panel member
-            member_id = generate_id(interview_panel_members)
-            new_member = {
-                "panel_member_id": member_id,
-                "interview_id": kwargs["interview_id"],
-                "user_id": kwargs["panel_member_id"],
-                "created_at": "2025-01-01T12:00:00"
+            new_panel_member_id = generate_id(interview_panel_members)
+            timestamp = "2025-10-10T12:00:00"
+            
+            new_panel_member = {
+                "panel_member_id": str(new_panel_member_id),
+                "interview_id": interview_id,
+                "user_id": panel_member_id,
+                "created_at": timestamp
             }
-            interview_panel_members[member_id] = new_member
             
-            return json.dumps({"success": True, "panel_member_id": member_id, "message": f"Panel member added to interview {kwargs['interview_id']} successfully"})
+            interview_panel_members[str(new_panel_member_id)] = new_panel_member
+            
+            return json.dumps({
+                "success": True,
+                "interview_id": interview_id,
+                "message": f"Panel member {panel_member_id} added to interview {interview_id}"
+            })
         
-        # CONDUCT EVALUATION
         elif operation_type == "conduct_evaluation":
+            # Validate required fields
             required_fields = ["interview_id", "rating", "recommendation", "completed_by", "completed_date"]
-            missing = [f for f in required_fields if not kwargs.get(f)]
-            if missing:
-                return json.dumps({"success": False, "error": f"Halt: Missing mandatory fields: {', '.join(missing)}"})
+            missing_fields = [field for field in required_fields if field not in kwargs or kwargs[field] is None]
+            if missing_fields:
+                return json.dumps({
+                    "success": False,
+                    "interview_id": None,
+                    "message": f"Missing required fields for interview evaluation: {', '.join(missing_fields)}"
+                })
             
-            # Verify interview exists and is scheduled
-            interview = interviews.get(kwargs["interview_id"])
-            if not interview or interview.get("interview_status") != "scheduled":
-                return json.dumps({"success": False, "error": "Halt: Interview not found or not in 'scheduled' status"})
+            # Validate interview exists
+            interview_id = str(kwargs["interview_id"])
+            if interview_id not in interviews:
+                return json.dumps({
+                    "success": False,
+                    "interview_id": interview_id,
+                    "message": f"Interview {interview_id} not found"
+                })
             
-            # Verify completed_by user exists and is active
-            evaluator = users.get(kwargs["completed_by"])
-            if not evaluator or evaluator.get("employment_status") != "active":
-                return json.dumps({"success": False, "error": "Halt: Evaluator not found or inactive"})
+            interview = interviews[interview_id]
             
-            # Verify evaluator is a panel member
+            # Validate interview is in scheduled status
+            if interview.get("interview_status") != "scheduled":
+                return json.dumps({
+                    "success": False,
+                    "interview_id": interview_id,
+                    "message": f"Cannot evaluate interview in '{interview.get('interview_status')}' status"
+                })
+            
+            # Validate completed_by user exists and is active
+            completed_by = str(kwargs["completed_by"])
+            if completed_by not in users:
+                return json.dumps({
+                    "success": False,
+                    "interview_id": interview_id,
+                    "message": f"User {completed_by} not found"
+                })
+            
+            user = users[completed_by]
+            if user.get("employment_status") != "active":
+                return json.dumps({
+                    "success": False,
+                    "interview_id": interview_id,
+                    "message": f"User {completed_by} is not active"
+                })
+            
+            # Verify completed_by is a panel member for this interview
             is_panel_member = False
-            for member in interview_panel_members.values():
-                if member.get("interview_id") == kwargs["interview_id"] and member.get("user_id") == kwargs["completed_by"]:
+            for pm_id, pm in interview_panel_members.items():
+                if pm.get("interview_id") == interview_id and pm.get("user_id") == completed_by:
                     is_panel_member = True
                     break
             
             if not is_panel_member:
-                return json.dumps({"success": False, "error": "Halt: Evaluator not authorized for this interview"})
+                return json.dumps({
+                    "success": False,
+                    "interview_id": interview_id,
+                    "message": f"User {completed_by} is not a panel member for this interview"
+                })
             
-            # Validate rating (accept any numeric value)
+            # Validate rating
             try:
                 rating = int(kwargs["rating"])
+                if rating < 1 or rating > 5:
+                    return json.dumps({
+                        "success": False,
+                        "interview_id": interview_id,
+                        "message": "Rating must be between 1 and 5"
+                    })
             except (ValueError, TypeError):
-                return json.dumps({"success": False, "error": "Halt: Invalid rating (must be numeric)"})
+                return json.dumps({
+                    "success": False,
+                    "interview_id": interview_id,
+                    "message": "Invalid rating format"
+                })
             
-            # Record evaluation
+            # Validate recommendation
+            valid_recommendations = ["yes", "no", "maybe"]
+            if kwargs["recommendation"] not in valid_recommendations:
+                return json.dumps({
+                    "success": False,
+                    "interview_id": interview_id,
+                    "message": f"Invalid recommendation. Must be one of: {', '.join(valid_recommendations)}"
+                })
+            
+            # Validate date format
+            date_error = validate_date_format(kwargs["completed_date"], "completed_date")
+            if date_error:
+                return json.dumps({
+                    "success": False,
+                    "interview_id": interview_id,
+                    "message": date_error
+                })
+            
+            # Update interview with evaluation
             interview["rating"] = rating
             interview["recommendation"] = kwargs["recommendation"]
-            interview["completed_by"] = kwargs["completed_by"]
-            interview["completed_date"] = kwargs["completed_date"]
+            interview["completed_by"] = completed_by
+            interview["completed_date"] = convert_date_format(kwargs["completed_date"])
             interview["interview_status"] = "completed"
-            interview["updated_at"] = "2025-01-01T12:00:00"
             
-            return json.dumps({"success": True, "interview_id": kwargs["interview_id"], "message": f"Interview {kwargs['interview_id']} evaluation recorded successfully"})
+            return json.dumps({
+                "success": True,
+                "interview_id": interview_id,
+                "message": f"Interview {interview_id} evaluation recorded successfully"
+            })
+        
+        return json.dumps({
+            "success": False,
+            "interview_id": None,
+            "message": "Operation not implemented"
+        })
     
     @staticmethod
     def get_info() -> Dict[str, Any]:
@@ -172,25 +366,61 @@ class ManageInterviewOperations(Tool):
             "type": "function",
             "function": {
                 "name": "manage_interview_operations",
-                "description": "Manage interview operations in the HR talent management system.",
+                "description": "Manage interview operations including scheduling, panel management, and evaluation. Operations: schedule_interview, add_panel_member, conduct_evaluation.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "operation_type": {
                             "type": "string",
-                            "description": "Type of operation",
-                            "enum": ["schedule_interview", "add_panel_member", "conduct_evaluation"]
+                            "description": "Type of operation to perform: 'schedule_interview', 'add_panel_member', 'conduct_evaluation'"
                         },
-                        "application_id": {"type": "string", "description": "Application ID (required for schedule_interview)"},
-                        "interview_type": {"type": "string", "description": "Interview type (required for schedule_interview)"},
-                        "scheduled_date": {"type": "string", "description": "Scheduled date (required for schedule_interview)"},
-                        "user_id": {"type": "string", "description": "User ID (required for schedule_interview and add_panel_member)"},
-                        "interview_id": {"type": "string", "description": "Interview ID (required for add_panel_member and conduct_evaluation)"},
-                        "panel_member_id": {"type": "string", "description": "Panel member user ID (required for add_panel_member)"},
-                        "rating": {"type": "integer", "description": "Interview rating (required for conduct_evaluation)"},
-                        "recommendation": {"type": "string", "description": "Interview recommendation (required for conduct_evaluation)"},
-                        "completed_by": {"type": "string", "description": "Evaluator user ID (required for conduct_evaluation)"},
-                        "completed_date": {"type": "string", "description": "Completion date (required for conduct_evaluation)"}
+                        "interview_id": {
+                            "type": "string",
+                            "description": "Required for add_panel_member and conduct_evaluation"
+                        },
+                        "application_id": {
+                            "type": "string",
+                            "description": "Required for schedule_interview"
+                        },
+                        "interview_type": {
+                            "type": "string",
+                            "description": "Required for schedule_interview. Values: technical, hr, panel, final"
+                        },
+                        "scheduled_date": {
+                            "type": "string",
+                            "description": "Required for schedule_interview. Format: MM-DD-YYYY or YYYY-MM-DD"
+                        },
+                        "panel_member_ids": {
+                            "type": "array",
+                            "description": "Required for schedule_interview. Array of user IDs for panel members",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "panel_member_id": {
+                            "type": "string",
+                            "description": "Required for add_panel_member"
+                        },
+                        "user_id": {
+                            "type": "string",
+                            "description": "Required for all operations"
+                        },
+                        "rating": {
+                            "type": "integer",
+                            "description": "Required for conduct_evaluation. Value: 1-5"
+                        },
+                        "recommendation": {
+                            "type": "string",
+                            "description": "Required for conduct_evaluation. Values: yes, no, maybe"
+                        },
+                        "completed_by": {
+                            "type": "string",
+                            "description": "Required for conduct_evaluation"
+                        },
+                        "completed_date": {
+                            "type": "string",
+                            "description": "Required for conduct_evaluation. Format: MM-DD-YYYY or YYYY-MM-DD"
+                        }
                     },
                     "required": ["operation_type"]
                 }

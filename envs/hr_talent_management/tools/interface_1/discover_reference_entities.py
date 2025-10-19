@@ -42,7 +42,7 @@ class DiscoverReferenceEntities(Tool):
 
             # Supported user filters
             user_exact_keys = [
-                "user_id", "first_name", "last_name", "email", "phone_number",
+                "user_id", "first_name", "last_name", "email", "phone_number", 
                 "role", "employment_status"
             ]
 
@@ -138,6 +138,4 @@ class DiscoverReferenceEntities(Tool):
                 }
             }
         }
-
-
 

@@ -7,7 +7,7 @@ class DiscoverJobEntities(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], entity_type: str, filters: Optional[Dict[str, Any]] = None) -> str:
         """
-        Discover and retrieve job-related entities including job requisitions and job postings.
+        Discover and retrieve job entities including job requisitions and job postings.
 
         entity_type: "job_requisitions" | "job_postings"
         filters: optional dict with exact-match filtering and date range support
@@ -35,7 +35,7 @@ class DiscoverJobEntities(Tool):
                         return False
             return True
 
-        def in_range(date_value: Optional[str], start_key: str, end_key: str, filters_obj: Dict[str, Any]) -> bool:
+        def in_date_range(date_value: Optional[str], start_key: str, end_key: str, filters_obj: Dict[str, Any]) -> bool:
             if not date_value:
                 return False if (start_key in filters_obj or end_key in filters_obj) else True
             if start_key in filters_obj and date_value < filters_obj[start_key]:
@@ -49,32 +49,28 @@ class DiscoverJobEntities(Tool):
         if entity_type == "job_requisitions":
             requisitions = data.get("job_requisitions", {})
 
-            # Supported job requisition filters
+            # Supported requisition filters
             requisition_exact_keys = [
                 "requisition_id", "job_title", "department_id", "location_id", 
                 "employment_type", "hiring_manager_id", "grade", "shift_type", 
-                "remote_indicator", "status", "hr_manager_approver", "dept_head_approver",
+                "remote_indicator", "status", "hr_manager_approver", "dept_head_approver", 
                 "created_by"
             ]
 
-            for requisition_id, req in requisitions.items():
-                record = {**req}
+            for requisition_id, requisition in requisitions.items():
+                record = {**requisition}
 
-                # Exact-match filters
                 if filters:
+                    # Exact-match filters
                     if not apply_exact_filters(record, requisition_exact_keys, filters):
                         continue
 
-                    # Date range filters for hr_manager_approval_date
-                    if not in_range(record.get("hr_manager_approval_date"), "hr_manager_approval_date_from", "hr_manager_approval_date_to", filters):
+                    # Date range filters
+                    if not in_date_range(record.get("hr_manager_approval_date"), "hr_manager_approval_date_from", "hr_manager_approval_date_to", filters):
                         continue
-                    
-                    # Date range filters for dept_head_approval_date
-                    if not in_range(record.get("dept_head_approval_date"), "dept_head_approval_date_from", "dept_head_approval_date_to", filters):
+                    if not in_date_range(record.get("dept_head_approval_date"), "dept_head_approval_date_from", "dept_head_approval_date_to", filters):
                         continue
-                    
-                    # Date range filters for posted_date
-                    if not in_range(record.get("posted_date"), "posted_date_from", "posted_date_to", filters):
+                    if not in_date_range(record.get("posted_date"), "posted_date_from", "posted_date_to", filters):
                         continue
 
                 # ensure id present as string
@@ -90,7 +86,7 @@ class DiscoverJobEntities(Tool):
         if entity_type == "job_postings":
             postings = data.get("job_postings", {})
 
-            # Supported job posting filters
+            # Supported posting filters
             posting_exact_keys = [
                 "posting_id", "requisition_id", "portal_type", "status"
             ]
@@ -98,17 +94,15 @@ class DiscoverJobEntities(Tool):
             for posting_id, posting in postings.items():
                 record = {**posting}
 
-                # Exact-match filters
                 if filters:
+                    # Exact-match filters
                     if not apply_exact_filters(record, posting_exact_keys, filters):
                         continue
 
-                    # Date range filters for posted_date
-                    if not in_range(record.get("posted_date"), "posted_date_from", "posted_date_to", filters):
+                    # Date range filters
+                    if not in_date_range(record.get("posted_date"), "posted_date_from", "posted_date_to", filters):
                         continue
-                    
-                    # Date range filters for closed_date
-                    if not in_range(record.get("closed_date"), "closed_date_from", "closed_date_to", filters):
+                    if not in_date_range(record.get("closed_date"), "closed_date_from", "closed_date_to", filters):
                         continue
 
                 # ensure id present as string
@@ -129,7 +123,7 @@ class DiscoverJobEntities(Tool):
             "type": "function",
             "function": {
                 "name": "discover_job_entities",
-                "description": "Discover and retrieve job-related entities including job requisitions and job postings.",
+                "description": "Discover and retrieve job entities including job requisitions and job postings.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -146,6 +140,4 @@ class DiscoverJobEntities(Tool):
                 }
             }
         }
-
-
 
