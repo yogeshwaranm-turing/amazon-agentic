@@ -42,17 +42,19 @@ class ManageEmployeeOperations(Tool):
                     return "Invalid tax_id format. Must be ###-##-####"
             return None
         
-        def validate_bank_account_number(account_number: str) -> Optional[str]:
-            """Validate bank account number (8-17 digits)"""
-            if account_number:
-                if not re.match(r'^\d{8,17}$', account_number):
-                    return "Invalid bank_account_number format. Must be 8-17 digits"
+        def validate_bank_account_number(account_number: Any) -> Optional[str]:
+            """Validate bank account number (8–17 digits, accepts string or number)"""
+            if account_number is not None:
+                acc_str = str(account_number)
+                if not re.match(r'^\d{8,17}$', acc_str):
+                    return "Invalid bank_account_number format. Must be 8–17 digits"
             return None
         
-        def validate_routing_number(routing_number: str) -> Optional[str]:
-            """Validate bank routing number (9 digits)"""
-            if routing_number:
-                if not re.match(r'^\d{9}$', routing_number):
+        def validate_routing_number(routing_number: Any) -> Optional[str]:
+            """Validate bank routing number (9 digits, accepts string or number)"""
+            if routing_number is not None:
+                routing_str = str(routing_number)
+                if not re.match(r'^\d{9}$', routing_str):
                     return "Invalid routing_number format. Must be exactly 9 digits"
             return None
         
@@ -250,7 +252,7 @@ class ManageEmployeeOperations(Tool):
             
             return json.dumps({
                 "success": True,
-                "employee_id": str(new_employee_id),
+                "employee": new_employee,
                 "message": f"Employee {new_employee_id} created successfully"
             })
         

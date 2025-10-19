@@ -7,10 +7,10 @@ class DiscoverCandidateEntities(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], entity_type: str, filters: Optional[Dict[str, Any]] = None) -> str:
         """
-        Discover and retrieve candidate-related entities including candidates and applications.
+        Discover and retrieve candidate-related entities including candidates, applications, and shortlists.
 
         entity_type: "candidates" | "applications"
-        filters: optional dict with exact-match filtering and date range support for applications
+        filters: optional dict with exact-match filtering and date range support
         Returns: {"entities": list, "count": int, "message": str}
         """
 
@@ -35,7 +35,7 @@ class DiscoverCandidateEntities(Tool):
                         return False
             return True
 
-        def in_range(date_value: Optional[str], start_key: str, end_key: str, filters_obj: Dict[str, Any]) -> bool:
+        def in_date_range(date_value: Optional[str], start_key: str, end_key: str, filters_obj: Dict[str, Any]) -> bool:
             if not date_value:
                 return False if (start_key in filters_obj or end_key in filters_obj) else True
             if start_key in filters_obj and date_value < filters_obj[start_key]:
@@ -48,24 +48,17 @@ class DiscoverCandidateEntities(Tool):
 
         if entity_type == "candidates":
             candidates = data.get("candidates", {})
-            users = data.get("users", {})
 
             # Supported candidate filters
             candidate_exact_keys = [
-                "candidate_id", "user_id", "full_name", "email", "phone_number",
-                "country_of_residence", "linkedin_profile", "status"
+                "candidate_id", "first_name", "last_name", "email_address", 
+                "contact_number", "country_of_residence", "status", "source_of_application"
             ]
 
-            for candidate_id, cand in candidates.items():
-                record = {**cand}
-                # Join user to expose full_name, email, phone_number
-                user = users.get(record.get("user_id")) if record.get("user_id") else None
-                if user:
-                    full_name = f"{user.get('first_name', '').strip()} {user.get('last_name', '').strip()}".strip()
-                    record["full_name"] = full_name
-                    record["email"] = user.get("email")
-                    record["phone_number"] = user.get("phone_number")
+            for candidate_id, candidate in candidates.items():
+                record = {**candidate}
 
+                # Exact-match filters
                 if filters:
                     if not apply_exact_filters(record, candidate_exact_keys, filters):
                         continue
@@ -83,26 +76,30 @@ class DiscoverCandidateEntities(Tool):
         if entity_type == "applications":
             applications = data.get("applications", {})
 
-            # Supported application filters (exact and date ranges)
+            # Supported application filters
             application_exact_keys = [
-                "application_id", "candidate_id", "posting_id", "resume_file_id",
+                "application_id", "candidate_id", "posting_id", "resume_file_id", 
                 "cover_letter_file_id", "status", "screened_by", "shortlist_approved_by"
             ]
 
-            for application_id, app in applications.items():
-                record = {**app}
+            for application_id, application in applications.items():
+                record = {**application}
 
-                # Exact-match filters
                 if filters:
+                    # Exact-match filters
                     if not apply_exact_filters(record, application_exact_keys, filters):
                         continue
 
-                    # Date range filters
-                    if not in_range(record.get("application_date"), "application_date_from", "application_date_to", filters):
+                    # Date range filters for application_date
+                    if not in_date_range(record.get("application_date"), "application_date_from", "application_date_to", filters):
                         continue
-                    if not in_range(record.get("shortlist_approval_date"), "shortlist_approval_date_from", "shortlist_approval_date_to", filters):
+                    
+                    # Date range filters for screened_date
+                    if not in_date_range(record.get("screened_date"), "screened_date_from", "screened_date_to", filters):
                         continue
-                    if not in_range(record.get("screened_date"), "screened_date_from", "screened_date_to", filters):
+                    
+                    # Date range filters for shortlist_approval_date
+                    if not in_date_range(record.get("shortlist_approval_date"), "shortlist_approval_date_from", "shortlist_approval_date_to", filters):
                         continue
 
                 # ensure id present as string
@@ -123,7 +120,7 @@ class DiscoverCandidateEntities(Tool):
             "type": "function",
             "function": {
                 "name": "discover_candidate_entities",
-                "description": "Discover and retrieve candidate-related entities including candidates and applications.",
+                "description": "Discover and retrieve candidate-related entities including candidates, applications, and shortlists.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -133,12 +130,13 @@ class DiscoverCandidateEntities(Tool):
                         },
                         "filters": {
                             "type": "object",
-                            "description": "Optional filters for discovery. For candidates: candidate_id, user_id, full_name, email, phone_number, country_of_residence, linkedin_profile, status. For applications: application_id, candidate_id, posting_id, resume_file_id, cover_letter_file_id, application_date_from, application_date_to, status, screened_by, shortlist_approved_by, shortlist_approval_date_from, shortlist_approval_date_to, screened_date_from, screened_date_to"
+                            "description": "Optional filters for discovery. For candidates: candidate_id, first_name, last_name, email_address, contact_number, country_of_residence, status, source_of_application. For applications: application_id, candidate_id, posting_id, resume_file_id, cover_letter_file_id, application_date_from, application_date_to, status, screened_by, shortlist_approved_by, shortlist_approval_date_from, shortlist_approval_date_to, screened_date_from, screened_date_to"
                         }
                     },
                     "required": ["entity_type"]
                 }
             }
         }
+
 
 
