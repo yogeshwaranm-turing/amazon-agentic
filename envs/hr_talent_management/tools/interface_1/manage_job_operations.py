@@ -97,10 +97,11 @@ class ManageJobOperations(Tool):
                 "remote_indicator": kwargs.get("remote_indicator"),
                 "status": "draft",
                 "hr_manager_approver": None,
-                "dept_head_approver": None,
                 "hr_manager_approval_date": None,
+                "finance_manager_approver": None,
+                "finance_manager_approval_date": None,
+                "dept_head_approver": None,
                 "dept_head_approval_date": None,
-                "posted_date": None,
                 "created_by": kwargs["created_by"],
                 "created_at": "2025-01-01T12:00:00",
                 "updated_at": "2025-01-01T12:00:00"
@@ -158,18 +159,21 @@ class ManageJobOperations(Tool):
             
             approval_date = kwargs.get("approval_date", "2025-01-01")
             
-            # Determine if HR Manager or Department Head
+            # Determine approver type based on role
             if user.get("role") == "hr_manager":
                 req["hr_manager_approver"] = kwargs["user_id"]
                 req["hr_manager_approval_date"] = approval_date
-            elif user.get("role") == "hiring_manager" or user.get("user_id") == req.get("hiring_manager_id"):
+            elif user.get("role") == "finance_manager":
+                req["finance_manager_approver"] = kwargs["user_id"]
+                req["finance_manager_approval_date"] = approval_date
+            elif user.get("role") == "department_manager" or user.get("user_id") == req.get("hiring_manager_id"):
                 req["dept_head_approver"] = kwargs["user_id"]
                 req["dept_head_approval_date"] = approval_date
             else:
                 return json.dumps({"success": False, "error": "Halt: Unauthorized approver (role mismatch)"})
             
-            # Check if both approvals are complete
-            if req.get("hr_manager_approver") and req.get("dept_head_approver"):
+            # Check if all three approvals are complete
+            if req.get("hr_manager_approver") and req.get("finance_manager_approver") and req.get("dept_head_approver"):
                 req["status"] = "approved"
             
             req["updated_at"] = "2025-01-01T12:00:00"

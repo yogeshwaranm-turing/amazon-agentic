@@ -87,9 +87,11 @@ class DiscoverInterviewOfferEntities(Tool):
                 results.append(record)
 
             return json.dumps({
-                "entities": results,
+                "success": True,
+                "entity_type": "interviews",
                 "count": len(results),
-                "message": "Interviews retrieved successfully" if results else "No interviews matched the criteria"
+                "entities": results,
+                "filters_applied": filters or {}
             })
 
         if entity_type == "offers":
@@ -122,12 +124,17 @@ class DiscoverInterviewOfferEntities(Tool):
                 results.append(record)
 
             return json.dumps({
-                "entities": results,
+                "success": True,
+                "entity_type": "offers",
                 "count": len(results),
-                "message": "Offers retrieved successfully" if results else "No offers matched the criteria"
+                "entities": results,
+                "filters_applied": filters or {}
             })
 
-        return json.dumps({"entities": [], "count": 0, "message": "Unhandled entity_type"})
+        return json.dumps({
+            "success": False,
+            "error": "Halt: Missing entity_type or invalid entity_type"
+        })
 
     @staticmethod
     def get_info() -> Dict[str, Any]:

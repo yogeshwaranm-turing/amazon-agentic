@@ -32,30 +32,57 @@ class DiscoverPayrollEntities(Tool):
         
         def matches_filter(entity: Dict[str, Any], filter_key: str, filter_value: Any) -> bool:
             """Check if entity matches a specific filter"""
-            entity_value = entity.get(filter_key)
-            
-            if entity_value is None:
-                return False
             
             # Handle different filter types
             if filter_key.endswith('_from') or filter_key.endswith('_to'):
-                # Date range filters
-                base_key = filter_key.replace('_from', '').replace('_to', '')
-                if base_key in entity:
-                    if filter_key.endswith('_from'):
-                        return entity[base_key] >= filter_value
-                    else:  # _to
-                        return entity[base_key] <= filter_value
+                # Date range filters - map to correct entity field names
+                if filter_key.startswith('cycle_start_date_'):
+                    entity_field = 'cycle_start_date'
+                elif filter_key.startswith('cycle_end_date_'):
+                    entity_field = 'cycle_end_date'
+                elif filter_key.startswith('cutoff_date_'):
+                    entity_field = 'cutoff_date'
+                elif filter_key.startswith('approval_date_'):
+                    entity_field = 'approval_date'
+                else:
+                    return False
+                
+                entity_value = entity.get(entity_field)
+                
+                if entity_value is None:
+                    return False
+                
+                if filter_key.endswith('_from'):
+                    return entity_value >= filter_value
+                else:  # _to
+                    return entity_value <= filter_value
             elif filter_key.endswith('_min') or filter_key.endswith('_max'):
-                # Numeric range filters
-                base_key = filter_key.replace('_min', '').replace('_max', '')
-                if base_key in entity:
-                    if filter_key.endswith('_min'):
-                        return entity[base_key] >= filter_value
-                    else:  # _max
-                        return entity[base_key] <= filter_value
+                # Numeric range filters - map to correct entity field names
+                if filter_key.startswith('hours_worked_'):
+                    entity_field = 'hours_worked'
+                elif filter_key.startswith('overtime_hours_'):
+                    entity_field = 'overtime_hours'
+                elif filter_key.startswith('amount_'):
+                    entity_field = 'amount'
+                else:
+                    return False
+                
+                entity_value = entity.get(entity_field)
+                
+                if entity_value is None:
+                    return False
+                
+                if filter_key.endswith('_min'):
+                    return entity_value >= filter_value
+                else:  # _max
+                    return entity_value <= filter_value
             else:
                 # Exact match filters
+                entity_value = entity.get(filter_key)
+                
+                if entity_value is None:
+                    return False
+                
                 return str(entity_value).lower() == str(filter_value).lower()
             
             return False

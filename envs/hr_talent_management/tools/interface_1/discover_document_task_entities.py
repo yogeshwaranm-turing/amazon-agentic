@@ -1,44 +1,122 @@
-# Auto-generated — DO NOT EDIT BY HAND
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 from tau_bench.envs.tool import Tool
+
 
 class DiscoverDocumentTaskEntities(Tool):
     @staticmethod
-    def invoke(data: Dict[str, Any], mode: str, document_id: str = None, related_entity_type: str = None, related_entity_id: str = None, document_category: str = None, document_status: str = None, verification_status: str = None, task_id: str = None, employee_id: str = None, task_type: str = None, task_status: str = None, limit: int = None, offset: int = None) -> str:
-        mode = (mode or "").lower()
-        if mode not in {"documents.search","it_tasks.search"}:
-            raise ValueError("mode must be documents.search|it_tasks.search")
-        limit = int(limit or 50)
-        offset = int(offset or 0)
+    def invoke(data: Dict[str, Any], entity_type: str, filters: Optional[Dict[str, Any]] = None) -> str:
+        """
+        Discover and retrieve document and task entities including documents and IT provisioning tasks.
 
-        if mode == "documents.search":
-            docs = data.get("documents", {})
-            valid_categories = ['verification_id_proof', 'verification_address_proof', 'verification_educational_certificate', 'verification_experience_letter', 'verification_work_visa', 'verification_pr_card', 'verification_bank_proof', 'offer_letter', 'contract', 'policy_acknowledgment', 'tax_form', 'insurance_form', 'nda', 'resume', 'cover_letter', 'job_description', 'budget_justification', 'budget_approval', 'workforce_plan', 'recruitment_checklist', 'promotion_letter', 'transfer_memo', 'other']
-            valid_related = ['employee', 'candidate', 'offer', 'onboarding', 'job_requisition', 'job_posting', 'application']
-            out = []
-            for _, d in docs.items():
-                if document_id and d.get("document_id") != document_id: continue
-                if related_entity_type and d.get("related_entity_type") != related_entity_type: continue
-                if related_entity_id and d.get("related_entity_id") != related_entity_id: continue
-                if document_category and d.get("document_category") != document_category: continue
-                if document_status and d.get("document_status") != document_status: continue
-                if verification_status and d.get("verification_status") != verification_status: continue
-                # optional sanity hints (do not block)
-                if document_category and document_category not in valid_categories: pass
-                if related_entity_type and related_entity_type not in valid_related: pass
-                out.append(d)
-            return json.dumps({"items": out[offset:offset+limit], "next_offset": offset + min(len(out), limit)})
+        entity_type: "documents" | "it_provisioning_tasks"
+        filters: optional dict with exact-match filtering and date range support
+        Returns: {"entities": list, "count": int, "message": str}
+        """
 
-        tasks = data.get("it_provisioning_tasks", {})
-        out = []
-        for _, t in tasks.items():
-            if task_id and t.get("task_id") != task_id: continue
-            if employee_id and t.get("employee_id") != employee_id: continue
-            if task_type and t.get("task_type") != task_type: continue
-            if task_status and t.get("task_status") != task_status: continue
-            out.append(t)
-        return json.dumps({"items": out[offset:offset+limit], "next_offset": offset + min(len(out), limit)})
+        if entity_type not in ["documents", "it_provisioning_tasks"]:
+            return json.dumps({
+                "success": False,
+                "error": "Halt: Missing entity_type or invalid entity_type - must be one of: documents, it_provisioning_tasks"
+            })
+
+        if not isinstance(data, dict):
+            return json.dumps({
+                "success": False,
+                "error": "Halt: Discovery tool execution failed due to system errors - invalid data format"
+            })
+        
+        def apply_exact_filters(record: Dict[str, Any], exact_filter_keys: List[str], filters_obj: Dict[str, Any]) -> bool:
+            for key in exact_filter_keys:
+                if key in filters_obj:
+                    if record.get(key) != filters_obj[key]:
+                        return False
+            return True
+
+        def in_date_range(date_value: Optional[str], start_key: str, end_key: str, filters_obj: Dict[str, Any]) -> bool:
+            if not date_value:
+                return False if (start_key in filters_obj or end_key in filters_obj) else True
+            if start_key in filters_obj and date_value < filters_obj[start_key]:
+                return False
+            if end_key in filters_obj and date_value > filters_obj[end_key]:
+                return False
+            return True
+
+        results: List[Dict[str, Any]] = []
+
+        if entity_type == "documents":
+            documents = data.get("documents", {})
+
+            # Supported document filters
+            document_exact_keys = [
+                "document_id", "document_category", "related_entity_type", "related_entity_id", 
+                "file_name", "uploaded_by", "document_status", "verification_status", "verified_by"
+            ]
+
+            for document_id, document in documents.items():
+                record = {**document}
+
+                # Exact-match filters
+                if filters:
+                    if not apply_exact_filters(record, document_exact_keys, filters):
+                        continue
+
+                    # Date range filters for upload_date
+                    if not in_date_range(record.get("upload_date"), "upload_date_from", "upload_date_to", filters):
+                        continue
+                    
+                    # Date range filters for expiry_date
+                    if not in_date_range(record.get("expiry_date"), "expiry_date_from", "expiry_date_to", filters):
+                        continue
+
+                # ensure id present as string
+                record["document_id"] = str(document_id)
+                results.append(record)
+
+            return json.dumps({
+                "success": True,
+                "entity_type": "documents",
+                "count": len(results),
+                "entities": results,
+                "filters_applied": filters or {}
+            })
+
+        if entity_type == "it_provisioning_tasks":
+            tasks = data.get("it_provisioning_tasks", {})
+
+            # Supported IT task filters
+            task_exact_keys = [
+                "task_id", "employee_id", "task_type", "assigned_to", "task_status"
+            ]
+
+            for task_id, task in tasks.items():
+                record = {**task}
+
+                # Exact-match filters
+                if filters:
+                    if not apply_exact_filters(record, task_exact_keys, filters):
+                        continue
+
+                    # Date range filters for completion_date
+                    if not in_date_range(record.get("completion_date"), "completion_date_from", "completion_date_to", filters):
+                        continue
+
+                # ensure id present as string
+                record["task_id"] = str(task_id)
+                results.append(record)
+
+            return json.dumps({
+                "success": True,
+                "entity_type": "it_provisioning_tasks",
+                "count": len(results),
+                "entities": results,
+                "filters_applied": filters or {}
+            })
+
+        return json.dumps({
+            "success": False,
+            "error": "Halt: Missing entity_type or invalid entity_type"
+        })
 
     @staticmethod
     def get_info() -> Dict[str, Any]:
@@ -46,28 +124,20 @@ class DiscoverDocumentTaskEntities(Tool):
             "type": "function",
             "function": {
                 "name": "discover_document_task_entities",
-                "description": 'Search documents and IT provisioning tasks with updated filters.',
+                "description": "Discover and retrieve document and task entities including documents and IT provisioning tasks.",
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "mode": {"type": "str"},
-                        "document_id": {"type": "str"},
-                        "related_entity_type": {"type": "str"},
-                        "related_entity_id": {"type": "str"},
-                        "document_category": {"type": "str"},
-                        "document_status": {"type": "str"},
-                        "verification_status": {"type": "str"},
-                        "task_id": {"type": "str"},
-                        "employee_id": {"type": "str"},
-                        "task_type": {"type": "str"},
-                        "task_status": {"type": "str"},
-                        "limit": {"type": "integer"},
-                        "offset": {"type": "integer"}
+                        "entity_type": {
+                            "type": "string",
+                            "description": "Type of document/task entity to discover. Valid values: 'documents', 'it_provisioning_tasks'"
+                        },
+                        "filters": {
+                            "type": "object",
+                            "description": "Optional filters for discovery. For documents: document_id, document_category, related_entity_type, related_entity_id, file_name, upload_date_from, upload_date_to, uploaded_by, document_status, expiry_date_from, expiry_date_to, verification_status, verified_by. For it_provisioning_tasks: task_id, employee_id, task_type, assigned_to, task_status, completion_date_from, completion_date_to"
+                        }
                     },
-                    "required": ["mode"]
+                    "required": ["entity_type"]
                 }
             }
         }
-
-def discover_document_task_entities(data: Dict[str, Any], **kwargs) -> str:
-    return DiscoverDocumentTaskEntities.invoke(data, **kwargs)

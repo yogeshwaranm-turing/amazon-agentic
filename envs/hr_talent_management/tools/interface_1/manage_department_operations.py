@@ -4,7 +4,7 @@ from tau_bench.envs.tool import Tool
 
 class ManageDepartmentOperations(Tool):
     @staticmethod
-    def invoke(data: Dict[str, Any], operation_type: str, department_id: str = None, 
+    def invoke(data: Dict[str, Any], operation_type: str, user_id: str = None, department_id: str = None, 
                department_name: str = None, department_code: str = None, manager_id: str = None, 
                budget: float = None, status: str = None) -> str:
         """
@@ -39,20 +39,40 @@ class ManageDepartmentOperations(Tool):
         
         if operation_type == "create_department":
             # Validate required fields for creation
+            if not user_id:
+                return json.dumps({
+                    "success": False,
+                    "error": "Halt: Missing mandatory fields: user_id"
+                })
             if not department_name:
                 return json.dumps({
                     "success": False,
-                    "error": "department_name is required for create_department operation"
+                    "error": "Halt: Missing mandatory fields: department_name"
                 })
             if not department_code:
                 return json.dumps({
                     "success": False,
-                    "error": "department_code is required for create_department operation"
+                    "error": "Halt: Missing mandatory fields: department_code"
                 })
             if not manager_id:
                 return json.dumps({
                     "success": False,
-                    "error": "manager_id is required for create_department operation"
+                    "error": "Halt: Missing mandatory fields: manager_id"
+                })
+            
+            # Verify user has appropriate role
+            user = users.get(user_id)
+            if not user or user.get("employment_status") != "active":
+                return json.dumps({
+                    "success": False,
+                    "error": "Halt: User lacks authorization to perform this action"
+                })
+            
+            valid_roles = ["hr_admin", "hr_manager", "hr_director"]
+            if user.get("role") not in valid_roles:
+                return json.dumps({
+                    "success": False,
+                    "error": "Halt: User lacks authorization to perform this action"
                 })
             
             # Validate status enum if provided, otherwise default to active
@@ -81,18 +101,24 @@ class ManageDepartmentOperations(Tool):
                         "error": "Department budget must be a valid number"
                     })
             
-            # Validate manager exists and is active
+            # Validate manager exists and is active Department Manager
             if manager_id not in users:
                 return json.dumps({
                     "success": False,
-                    "error": f"Manager with ID '{manager_id}' not found"
+                    "error": "Halt: Department Manager not found or inactive"
                 })
             
             manager = users[manager_id]
             if manager.get("employment_status") != "active":
                 return json.dumps({
                     "success": False,
-                    "error": f"Manager with ID '{manager_id}' is not active"
+                    "error": "Halt: Department Manager not found or inactive"
+                })
+            
+            if manager.get("role") != "department_manager":
+                return json.dumps({
+                    "success": False,
+                    "error": "Halt: Department Manager not found or inactive"
                 })
             
             # Check for duplicate department name
@@ -138,16 +164,36 @@ class ManageDepartmentOperations(Tool):
             })
         
         elif operation_type == "update_department":
+            if not user_id:
+                return json.dumps({
+                    "success": False,
+                    "error": "Halt: Missing mandatory fields: user_id"
+                })
             if not department_id:
                 return json.dumps({
                     "success": False,
-                    "error": "department_id is required for update_department operation"
+                    "error": "Halt: Missing mandatory fields: department_id"
                 })
             
             if department_id not in departments:
                 return json.dumps({
                     "success": False,
-                    "error": f"Department {department_id} not found"
+                    "error": "Halt: Department not found"
+                })
+            
+            # Verify user has appropriate role
+            user = users.get(user_id)
+            if not user or user.get("employment_status") != "active":
+                return json.dumps({
+                    "success": False,
+                    "error": "Halt: User lacks authorization to perform this action"
+                })
+            
+            valid_roles = ["hr_admin", "hr_manager", "hr_director"]
+            if user.get("role") not in valid_roles:
+                return json.dumps({
+                    "success": False,
+                    "error": "Halt: User lacks authorization to perform this action"
                 })
             
             # Check if at least one field is provided for update
@@ -182,19 +228,25 @@ class ManageDepartmentOperations(Tool):
                         "error": "Department budget must be a valid number"
                     })
             
-            # Validate manager exists and is active if provided
+            # Validate manager exists and is active Department Manager if provided
             if manager_id is not None:
                 if manager_id not in users:
                     return json.dumps({
                         "success": False,
-                        "error": f"Manager with ID '{manager_id}' not found"
+                        "error": "Halt: Department Manager not found or inactive"
                     })
                 
                 manager = users[manager_id]
                 if manager.get("employment_status") != "active":
                     return json.dumps({
                         "success": False,
-                        "error": f"Manager with ID '{manager_id}' is not active"
+                        "error": "Halt: Department Manager not found or inactive"
+                    })
+                
+                if manager.get("role") != "department_manager":
+                    return json.dumps({
+                        "success": False,
+                        "error": "Halt: Department Manager not found or inactive"
                     })
             
             # Check for duplicate department name if updating name
@@ -291,6 +343,10 @@ class ManageDepartmentOperations(Tool):
                             "type": "string",
                             "description": "Type of operation to perform: 'create_department' to create new department, 'update_department' to modify existing department information, 'deactivate_department' to deactivate department",
                             "enum": ["create_department", "update_department", "deactivate_department"]
+                        },
+                        "user_id": {
+                            "type": "string",
+                            "description": "User ID performing the operation (required for all operations, must be active HR Admin, HR Manager, or HR Director)"
                         },
                         "department_name": {
                             "type": "string",

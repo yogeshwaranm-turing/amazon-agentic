@@ -43,7 +43,7 @@ class DiscoverReferenceEntities(Tool):
             # Supported user filters
             user_exact_keys = [
                 "user_id", "first_name", "last_name", "email", "phone_number",
-                "role", "employment_status"
+                "role", "employment_status", "employee_id"
             ]
 
             for user_id, user in users.items():
@@ -58,9 +58,11 @@ class DiscoverReferenceEntities(Tool):
                 results.append(record)
 
             return json.dumps({
-                "entities": results,
+                "success": True,
+                "entity_type": "users",
                 "count": len(results),
-                "message": "Users retrieved successfully" if results else "No users matched the criteria"
+                "entities": results,
+                "filters_applied": filters or {}
             })
 
         if entity_type == "locations":
@@ -83,9 +85,11 @@ class DiscoverReferenceEntities(Tool):
                 results.append(record)
 
             return json.dumps({
-                "entities": results,
+                "success": True,
+                "entity_type": "locations",
                 "count": len(results),
-                "message": "Locations retrieved successfully" if results else "No locations matched the criteria"
+                "entities": results,
+                "filters_applied": filters or {}
             })
 
         if entity_type == "departments":
@@ -108,12 +112,17 @@ class DiscoverReferenceEntities(Tool):
                 results.append(record)
 
             return json.dumps({
-                "entities": results,
+                "success": True,
+                "entity_type": "departments",
                 "count": len(results),
-                "message": "Departments retrieved successfully" if results else "No departments matched the criteria"
+                "entities": results,
+                "filters_applied": filters or {}
             })
 
-        return json.dumps({"entities": [], "count": 0, "message": "Unhandled entity_type"})
+        return json.dumps({
+            "success": False,
+            "error": "Halt: Missing entity_type or invalid entity_type"
+        })
 
     @staticmethod
     def get_info() -> Dict[str, Any]:
@@ -131,7 +140,7 @@ class DiscoverReferenceEntities(Tool):
                         },
                         "filters": {
                             "type": "object",
-                            "description": "Optional filters for discovery. For users: user_id, first_name, last_name, email, phone_number, role, employment_status. For locations: location_id, city_name, country, status. For departments: department_id, name, manager_id, status"
+                            "description": "Optional filters for discovery. For users: user_id, first_name, last_name, email, phone_number, role, employment_status, employee_id. For locations: location_id, city_name, country, status. For departments: department_id, name, manager_id, status"
                         }
                     },
                     "required": ["entity_type"]
