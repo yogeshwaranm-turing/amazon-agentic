@@ -241,33 +241,33 @@ class ManageItProvisioningOperations(Tool):
                         },
                         "employee_id": {
                             "type": "string",
-                            "description": "Employee ID for whom the task is created (required for create_task)"
+                            "description": "Unique identifier of the employee for whom the IT provisioning task is being created. Enter the employee ID as a string (e.g., '3001', '5042'). This field is required only when operation_type is 'create_task'. The system validates that this employee exists and has an 'active' status before creating the task. Each task represents one IT provisioning item needed for the employee's onboarding. Example: '4008'"
                         },
                         "task_type": {
                             "type": "string",
-                            "description": "Type of IT task (required for create_task)",
+                            "description": "Type of IT resource or access to be provisioned. Select from: 'email_account' for corporate email setup, 'laptop' for computer hardware assignment, 'access_badge' for physical building access card, 'system_access' for software system login credentials, or 'software_license' for specific software licenses. This field is required only when operation_type is 'create_task'. Must be exactly one of these five values. Each task type represents a different IT provisioning requirement. Example: 'laptop'",
                             "enum": ["email_account", "laptop", "access_badge", "system_access", "software_license"]
                         },
                         "assigned_by": {
                             "type": "string",
-                            "description": "User ID of the assigner (required for create_task)"
+                            "description": "Unique identifier of the IT administrator creating and assigning this provisioning task. Enter the user ID as a string (e.g., '7001', '8005'). This field is required only when operation_type is 'create_task'. The system validates that this user exists, has an 'active' status, and has the role 'it_administrator' before allowing task creation. Only IT administrators can create provisioning tasks. Used for accountability and task assignment tracking. Example: '9002'"
                         },
                         "task_id": {
                             "type": "string",
-                            "description": "Task ID of the IT provisioning task (required for update_task)"
+                            "description": "Unique identifier of an existing IT provisioning task to be updated. Enter the task ID as a string (e.g., '101', '205'). This field is required only when operation_type is 'update_task'. The system validates that this task exists in the database. Used to identify which specific provisioning task to update with new status or completion information. Example: '143'"
                         },
                         "task_status": {
                             "type": "string",
-                            "description": "New status for the task (required for update_task)",
+                            "description": "Current status of the IT provisioning task. Select from: 'pending' for task not yet started, 'in_progress' for task currently being worked on, 'completed' for task successfully finished, or 'failed' for task that could not be completed. This field is required only when operation_type is 'update_task'. Must be exactly one of these four values. Tracks the progress and outcome of provisioning activities. When status is 'completed', consider also providing completion_date. Example: 'completed'",
                             "enum": ["pending", "in_progress", "completed", "failed"]
                         },
                         "user_id": {
                             "type": "string",
-                            "description": "User ID performing the update (required for update_task)"
+                            "description": "Unique identifier of the IT administrator performing the task update. Enter the user ID as a string (e.g., '7001', '9003'). This field is required only when operation_type is 'update_task'. The system validates that this user exists, has an 'active' status, and has the role 'it_administrator'. Only IT administrators can update provisioning tasks. Used for audit trail to track who modified the task. Example: '8004'"
                         },
                         "completion_date": {
                             "type": "string",
-                            "description": "Completion date in MM-DD-YYYY format (optional for update_task)"
+                            "description": "Date when the IT provisioning task was completed. Enter date in MM-DD-YYYY format (e.g., '04-05-2025' for April 5, 2025). This field is optional and only applies when operation_type is 'update_task'. Must follow the exact format MM-DD-YYYY with hyphens as separators. The system validates the date format. Typically provided when task_status is updated to 'completed'. Documents when the provisioning item was delivered or configured. Example: '05-20-2025'"
                         }
                     },
                     "required": ["operation_type"]
