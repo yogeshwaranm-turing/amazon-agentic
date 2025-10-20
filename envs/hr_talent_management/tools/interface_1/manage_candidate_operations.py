@@ -46,8 +46,19 @@ class ManageCandidateOperations(Tool):
             if missing:
                 return json.dumps({"success": False, "error": f"Halt: Missing mandatory fields: {', '.join(missing)}"})
             
+            # Validate email format
+            email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            if not re.match(email_pattern, kwargs["email_address"]):
+                return json.dumps({"success": False, "error": "Halt: Invalid email format or phone number format"})
+            
+            # Validate phone number format (basic validation - digits, spaces, hyphens, plus, parentheses)
+            phone_pattern = r'^[\d\s\-\+\(\)]+$'
+            if not re.match(phone_pattern, kwargs["contact_number"]):
+                return json.dumps({"success": False, "error": "Halt: Invalid email format or phone number format"})
+            
             # Verify creator exists and has appropriate role
-            creator = users.get(kwargs["created_by"])
+            created_by_str = str(kwargs["created_by"])
+            creator = users.get(created_by_str)
             if not creator or creator.get("employment_status") != "active":
                 return json.dumps({"success": False, "error": "Halt: User is not authorized"})
             
@@ -71,28 +82,17 @@ class ManageCandidateOperations(Tool):
                     if cand.get("linkedin_profile") == kwargs["linkedin_profile"]:
                         return json.dumps({"success": False, "error": "Halt: Duplicate candidate (same email or contact number already exists)"})
             
-            # Create candidate
-            cand_id = generate_id(candidates)
+            # Generate new candidate ID and create record
+            new_candidate_id = generate_id(candidates)
+            timestamp = "2025-01-01T12:00:00"
+            
             new_candidate = {
-                "candidate_id": cand_id,
+                "candidate_id": str(new_candidate_id),
                 "first_name": kwargs["first_name"],
                 "last_name": kwargs["last_name"],
                 "email_address": kwargs["email_address"],
                 "contact_number": kwargs["contact_number"],
-                "source_of_application": kwargs.get("source_of_application"),
-                "country_of_residence": kwargs["country_of_residence"],
-                "linkedin_profile": kwargs.get("linkedin_profile"),
-                "current_ctc": kwargs.get("current_ctc"),
-                "status": "active",
-                "created_at": "2025-01-01T12:00:00",
-                "updated_at": "2025-01-01T12:00:00"
-            }
-            
-            # Generate new candidate ID and create record
-            new_candidate_id = generate_id(candidates)
-            
-            new_candidate = {
-                "candidate_id": str(new_candidate_id),
+                "source_of_application": kwargs.get("source_of_application", ""),
                 "country_of_residence": kwargs["country_of_residence"],
                 "linkedin_profile": kwargs.get("linkedin_profile", ""),
                 "current_ctc": float(kwargs.get("current_ctc", 0)),
