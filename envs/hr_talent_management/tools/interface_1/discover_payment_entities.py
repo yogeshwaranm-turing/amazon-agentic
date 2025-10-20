@@ -163,7 +163,7 @@ class DiscoverPaymentEntities(Tool):
                     "success": True,
                     "entity_type": "payslips",
                     "count": len(entities),
-                    "entities": entities,
+                    "payslips": entities,
                     "filters_applied": filters or {},
                 }
             )
@@ -195,7 +195,7 @@ class DiscoverPaymentEntities(Tool):
                 "success": True,
                 "entity_type": "payments",
                 "count": len(entities),
-                "entities": entities,
+                "payments": entities,
                 "filters_applied": filters or {},
             }
         )
@@ -206,7 +206,7 @@ class DiscoverPaymentEntities(Tool):
             "type": "function",
             "function": {
                 "name": "discover_payment_entities",
-                "description": "Discover and filter payment-related entities (payslips, payments) in the HR talent management system. Supports exact, numeric range, and date range filters for reporting and analysis.",
+                "description": "Discover and filter payment-related entities (payslips, payments) in the HR talent management system. Supports exact, numeric range, and date range filters for reporting and analysis. Entity types: 'payslips' (payslip_status: draft, generated, verified, released, archived; proration_status: not_applicable, applied, none), 'payments' (payment_method: bank_transfer, check, cash; payment_status: pending, processed, failed, reversed).",
                 "parameters": {
                     "type": "object",
                     "properties": {
