@@ -96,7 +96,7 @@ class ManipulateCoordinations(Tool):
                     })
 
                 # Validate required fields
-                required_fields = ["incident_id", "bridge_type", "bridge_host", "start_time"]
+                required_fields = ["incident_id", "bridge_type", "bridge_host"]
                 missing_fields = [field for field in required_fields if field not in bridge_data]
                 if missing_fields:
                     return json.dumps({
@@ -112,12 +112,13 @@ class ManipulateCoordinations(Tool):
                             "error": f"Field '{field}' cannot be empty"
                         })
                     
-                # Validate non-empty end_time if provided
-                if "end_time" in bridge_data:
-                    if not bridge_data["end_time"] or (isinstance(bridge_data["end_time"], str) and bridge_data["end_time"].strip() == ""):
+                # Validate non-empty start_time, end_time if provided
+                optional_fields = ["start_time", "end_time"]
+                for field in optional_fields:
+                    if not bridge_data[field] or (isinstance(bridge_data[field], str) and bridge_data[field].strip() == ""):
                         return json.dumps({
                             "success": False,
-                            "error": "Field 'end_time' cannot be empty"
+                            "error": f"Field '{field}' cannot be empty"
                         })
 
                 # Validate bridge_type enum
