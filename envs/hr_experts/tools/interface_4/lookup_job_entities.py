@@ -1,150 +1,91 @@
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 from tau_bench.envs.tool import Tool
-
 
 class LookupJobEntities(Tool):
     @staticmethod
-    def invoke(data: Dict[str, Any], entity_type: str, filters: Optional[Dict[str, Any]] = None) -> str:
+    def invoke(data: Dict[str, Any], entity_type: str, filters: Dict[str, Any] = None) -> str:
         """
-        Discover and retrieve job entities including job requisitions and job postings.
-
-        entity_type: "job_requisitions" | "job_postings"
-        filters: optional dict with exact-match filtering and date range support
-        Returns: {"entities": list, "count": int, "message": str}
+        Uretrieve job entities.
+        
+        Supported entities:
+        - job_positions: Job position records by position_id, title, department_id, job_level, employment_type, hourly_rate_min, hourly_rate_max, status, created_at, updated_at
+        - skills: Skill records by skill_id, skill_name, status
+        - job_position_skills: Job position skill relationships by position_id, skill_id
         """
-
-        if entity_type not in ["job_requisitions", "job_postings"]:
+        if entity_type not in ["job_positions", "skills", "job_position_skills"]:
             return json.dumps({
-                "entities": [],
-                "count": 0,
-                "message": f"Invalid entity_type '{entity_type}'. Must be 'job_requisitions' or 'job_postings'"
+                "success": False,
+                "error": f"Invalid entity_type '{entity_type}'. Must be one of: 'job_positions', 'skills', 'job_position_skills'"
             })
-
+        
         if not isinstance(data, dict):
             return json.dumps({
-                "entities": [],
-                "count": 0,
-                "message": f"Invalid data format for {entity_type}"
+                "success": False,
+                "error": f"Invalid data format for {entity_type}"
             })
-
-        def apply_exact_filters(record: Dict[str, Any], exact_filter_keys: List[str], filters_obj: Dict[str, Any]) -> bool:
-            for key in exact_filter_keys:
-                if key in filters_obj:
-                    if record.get(key) != filters_obj[key]:
-                        return False
-            return True
-
-        def in_date_range(date_value: Optional[str], start_key: str, end_key: str, filters_obj: Dict[str, Any]) -> bool:
-            if not date_value:
-                return False if (start_key in filters_obj or end_key in filters_obj) else True
-            if start_key in filters_obj and date_value < filters_obj[start_key]:
-                return False
-            if end_key in filters_obj and date_value > filters_obj[end_key]:
-                return False
-            return True
-
-        results: List[Dict[str, Any]] = []
-
-        if entity_type == "job_requisitions":
-            requisitions = data.get("job_requisitions", {})
-
-            # Supported requisition filters
-            requisition_exact_keys = [
-                "requisition_id", "job_title", "department_id", "location_id", 
-                "employment_type", "hiring_manager_id", "grade", "shift_type", 
-                "remote_indicator", "status", "hr_manager_approver", "dept_head_approver", 
-                "created_by"
-            ]
-
-            for requisition_id, requisition in requisitions.items():
-                record = {**requisition}
-
+        
+        results = []
+        entities = data.get(entity_type, {})
+        
+        if entity_type == "job_position_skills":
+            # Special handling for many-to-many relationship table
+            for relationship in entities.values():
                 if filters:
-                    # Exact-match filters
-                    if not apply_exact_filters(record, requisition_exact_keys, filters):
-                        continue
-
-                    # Date range filters
-                    if not in_date_range(record.get("hr_manager_approval_date"), "hr_manager_approval_date_from", "hr_manager_approval_date_to", filters):
-                        continue
-                    if not in_date_range(record.get("dept_head_approval_date"), "dept_head_approval_date_from", "dept_head_approval_date_to", filters):
-                        continue
-                    if not in_date_range(record.get("posted_date"), "posted_date_from", "posted_date_to", filters):
-                        continue
-
-                # ensure id present as string
-                record["requisition_id"] = str(requisition_id)
-                results.append(record)
-
-            return json.dumps({
-                "success": True,
-                "entity_type": "job_requisitions",
-                "count": len(results),
-                "entities": results,
-                "filters_applied": filters or {}
-            })
-
-        if entity_type == "job_postings":
-            postings = data.get("job_postings", {})
-
-            # Supported posting filters
-            posting_exact_keys = [
-                "posting_id", "requisition_id", "portal_type", "status"
-            ]
-
-            for posting_id, posting in postings.items():
-                record = {**posting}
-
+                    match = True
+                    for filter_key, filter_value in filters.items():
+                        entity_value = relationship.get(filter_key)
+                        if entity_value != filter_value:
+                            match = False
+                            break
+                    if match:
+                        results.append(relationship)
+                else:
+                    results.append(relationship)
+        else:
+            # Handle regular entities with primary keys
+            id_field = "position_id" if entity_type == "job_positions" else "skill_id"
+            
+            for entity_id, entity_data in entities.items():
                 if filters:
-                    # Exact-match filters
-                    if not apply_exact_filters(record, posting_exact_keys, filters):
-                        continue
-
-                    # Date range filters
-                    if not in_date_range(record.get("posted_date"), "posted_date_from", "posted_date_to", filters):
-                        continue
-                    if not in_date_range(record.get("closed_date"), "closed_date_from", "closed_date_to", filters):
-                        continue
-
-                # ensure id present as string
-                record["posting_id"] = str(posting_id)
-                results.append(record)
-
-            return json.dumps({
-                "success": True,
-                "entity_type": "job_postings",
-                "count": len(results),
-                "entities": results,
-                "filters_applied": filters or {}
-            })
-
+                    match = True
+                    for filter_key, filter_value in filters.items():
+                        entity_value = entity_data.get(filter_key)
+                        if entity_value != filter_value:
+                            match = False
+                            break
+                    if match:
+                        results.append({**entity_data, id_field: entity_id})
+                else:
+                    results.append({**entity_data, id_field: entity_id})
+        
         return json.dumps({
-            "success": False,
-            "error": "Halt: Missing entity_type or invalid entity_type"
+            "success": True,
+            "entity_type": entity_type,
+            "count": len(results),
+            "results": results
         })
-
+    
     @staticmethod
     def get_info() -> Dict[str, Any]:
         return {
             "type": "function",
             "function": {
                 "name": "lookup_job_entities",
-                "description": "Discover and retrieve job entities including job requisitions and job postings.",
+                "description": "Uretrieve job entities. Entity types: 'job_positions' (job position records; filterable by position_id (string), title (string), department_id (string), job_level (enum: 'entry', 'junior', 'mid', 'senior', 'lead', 'manager', 'director', 'executive'), employment_type (enum: 'full_time', 'part_time', 'contract', 'intern', 'temporary'), hourly_rate_min (decimal), hourly_rate_max (decimal), status (enum: 'open', 'closed', 'draft'), created_at (timestamp), updated_at (timestamp)), 'skills' (skill records; filterable by skill_id (string), skill_name (string), status (enum: 'active', 'inactive')), 'job_position_skills' (job position skill relationships; filterable by position_id (string), skill_id (string)).",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "entity_type": {
                             "type": "string",
-                            "description": "Type of job entity to discover. Valid values: 'job_requisitions', 'job_postings'"
+                            "description": "Type of entity to discover: 'job_positions', 'skills', or 'job_position_skills'"
                         },
                         "filters": {
                             "type": "object",
-                            "description": "Optional filters for discovery. For job_requisitions: requisition_id, job_title, department_id, location_id, employment_type, hiring_manager_id, grade, shift_type, remote_indicator, status, hr_manager_approver, dept_head_approver, hr_manager_approval_date_from, hr_manager_approval_date_to, dept_head_approval_date_from, dept_head_approval_date_to, posted_date_from, posted_date_to, created_by. For job_postings: posting_id, requisition_id, posted_date_from, posted_date_to, portal_type, status, closed_date_from, closed_date_to"
+                            "description": "Optional filters as JSON object with key-value pairs. SYNTAX: {\"key\": \"value\"} for single filter, {\"key1\": \"value1\", \"key2\": \"value2\"} for multiple filters (AND logic). RULES: Exact matches only, dates as YYYY-MM-DD and booleans as True/False. For job_positions: position_id (string), title (string), department_id (string), job_level (enum: 'entry', 'junior', 'mid', 'senior', 'lead', 'manager', 'director', 'executive'), employment_type (enum: 'full_time', 'part_time', 'contract', 'intern', 'temporary'), hourly_rate_min (decimal), hourly_rate_max (decimal), status (enum: 'open', 'closed', 'draft'), created_at (timestamp), updated_at (timestamp). For skills: skill_id (string), skill_name (string), status (enum: 'active', 'inactive'). For job_position_skills: position_id (string), skill_id (string)"
                         }
                     },
                     "required": ["entity_type"]
                 }
             }
         }
-
