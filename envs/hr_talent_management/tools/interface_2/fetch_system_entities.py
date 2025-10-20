@@ -1,210 +1,200 @@
 import json
-import re
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, List, Optional
 from tau_bench.envs.tool import Tool
-from datetime import datetime
+
 
 class FetchSystemEntities(Tool):
-
-    # --- Utility Methods ---
-
-    @staticmethod
-    def _validate_date_format(date_str: str, field_name: str) -> Optional[str]:
-        """Validates date format is MM-DD-YYYY."""
-        if date_str:
-            date_pattern = r'^\d{2}-\d{2}-\d{4}$'
-            if not re.match(date_pattern, date_str):
-                return f"Invalid {field_name} format. Must be MM-DD-YYYY."
-            try:
-                datetime.strptime(date_str, '%m-%d-%Y')
-            except ValueError:
-                return f"Invalid date value provided for {field_name}. Please check month/day/year validity."
-        return None
-
-    @staticmethod
-    def _convert_date_format(date_str: str) -> str:
-        """Converts MM-DD-YYYY to YYYY-MM-DD for internal comparison."""
-        if date_str and re.match(r'^\d{2}-\d{2}-\d{4}$', date_str):
-            try:
-                dt = datetime.strptime(date_str, '%m-%d-%Y')
-                return dt.strftime('%Y-%m-%d')
-            except ValueError:
-                return date_str
-        return date_str
-
-    @staticmethod
-    def _filter_entity(entity: Dict[str, Any], filters: Dict[str, Any]) -> bool:
-        """Applies all filters to a single entity record."""
-        for key, value in filters.items():
-            if value is None:
-                continue
-
-            # --- Date Range Filtering ---
-            if key.endswith("_from") or key.endswith("_to"):
-                # Determine the base field name (e.g., 'exit_date' from 'exit_date_from')
-                base_field = key[:-5]
-                date_str = entity.get(base_field)
-
-                # Skip comparison if the entity record doesn't have the date field
-                if not date_str:
-                    continue
-
-                converted_date = date_str
-                
-                if value:
-                    filter_date_str = DiscoverSystemEntities._convert_date_format(value)
-                    
-                    if key.endswith("_from") and converted_date < filter_date_str:
-                        return False
-                    if key.endswith("_to") and converted_date > filter_date_str:
-                        return False
-            
-            # --- Standard Comparison for all other fields (ID, Status, Text, etc.) ---
-            else:
-                entity_value = entity.get(key)
-                # Convert both to string for consistent comparison (IDs are often stored as strings)
-                if str(entity_value) != str(value):
-                    return False
-            
-        return True
-
-    # --- Core Tool Logic ---
-
     @staticmethod
     def invoke(data: Dict[str, Any], entity_type: str, filters: Optional[Dict[str, Any]] = None) -> str:
         """
-        Locates and retrieves System Entities (Employee Exits, Notifications, and Audit Trails)
-        based on entity type and search criteria.
+        Discover system entities including employee exits, notifications, and audit trails with optional filtering.
+
+        Args:
+            data: Dictionary containing system entities data
+            entity_type: Type of system entity to discover ("employee_exits", "notifications", "audit_trails")
+            filters: Optional dictionary of filters to apply
+
+        Returns:
+            JSON string with discovered entities and metadata
         """
-        valid_entity_types = ["employee_exits", "notifications", "audit_trails"]
-        
-        if not entity_type or entity_type not in valid_entity_types:
+        if entity_type not in ["employee_exits", "notifications", "audit_trails"]:
             return json.dumps({
                 "success": False,
-                "message": f"Missing or invalid entity_type '{entity_type}'. Must be one of: {', '.join(valid_entity_types)}."
-            }) # Halt Condition: Missing or invalid entity_type
+                "error": f"Invalid entity_type '{entity_type}'. Must be one of: employee_exits, notifications, audit_trails"
+            })
 
-        filters = filters or {}
-        
-        # 1. Define Valid Keys and Data Source
-        valid_keys: List[str]
-        
+        def matches_filter(entity: Dict[str, Any], filter_key: str, filter_value: Any) -> bool:
+            """Check if entity matches a specific filter"""
+            if filter_key.endswith("_from"):
+                # Date range filter - from date
+                field_name = filter_key.replace("_from", "")
+                entity_value = entity.get(field_name)
+                if not entity_value:
+                    return False
+                return entity_value >= filter_value
+            elif filter_key.endswith("_to"):
+                # Date range filter - to date
+                field_name = filter_key.replace("_to", "")
+                entity_value = entity.get(field_name)
+                if not entity_value:
+                    return False
+                return entity_value <= filter_value
+            else:
+                # Exact match filter
+                entity_value = entity.get(filter_key)
+                if isinstance(filter_value, str) and isinstance(entity_value, str):
+                    return entity_value.lower() == filter_value.lower()
+                return entity_value == filter_value
+
+        def apply_filters(entities: Dict[str, Any], valid_filters: List[str], filters: Dict[str, Any]) -> Dict[str, Any]:
+            """Apply filters to entities and return matching results"""
+            if not filters:
+                return entities
+            
+            # Validate filter keys
+            invalid_filters = [key for key in filters.keys() if key not in valid_filters]
+            if invalid_filters:
+                return {
+                    "error": f"Invalid filter keys: {', '.join(invalid_filters)}. Valid filters are: {', '.join(valid_filters)}"
+                }
+            
+            filtered_entities = {}
+            for entity_id, entity in entities.items():
+                matches = True
+                for filter_key, filter_value in filters.items():
+                    if not matches_filter(entity, filter_key, filter_value):
+                        matches = False
+                        break
+                
+                if matches:
+                    filtered_entities[entity_id] = entity
+            
+            return filtered_entities
+
         if entity_type == "employee_exits":
-            valid_keys = [
-                "exit_id", "employee_id", "exit_date_from", "exit_date_to", "manager_clearance", 
-                "it_equipment_return", "finance_settlement_status", "clearance_status", 
-                "approved_by", "approval_date_from", "approval_date_to", "paid_date_from", "paid_date_to"
+            entities = data.get("employee_exits", {})
+            valid_filters = [
+                "exit_id", "employee_id", "exit_date_from", "exit_date_to", 
+                "manager_clearance", "it_equipment_return", "finance_settlement_status", 
+                "clearance_status", "approved_by", "approval_date_from", "approval_date_to", 
+                "paid_date_from", "paid_date_to"
             ]
-            data_source = data.get("employee_exits", {})
-
-        elif entity_type == "notifications":
-            valid_keys = [
-                "notification_id", "recipient_user_id", "recipient_email", "notification_type", 
-                "reference_type", "reference_id", "notification_status"
-            ]
-            data_source = data.get("notifications", {})
-        
-        elif entity_type == "audit_trails":
-            valid_keys = [
-                "audit_id", "reference_id", "reference_type", "action", "user_id", "field_name"
-            ]
-            data_source = data.get("audit_trails", {})
-        
-        # 2. Validate Filters
-        for key, value in filters.items():
-            if key not in valid_keys:
-                return json.dumps({
-                    "success": False,
-                    "message": f"Invalid filter key '{key}' provided for entity_type '{entity_type}'."
-                })
             
-            if key.endswith(("_from", "_to")):
-                error = DiscoverSystemEntities._validate_date_format(value, key)
-                if error: return json.dumps({"success": False, "message": error})
-
-        # 3. Execute Discovery
-        found_entities: List[Dict[str, Any]] = []
-        
-        for entity_id, entity_record in data_source.items():
-            # Quick check for primary ID match if provided (e.g., exit_id)
-            id_key = f"{entity_type[:-1]}_id"
-            if entity_type == "employee_exits": id_key = "exit_id"
-            elif entity_type == "audit_trails": id_key = "audit_id"
+            if filters:
+                filtered_entities = apply_filters(entities, valid_filters, filters)
+                if "error" in filtered_entities:
+                    return json.dumps({
+                        "success": False,
+                        "error": filtered_entities["error"]
+                    })
+                entities = filtered_entities
             
-            if filters.get(id_key) and str(entity_id) != str(filters.get(id_key)):
-                continue
-
-            if DiscoverSystemEntities._filter_entity(entity_record, filters):
-                found_entities.append(entity_record)
-
-        # 4. Process Results
-        if not found_entities:
             return json.dumps({
                 "success": True,
-                "entity_type": entity_type,
-                "count": 0,
-                "message": f"No {entity_type} entities found matching the criteria.",
-                "entities": []
+                "entity_type": "employee_exits",
+                "count": len(entities),
+                "employee_exits": entities,
+                "filters_applied": filters or {}
             })
         
-        return json.dumps({
-            "success": True,
-            "entity_type": entity_type,
-            "count": len(found_entities),
-            "message": f"Successfully retrieved {len(found_entities)} {entity_type} entities.",
-            "entities": found_entities
-        })
-
+        elif entity_type == "notifications":
+            entities = data.get("notifications", {})
+            valid_filters = [
+                "notification_id", "recipient_user_id", "recipient_email", 
+                "notification_type", "reference_type", "reference_id", "notification_status"
+            ]
+            
+            if filters:
+                filtered_entities = apply_filters(entities, valid_filters, filters)
+                if "error" in filtered_entities:
+                    return json.dumps({
+                        "success": False,
+                        "error": filtered_entities["error"]
+                    })
+                entities = filtered_entities
+            
+            return json.dumps({
+                "success": True,
+                "entity_type": "notifications",
+                "count": len(entities),
+                "notifications": entities,
+                "filters_applied": filters or {}
+            })
+        
+        elif entity_type == "audit_trails":
+            entities = data.get("audit_trails", {})
+            valid_filters = [
+                "audit_id", "reference_id", "reference_type", "action", "user_id", "field_name"
+            ]
+            
+            if filters:
+                filtered_entities = apply_filters(entities, valid_filters, filters)
+                if "error" in filtered_entities:
+                    return json.dumps({
+                        "success": False,
+                        "error": filtered_entities["error"]
+                    })
+                entities = filtered_entities
+            
+            return json.dumps({
+                "success": True,
+                "entity_type": "audit_trails",
+                "count": len(entities),
+                "audit_trails": entities,
+                "filters_applied": filters or {}
+            })
+    
     @staticmethod
     def get_info() -> Dict[str, Any]:
         return {
             "type": "function",
             "function": {
                 "name": "fetch_system_entities",
-                "description": "Systematically locates and retrieves System entities (employee_exits, notifications, and audit_trails) from the HR system based on entity type and search criteria (filters).",
+                "description": "Discover system entities including employee exits, notifications, and audit trails with optional filtering. Entity types: 'employee_exits' (manager_clearance: pending, approved, rejected; it_equipment_return: pending, completed, not_applicable; finance_settlement_status: pending, completed, not_applicable; clearance_status: pending, in_progress, completed, rejected), 'notifications' (notification_type: email, sms, push, system; notification_status: pending, sent, delivered, failed, read), 'audit_trails' (action: create, update, delete, approve, reject, release, payment).",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "entity_type": {
                             "type": "string",
-                            "description": "The specific type of entity to search for. Mandatory.",
+                            "description": "Type of system entity to discover",
                             "enum": ["employee_exits", "notifications", "audit_trails"]
                         },
                         "filters": {
                             "type": "object",
-                            "description": "A dictionary of criteria to filter the entities. Keys must be valid for the specified entity_type.",
+                            "description": "Optional filters to apply. For employee_exits: exit_id, employee_id, exit_date_from, exit_date_to, manager_clearance, it_equipment_return, finance_settlement_status, clearance_status, approved_by, approval_date_from, approval_date_to, paid_date_from, paid_date_to. For notifications: notification_id, recipient_user_id, recipient_email, notification_type, reference_type, reference_id, notification_status. For audit_trails: audit_id, reference_id, reference_type, action, user_id, field_name. SYNTAX: {\"key\": \"value\"}",
                             "properties": {
-                                # Employee Exit Keys
-                                "exit_id": {"type": "string", "description": "Unique identifier of the exit record."},
-                                "employee_id": {"type": "string", "description": "Employee ID related to the exit."},
-                                "exit_date_from": {"type": "string", "description": "Start date for the employee's exit date range (MM-DD-YYYY)."},
-                                "exit_date_to": {"type": "string", "description": "End date for the employee's exit date range (MM-DD-YYYY)."},
-                                "manager_clearance": {"type": "string", "description": "Manager sign-off status."},
-                                "it_equipment_return": {"type": "string", "description": "IT equipment return status."},
-                                "finance_settlement_status": {"type": "string", "description": "Finance settlement status."},
-                                "clearance_status": {"type": "string", "description": "Overall clearance status (e.g., pending, cleared, rejected)."},
-                                "approved_by": {"type": "string", "description": "User ID who approved the settlement."},
-                                "approval_date_from": {"type": "string", "description": "Start date for settlement approval date range (MM-DD-YYYY)."},
-                                "approval_date_to": {"type": "string", "description": "End date for settlement approval date range (MM-DD-YYYY)."},
-                                "paid_date_from": {"type": "string", "description": "Start date for settlement paid date range (MM-DD-YYYY)."},
-                                "paid_date_to": {"type": "string", "description": "End date for settlement paid date range (MM-DD-YYYY)."},
+                                # Employee Exits filters
+                                "exit_id": {"type": "string", "description": "Exact exit ID match"},
+                                "employee_id": {"type": "string", "description": "Employee ID match"},
+                                "exit_date_from": {"type": "string", "description": "Exit date from (YYYY-MM-DD)"},
+                                "exit_date_to": {"type": "string", "description": "Exit date to (YYYY-MM-DD)"},
+                                "manager_clearance": {"type": "string", "description": "Manager clearance status", "enum": ["pending", "approved", "rejected"]},
+                                "it_equipment_return": {"type": "string", "description": "IT equipment return status", "enum": ["pending", "completed", "not_applicable"]},
+                                "finance_settlement_status": {"type": "string", "description": "Finance settlement status", "enum": ["pending", "completed", "not_applicable"]},
+                                "clearance_status": {"type": "string", "description": "Overall clearance status", "enum": ["pending", "in_progress", "completed", "rejected"]},
+                                "approved_by": {"type": "string", "description": "User who approved the exit"},
+                                "approval_date_from": {"type": "string", "description": "Approval date from (YYYY-MM-DD)"},
+                                "approval_date_to": {"type": "string", "description": "Approval date to (YYYY-MM-DD)"},
+                                "paid_date_from": {"type": "string", "description": "Paid date from (YYYY-MM-DD)"},
+                                "paid_date_to": {"type": "string", "description": "Paid date to (YYYY-MM-DD)"},
                                 
-                                # Notification Keys
-                                "notification_id": {"type": "string", "description": "Unique identifier of the notification."},
-                                "recipient_user_id": {"type": "string", "description": "User ID who received the notification."},
-                                "recipient_email": {"type": "string", "description": "Email address of the notification recipient."},
-                                "notification_type": {"type": "string", "description": "Type of notification (e.g., email, system, alert)."},
-                                "reference_type": {"type": "string", "description": "Type of entity the notification refers to (e.g., 'application', 'payslip')."},
-                                "reference_id": {"type": "string", "description": "ID of the entity the notification refers to."},
-                                "notification_status": {"type": "string", "description": "Status of the notification (e.g., sent, delivered, read, failed)."},
-
-                                # Audit Trail Keys
-                                "audit_id": {"type": "string", "description": "Unique identifier of the audit record."},
-                                "action": {"type": "string", "description": "Type of action logged (e.g., create, update, delete)."},
-                                "user_id": {"type": "string", "description": "User ID who performed the action."},
-                                "field_name": {"type": "string", "description": "Specific field name that was changed (for update actions)."},
-                            },
-                            "additionalProperties": False
+                                # Notifications filters
+                                "notification_id": {"type": "string", "description": "Exact notification ID match"},
+                                "recipient_user_id": {"type": "string", "description": "Recipient user ID match"},
+                                "recipient_email": {"type": "string", "description": "Recipient email match"},
+                                "notification_type": {"type": "string", "description": "Notification type", "enum": ["email", "sms", "push", "system"]},
+                                "reference_type": {"type": "string", "description": "Reference entity type"},
+                                "reference_id": {"type": "string", "description": "Reference entity ID"},
+                                "notification_status": {"type": "string", "description": "Notification status", "enum": ["pending", "sent", "delivered", "failed", "read"]},
+                                
+                                # Audit Trails filters
+                                "audit_id": {"type": "string", "description": "Exact audit ID match"},
+                                "reference_id": {"type": "string", "description": "Reference entity ID"},
+                                "reference_type": {"type": "string", "description": "Reference entity type"},
+                                "action": {"type": "string", "description": "Action performed", "enum": ["create", "update", "delete", "approve", "reject", "release", "payment"]},
+                                "user_id": {"type": "string", "description": "User who performed the action"},
+                                "field_name": {"type": "string", "description": "Field that was modified"}
+                            }
                         }
                     },
                     "required": ["entity_type"]

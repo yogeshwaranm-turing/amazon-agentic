@@ -7,57 +7,51 @@ from datetime import datetime, date
 
 class AdministerBenefitPlanOperations(Tool):
     
-    # --- Utility Methods ---
-    @staticmethod
-    def _generate_id(table: Dict[str, Any]) -> int:
-        """Utility to generate a new sequential ID for the benefit_plans table."""
-        if not table:
-            return 7001
-        return max(int(k) for k in table.keys()) + 1
-
-    @staticmethod
-    def _validate_date_format(date_str: str, field_name: str) -> Optional[str]:
-        """Validates date format is MM-DD-YYYY."""
-        if date_str:
-            date_pattern = r'^\d{2}-\d{2}-\d{4}$'
-            if not re.match(date_pattern, date_str):
-                return f"Invalid {field_name} format. Must be MM-DD-YYYY"
-            
-            try:
-                datetime.strptime(date_str, '%m-%d-%Y')
-            except ValueError:
-                return f"Invalid date value provided for {field_name}. Please check month/day/year validity."
-        return None
-
-    @staticmethod
-    def _convert_date_format(date_str: str) -> str:
-        """Convert MM-DD-YYYY to YYYY-MM-DD for internal storage."""
-        if date_str and re.match(r'^\d{2}-\d{2}-\d{4}$', date_str):
-            try:
-                dt = datetime.strptime(date_str, '%m-%d-%Y')
-                return dt.strftime('%Y-%m-%d')
-            except ValueError:
-                return date_str
-        return date_str
-
-    @staticmethod
-    def _validate_numeric_field(value: Any, field_name: str) -> Optional[str]:
-        """Validate that a field is a non-negative number."""
-        if value is not None:
-            try:
-                if float(value) < 0:
-                    return f"{field_name} cannot be negative."
-            except ValueError:
-                return f"{field_name} must be a valid number."
-        return None
-
-    # --- Core Tool Logic ---
-
     @staticmethod
     def invoke(data: Dict[str, Any], operation_type: str, **kwargs) -> str:
         """
         Manages benefit plan operations including creation and updates.
         """
+        
+        # --- Utility Functions ---
+        def generate_id(table: Dict[str, Any]) -> int:
+            """Utility to generate a new sequential ID for the benefit_plans table."""
+            if not table:
+                return 7001
+            return max(int(k) for k in table.keys()) + 1
+
+        def validate_date_format(date_str: str, field_name: str) -> Optional[str]:
+            """Validates date format is MM-DD-YYYY."""
+            if date_str:
+                date_pattern = r'^\d{2}-\d{2}-\d{4}$'
+                if not re.match(date_pattern, date_str):
+                    return f"Invalid {field_name} format. Must be MM-DD-YYYY"
+                
+                try:
+                    datetime.strptime(date_str, '%m-%d-%Y')
+                except ValueError:
+                    return f"Invalid date value provided for {field_name}. Please check month/day/year validity."
+            return None
+
+        def convert_date_format(date_str: str) -> str:
+            """Convert MM-DD-YYYY to YYYY-MM-DD for internal storage."""
+            if date_str and re.match(r'^\d{2}-\d{2}-\d{4}$', date_str):
+                try:
+                    dt = datetime.strptime(date_str, '%m-%d-%Y')
+                    return dt.strftime('%Y-%m-%d')
+                except ValueError:
+                    return date_str
+            return date_str
+
+        def validate_numeric_field(value: Any, field_name: str) -> Optional[str]:
+            """Validate that a field is a non-negative number."""
+            if value is not None:
+                try:
+                    if float(value) < 0:
+                        return f"{field_name} cannot be negative."
+                except ValueError:
+                    return f"{field_name} must be a valid number."
+            return None
         
         valid_operations = ["create_plan", "update_plan"]
         if operation_type not in valid_operations:
@@ -112,10 +106,10 @@ class AdministerBenefitPlanOperations(Tool):
             date_fields = ["effective_from", "effective_until"]
             converted_dates = {}
             for field in date_fields:
-                date_error = ManageBenefitPlanOperations._validate_date_format(kwargs[field], field)
+                date_error = validate_date_format(kwargs[field], field)
                 if date_error:
                     return json.dumps({"success": False, "plan_id": None, "message": date_error})
-                converted_dates[field] = ManageBenefitPlanOperations._convert_date_format(kwargs[field])
+                converted_dates[field] = convert_date_format(kwargs[field])
 
             # Check date ranges (effective_from >= effective_until)
             effective_from_obj = datetime.strptime(converted_dates["effective_from"], '%Y-%m-%d').date()
@@ -130,7 +124,7 @@ class AdministerBenefitPlanOperations(Tool):
             # 3. Validate contribution amounts
             contribution_fields = ["default_employee_contribution", "default_employer_contribution"]
             for field in contribution_fields:
-                error = ManageBenefitPlanOperations._validate_numeric_field(kwargs[field], field)
+                error = validate_numeric_field(kwargs[field], field)
                 if error:
                     return json.dumps({"success": False, "plan_id": None, "message": error})
 
@@ -144,7 +138,7 @@ class AdministerBenefitPlanOperations(Tool):
                     })
 
             # 5. Create Benefit Plan
-            new_plan_id = ManageBenefitPlanOperations._generate_id(benefit_plans)
+            new_plan_id = generate_id(benefit_plans)
             timestamp = datetime.now().isoformat()
 
             new_plan = {
@@ -167,7 +161,8 @@ class AdministerBenefitPlanOperations(Tool):
             return json.dumps({
                 "success": True,
                 "plan_id": str(new_plan_id),
-                "message": f"Benefit plan {new_plan_id} created successfully"
+                "message": f"Benefit plan {new_plan_id} created successfully",
+                "plan_data": new_plan
             })
 
         # --- Benefit Plan Update (update_plan) ---
@@ -216,11 +211,11 @@ class AdministerBenefitPlanOperations(Tool):
             for field in updatable_fields:
                 if field in kwargs and kwargs[field] is not None:
                     if field in ["effective_from", "effective_until"]:
-                        date_error = ManageBenefitPlanOperations._validate_date_format(kwargs[field], field)
+                        date_error = validate_date_format(kwargs[field], field)
                         if date_error:
                             return json.dumps({"success": False, "plan_id": plan_id_str, "message": date_error})
                     elif field in ["default_employee_contribution", "default_employer_contribution"]:
-                        error = ManageBenefitPlanOperations._validate_numeric_field(kwargs[field], field)
+                        error = validate_numeric_field(kwargs[field], field)
                         if error:
                             return json.dumps({"success": False, "plan_id": plan_id_str, "message": error})
                     elif field == "plan_name":
@@ -237,7 +232,7 @@ class AdministerBenefitPlanOperations(Tool):
             for field in updatable_fields:
                 if field in kwargs and kwargs[field] is not None:
                     if field in ["effective_from", "effective_until"]:
-                        plan[field] = ManageBenefitPlanOperations._convert_date_format(kwargs[field])
+                        plan[field] = convert_date_format(kwargs[field])
                     elif field in ["default_employee_contribution", "default_employer_contribution"]:
                         plan[field] = float(kwargs[field])
                     else:

@@ -7,7 +7,7 @@ class FetchReferenceEntities(Tool):
     @staticmethod
     def invoke(data: Dict[str, Any], entity_type: str, filters: Optional[Dict[str, Any]] = None) -> str:
         """
-        Fetch reference entities including users, locations, and departments.
+        Discover and retrieve reference entities including users, locations, and departments.
 
         entity_type: "users" | "locations" | "departments"
         filters: optional dict with exact-match filtering

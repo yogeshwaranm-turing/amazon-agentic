@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional
 from tau_bench.envs.tool import Tool
 from datetime import datetime, date
 
+
 class AdministerEmployeeExitOperations(Tool):
     
     # --- Utility Methods ---
@@ -24,14 +25,11 @@ class AdministerEmployeeExitOperations(Tool):
             
             try:
                 dt_obj = datetime.strptime(date_str, '%m-%d-%Y')
-                # Check for validity (e.g., month 13, day 32) is covered by strptime
-                
                 # Check for future date if not allowed
                 if not allow_future:
                     simulated_today = date(2025, 10, 1) # Using same simulated date as other tools
                     if dt_obj.date() > simulated_today:
                          return f"{field_name} cannot be in the future (compared to the system date)."
-
             except ValueError:
                 return f"Invalid date value provided for {field_name}. Please check month/day/year validity."
         return None
@@ -79,6 +77,7 @@ class AdministerEmployeeExitOperations(Tool):
         
         exits = data.get("employee_exits", {})
         employees = data.get("employees", {})
+        users = data.get("users", {})
         
         simulated_today = date(2025, 10, 1) # Used for past date checks
 
@@ -91,36 +90,46 @@ class AdministerEmployeeExitOperations(Tool):
                 return json.dumps({
                     "success": False,
                     "exit_id": None,
-                    "message": f"Missing mandatory fields: {', '.join(missing_fields)}" # Halt Condition: Missing mandatory fields
+                    "message": f"Halt: Missing mandatory fields: {', '.join(missing_fields)}",
+                    "transfer_to_human": True
                 })
 
             # 1. Validation Checks
             employee_id_str = str(kwargs["employee_id"])
-            
-            # Check for existing exit record (Employee already in exit process)
-            if any(e.get("employee_id") == employee_id_str for e in exits.values()):
-                return json.dumps({"success": False, "exit_id": None, "message": f"Employee {employee_id_str} is already in the exit process."}) # Halt Condition: Employee already in exit process
+            requester_id_str = str(kwargs["user_id"]) if kwargs.get("user_id") is not None else None
 
-            # Verify employee exists and is active
+            # SOP: Verify user is an active HR Admin, HR Manager, or HR Director
+            requester = users.get(requester_id_str)
+            if not requester:
+                return json.dumps({"success": False, "exit_id": None, "message": "Halt: Operation failed due to system errors - requester user not found", "transfer_to_human": True})
+            
+            if requester.get("employment_status") != "active" or requester.get("role") not in ["hr_manager", "hr_admin", "hr_payroll_administrator"]:
+                return json.dumps({"success": False, "exit_id": None, "message": "Halt: Unauthorized requester attempting to initiate exit - must be active HR Admin/Manager/Director", "transfer_to_human": True})
+
+            # SOP: Verify employee exists and is active
             employee = employees.get(employee_id_str)
             if not employee or employee.get("employment_status") not in ["active", "on_leave"]:
-                 return json.dumps({"success": False, "exit_id": None, "message": "Employee not found or is inactive/already terminated."}) # Halt Condition: Employee not found or inactive
+                return json.dumps({"success": False, "exit_id": None, "message": "Halt: Employee not found or inactive", "transfer_to_human": True})
+
+            # Check for existing exit record (Employee already in exit process)
+            if any(e.get("employee_id") == employee_id_str for e in exits.values()):
+                return json.dumps({"success": False, "exit_id": None, "message": f"Halt: Employee {employee_id_str} is already in the exit process.", "transfer_to_human": True})
 
             # Validate exit_date format and ensure it's not in the past
             date_error = ManageEmployeeExitOperations._validate_date_format(kwargs["exit_date"], "exit_date")
             if date_error:
-                return json.dumps({"success": False, "exit_id": None, "message": date_error})
+                return json.dumps({"success": False, "exit_id": None, "message": f"Halt: {date_error}", "transfer_to_human": True})
             
             converted_exit_date = ManageEmployeeExitOperations._convert_date_format(kwargs["exit_date"])
             exit_date_obj = datetime.strptime(converted_exit_date, '%Y-%m-%d').date()
             if exit_date_obj < simulated_today:
-                return json.dumps({"success": False, "exit_id": None, "message": "Exit date cannot be in the past."}) # Halt Condition: Exit date in the past
+                return json.dumps({"success": False, "exit_id": None, "message": "Halt: Exit date cannot be in the past", "transfer_to_human": True})
 
             # Validate exit_reason
             valid_reasons = ["resignation", "termination", "retirement", "contract_end"]
             reason_error = ManageEmployeeExitOperations._validate_status_field(kwargs["exit_reason"], "exit_reason", valid_reasons)
             if reason_error:
-                return json.dumps({"success": False, "exit_id": None, "message": reason_error}) # Halt Condition: Invalid exit_reason
+                return json.dumps({"success": False, "exit_id": None, "message": f"Halt: {reason_error}", "transfer_to_human": True})
 
             # 2. Create Exit Record
             new_exit_id = ManageEmployeeExitOperations._generate_id(exits)
@@ -146,8 +155,25 @@ class AdministerEmployeeExitOperations(Tool):
             
             exits[str(new_exit_id)] = new_exit
             
-            # SOP: Create Audit Entry (Simulation)
-            # create_audit_entry("exit", str(new_exit_id), "create", kwargs["user_id"], ...)
+            # SOP: Create Audit Entry
+            try:
+                audit_trails = data.setdefault("audit_trails", {})
+                new_audit_id = str(max([int(k) for k in audit_trails.keys()] + [0]) + 1)
+                audit_entry = {
+                    "audit_id": new_audit_id,
+                    "reference_id": str(new_exit_id),
+                    "reference_type": "exit",
+                    "action": "create",
+                    "user_id": requester_id_str,
+                    "field_name": None,
+                    "old_value": None,
+                    "new_value": json.dumps({"created_by": requester_id_str}),
+                    "created_at": timestamp
+                }
+                audit_trails[new_audit_id] = audit_entry
+            except Exception:
+                # If audit fails, we still report success for the primary operation
+                pass
 
             return json.dumps({
                 "success": True,
@@ -169,7 +195,7 @@ class AdministerEmployeeExitOperations(Tool):
             
             # 1. Verify Exit Record Exists
             if not exit_record:
-                return json.dumps({"success": False, "exit_id": exit_id_str, "message": f"Exit record {exit_id_str} not found."}) # Halt Condition: Exit record not found
+                return json.dumps({"success": False, "exit_id": exit_id_str, "message": f"Exit record {exit_id_str} not found."})
 
             # 2. Validate and Update Clearance Statuses
             manager_clearance = kwargs.get("manager_clearance")
@@ -207,12 +233,8 @@ class AdministerEmployeeExitOperations(Tool):
             else:
                 exit_record["clearance_status"] = "pending"
 
-
             exit_record["updated_at"] = datetime.now().isoformat()
             
-            # SOP: Create Audit Entry (Simulation)
-            # create_audit_entry("exit", exit_id_str, "update_clearance", kwargs["user_id"], ...)
-
             return json.dumps({
                 "success": True,
                 "exit_id": exit_id_str,
@@ -239,21 +261,21 @@ class AdministerEmployeeExitOperations(Tool):
                     "success": False, 
                     "exit_id": exit_id_str, 
                     "message": f"Exit record {exit_id_str} clearances are not completed ('cleared'). Current status: {exit_record.get('clearance_status')}"
-                }) # Halt Condition: Exit record not found or clearances not completed
+                })
 
             # 2. Validate Amounts
             try:
                 final_pay = float(kwargs["final_pay_amount"])
                 leave_encashment = float(kwargs["leave_encashment_amount"])
                 if final_pay < 0 or leave_encashment < 0:
-                    return json.dumps({"success": False, "exit_id": exit_id_str, "message": "Negative final pay or leave encashment amounts are not allowed."}) # Halt Condition: Negative amounts
+                    return json.dumps({"success": False, "exit_id": exit_id_str, "message": "Negative final pay or leave encashment amounts are not allowed."})
             except ValueError:
                  return json.dumps({"success": False, "exit_id": exit_id_str, "message": "Final pay and leave encashment amounts must be valid numbers."})
 
             # 3. Validate Approval Date (must not be in the future)
             date_error = ManageEmployeeExitOperations._validate_date_format(kwargs["approval_date"], "approval_date", allow_future=False)
             if date_error:
-                return json.dumps({"success": False, "exit_id": exit_id_str, "message": date_error}) # Halt Condition: Approval date in the future
+                return json.dumps({"success": False, "exit_id": exit_id_str, "message": date_error})
 
             # 4. Process Settlement (Update financial fields and set status to 'approved' by finance)
             converted_approval_date = ManageEmployeeExitOperations._convert_date_format(kwargs["approval_date"])
@@ -266,15 +288,12 @@ class AdministerEmployeeExitOperations(Tool):
 
             exit_record["updated_at"] = datetime.now().isoformat()
             
-            # SOP: Create Audit Entry (Simulation)
-            # create_audit_entry("exit", exit_id_str, "process_settlement_approved", kwargs["user_id"], ...)
-
             return json.dumps({
                 "success": True,
                 "exit_id": exit_id_str,
                 "message": f"Exit settlement processed and approved successfully. Final Pay: {final_pay:.2f}, Leave Encashment: {leave_encashment:.2f}. Settlement status set to 'approved'."
             })
-
+        
         return json.dumps({
             "success": False,
             "exit_id": None,
