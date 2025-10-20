@@ -450,7 +450,7 @@ For P3 or P4 incidents, bridge initiation requires prior Incident Manager approv
 3. Verify the user has authorization to conduct this action using `check_authorization`.  
 4. If the user is not authorized, then check If severity is P3 or P4. If that is the case, then obtain approval from the Incident Manager using `manage_approval_requests` and stop proceeding with the SOP.  
 5. Extract the Incident Manager assigned to the incident from Step 1.  
-6. Create the bridge record with the following values using `manage_coordinationss`
+6. Create the bridge record with the following values using `manage_coordinations`
 
    * **Bridge Type**: `major_incident`, `coordination`, or `technical`  
    * **Bridge Host**: Incident Manager assigned to the incident  
@@ -492,9 +492,9 @@ For P3 or P4 incidents, bridge initiation requires prior Incident Manager approv
    * **bridge_id**: Bridge to close. Acquire by following SOP 8.1 (Acquiring Entity Records and IDs)  
 3. Validate the bridge status is `active`.  
 4. Validate the bridge host user is found and active using `discover_parties`.  
-5. Update the bridge status to `closed` using `manage_coordinationss`.
+5. Update the bridge status to `closed` using `manage_coordinations`.
 
-6. Update the bridge end time to current timestamp using `manage_coordinationss`.
+6. Update the bridge end time to current timestamp using `manage_coordinations`.
 
 7. Log the bridge closure action using `log_audit_records`.
 
