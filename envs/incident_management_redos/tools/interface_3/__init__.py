@@ -30,7 +30,7 @@ from .manipulate_work_orders import ManipulateWorkOrders
 from .manipulate_assets import ManipulateAssets
 from .route_to_human import RouteToHuman
 
-ALL_TOOLS_INTERFACE_1 = [
+ALL_TOOLS_INTERFACE_4 = [
     ManipulateAttachments,
     EvaluateIncidentSeverity,
     ManipulateChangeControl,

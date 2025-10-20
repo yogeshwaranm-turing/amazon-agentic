@@ -30,7 +30,7 @@ from .handle_work_orders import HandleWorkOrders
 from .handle_assets import HandleAssets
 from .escalate_to_human import EscalateToHuman
 
-ALL_TOOLS_INTERFACE_1 = [
+ALL_TOOLS_INTERFACE_2 = [
     HandleAttachments,
     ComputeIncidentSeverity,
     HandleChangeControl,

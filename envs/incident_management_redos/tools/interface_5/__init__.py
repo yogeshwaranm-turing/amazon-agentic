@@ -30,7 +30,7 @@ from .process_work_orders import ProcessWorkOrders
 from .process_assets import ProcessAssets
 from .switch_to_human import SwitchToHuman
 
-ALL_TOOLS_INTERFACE_1 = [
+ALL_TOOLS_INTERFACE_5 = [
     ProcessAttachments,
     DetermineIncidentSeverity,
     ProcessChangeControl,
