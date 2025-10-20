@@ -93,7 +93,7 @@ class DiscoverSystemEntities(Tool):
                 "success": True,
                 "entity_type": "employee_exits",
                 "count": len(entities),
-                "entities": entities,
+                "employee_exits": entities,
                 "filters_applied": filters or {}
             })
         
@@ -117,7 +117,7 @@ class DiscoverSystemEntities(Tool):
                 "success": True,
                 "entity_type": "notifications",
                 "count": len(entities),
-                "entities": entities,
+                "notifications": entities,
                 "filters_applied": filters or {}
             })
         
@@ -140,7 +140,7 @@ class DiscoverSystemEntities(Tool):
                 "success": True,
                 "entity_type": "audit_trails",
                 "count": len(entities),
-                "entities": entities,
+                "audit_trails": entities,
                 "filters_applied": filters or {}
             })
     
@@ -150,7 +150,7 @@ class DiscoverSystemEntities(Tool):
             "type": "function",
             "function": {
                 "name": "discover_system_entities",
-                "description": "Discover system entities including employee exits, notifications, and audit trails with optional filtering.",
+                "description": "Discover system entities including employee exits, notifications, and audit trails with optional filtering. Entity types: 'employee_exits' (manager_clearance: pending, approved, rejected; it_equipment_return: pending, completed, not_applicable; finance_settlement_status: pending, completed, not_applicable; clearance_status: pending, in_progress, completed, rejected), 'notifications' (notification_type: email, sms, push, system; notification_status: pending, sent, delivered, failed, read), 'audit_trails' (action: create, update, delete, approve, reject, release, payment).",
                 "parameters": {
                     "type": "object",
                     "properties": {
