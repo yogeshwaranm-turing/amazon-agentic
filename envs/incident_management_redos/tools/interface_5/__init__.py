@@ -21,7 +21,7 @@ from .get_parties import GetParties
 from .process_incidents_problems_configuration_items import ProcessIncidentsProblemsConfigurationItems
 from .get_workflows import GetWorkflows
 from .process_problem_tickets import ProcessProblemTickets
-from .fetch_sla_breach_incidents import GetSlaBreachIncidents
+from .fetch_sla_breach_incidents import FetchSlaBreachIncidents
 from .process_users import ProcessUsers
 from .insert_audit_records import InsertAuditRecords
 from .process_work_notes import ProcessWorkNotes
@@ -54,7 +54,7 @@ ALL_TOOLS_INTERFACE_1 = [
     ProcessIncidentsProblemsConfigurationItems,
     GetWorkflows,
     ProcessProblemTickets,
-    GetSlaBreachIncidents,
+    FetchSlaBreachIncidents,
     ProcessUsers,
     InsertAuditRecords,
     ProcessWorkNotes,

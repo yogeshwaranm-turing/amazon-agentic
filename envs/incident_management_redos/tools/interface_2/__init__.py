@@ -21,7 +21,7 @@ from .search_parties import SearchParties
 from .handle_incidents_problems_configuration_items import HandleIncidentsProblemsConfigurationItems
 from .search_workflows import SearchWorkflows
 from .handle_problem_tickets import HandleProblemTickets
-from .acquire_sla_breach_incidents import GetSlaBreachIncidents
+from .acquire_sla_breach_incidents import AcquireSlaBreachIncidents
 from .handle_users import HandleUsers
 from .record_audit_records import RecordAuditRecords
 from .handle_work_notes import HandleWorkNotes
@@ -54,7 +54,7 @@ ALL_TOOLS_INTERFACE_1 = [
     HandleIncidentsProblemsConfigurationItems,
     SearchWorkflows,
     HandleProblemTickets,
-    GetSlaBreachIncidents,
+    AcquireSlaBreachIncidents,
     HandleUsers,
     RecordAuditRecords,
     HandleWorkNotes,

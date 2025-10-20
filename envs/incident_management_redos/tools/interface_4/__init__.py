@@ -21,7 +21,7 @@ from .lookup_parties import LookupParties
 from .address_incidents_problems_configuration_items import AddressIncidentsProblemsConfigurationItems
 from .lookup_workflows import LookupWorkflows
 from .address_problem_tickets import AddressProblemTickets
-from .obtain_sla_breach_incidents import GetSlaBreachIncidents
+from .obtain_sla_breach_incidents import ObtainSlaBreachIncidents
 from .address_users import AddressUsers
 from .insert_audit_records import InsertAuditRecords
 from .address_work_notes import AddressWorkNotes
@@ -54,7 +54,7 @@ ALL_TOOLS_INTERFACE_1 = [
     AddressIncidentsProblemsConfigurationItems,
     LookupWorkflows,
     AddressProblemTickets,
-    GetSlaBreachIncidents,
+    ObtainSlaBreachIncidents,
     AddressUsers,
     InsertAuditRecords,
     AddressWorkNotes,

@@ -21,7 +21,7 @@ from .find_parties import FindParties
 from .manipulate_incidents_problems_configuration_items import ManipulateIncidentsProblemsConfigurationItems
 from .find_workflows import FindWorkflows
 from .manipulate_problem_tickets import ManipulateProblemTickets
-from .retrieve_sla_breach_incidents import GetSlaBreachIncidents
+from .retrieve_sla_breach_incidents import RetrieveSlaBreachIncidents
 from .manipulate_users import ManipulateUsers
 from .add_audit_records import AddAuditRecords
 from .manipulate_work_notes import ManipulateWorkNotes
@@ -54,7 +54,7 @@ ALL_TOOLS_INTERFACE_1 = [
     ManipulateIncidentsProblemsConfigurationItems,
     FindWorkflows,
     ManipulateProblemTickets,
-    GetSlaBreachIncidents,
+    RetrieveSlaBreachIncidents,
     ManipulateUsers,
     AddAuditRecords,
     ManipulateWorkNotes,
