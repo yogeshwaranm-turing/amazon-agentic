@@ -40,7 +40,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 3. Call fetch_user to validate the existence of the requester's account.
 4. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - The entity_type is missing or invalid
 - The requester_id is not authorized for discovery
@@ -61,7 +61,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 3. Call set_users to create the new user record.
 4. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Requester not authorized
 - Email is not unique or has an invalid format
@@ -82,7 +82,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 3. Call set_users to apply the change set to the user record.
 4. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Requester not authorized
 - User not found
@@ -104,7 +104,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 3. Call set_users to delete the user record.
 4. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Requester not authorized
 - User not found
@@ -126,7 +126,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 4. If the members list is provided, call set_group_memberships for each member to populate the group.
 5. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Requester not authorized
 - The group name is not unique
@@ -148,7 +148,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 4. Call set_group_memberships to create the user_groups membership record.
 5. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Requester not authorized
 - User or group not found
@@ -171,7 +171,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 3. Call set_spaces to initialize the new space record.
 4. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Requester not authorized
 - Missing or invalid inputs (space_name, space_key)
@@ -193,7 +193,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 3. Call set_spaces to apply the modifications to the space record.
 4. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Requester not authorized
 - Space not found
@@ -216,7 +216,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 3. Call set_spaces to execute the removal based on the specified mode.
 4. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Requester not authorized
 - Space not found
@@ -238,7 +238,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 3. Call set_space_features to update the feature status.
 4. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Requester not authorized
 - Space, user, or group not found
@@ -261,7 +261,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 3. Call record_config_change to log the configuration update in the history table.
 4. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Space not found
 - Configuration history retrieval failed
@@ -285,7 +285,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 3. Call set_page_versions to save the initial content version (Version 1).
 4. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Requester not authorized
 - Space or parent page not found
@@ -304,14 +304,14 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 - Space Member
 - Content Contributor (must have 'edit' permission)
 
-1. Obtain page_id (required), updated_by_user_id (required), content_snapshot (required), current_version_number (required: for optimistic locking), new_title (optional), new_parent_page_id (optional), and target_space_id (optional).
+1. Obtain page_id (required), updated_by_user_id (required), content_snapshot (required), current_version_number (required: for optimistic locking), new_title (optional), new_parent_page_id (optional), and tarfetch_space_id (optional).
 2. Call fetch_page to verify the page exists and retrieve its current version number for optimistic locking against current_version_number.
 3. Call set_pages to apply the title, parent, and/or space changes to the primary page record.
 4. Call set_page_versions to create a new version record with the provided content_snapshot.
 5. Call send_notification to confirm the successful update and new version number to the user.
 6. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Requester not authorized
 - Page not found
@@ -333,7 +333,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 3. Call set_pages to publish the page.
 4. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Requester not authorized
 - Page not found
@@ -356,7 +356,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 3. Call set_pages to unpublish the page.
 4. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Requester not authorized
 - Page not found
@@ -379,7 +379,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 3. Call set_pages to execute the removal by trashing or permanently deleting the page.
 4. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Requester not authorized
 - Page not found or locked
@@ -401,7 +401,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 3. Call set_pages to reactivate the page.
 4. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Requester not authorized
 - Page or version not found
@@ -422,7 +422,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 3. Call set_watchers to apply the watch or unwatch action by creating or deleting the record.
 4. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Entity (space or page) not found
 - Watcher is already watching/not watching the content (redundant action)
@@ -444,7 +444,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 3. Call set_permissions to create the new permission record.
 4. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Entity (space or page) not found
 - Grantee (user or group) not found
@@ -467,7 +467,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 3. Call set_permissions to delete the permission record.
 4. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Permission record not found
 - Permission deletion failed
@@ -488,7 +488,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 3. Call set_page_restrictions to enforce the restriction by creating the record.
 4. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Page not found
 - Restricted entity (user or group) not found
@@ -511,7 +511,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 3. Call send_notification to immediately alert the first assigned approver.
 4. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Unauthorized requester
 - Target entity not found
@@ -534,7 +534,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 4. If the overall status is 'approved' or 'rejected', call send_notification to inform the initiator of the final outcome.
 5. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Approver unauthorized
 - Step not found or already completed
@@ -557,7 +557,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 3. Call send_notification to create and dispatch the notification record.
 4. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Invalid or missing recipient
 - Notification creation fails
@@ -578,7 +578,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 3. Call fetch_notifications to retrieve the filtered list of notifications, ordered by creation date.
 4. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Unauthorized access
 - Notification fetch failure
@@ -599,7 +599,7 @@ If any external integration (e.g., database or API) fails, you must halt and pro
 3. Call send_notification to confirm job submission to the requesting user.
 4. Create an audit entry with create_new_audit_trail.
 
-**Halt, and use transfer_to_human if you receive the following errors; otherwise complete the SOP:**
+**Halt, and use switch_to_human if you receive the following errors; otherwise complete the SOP:**
 
 - Requester not authorized
 - Space not found
