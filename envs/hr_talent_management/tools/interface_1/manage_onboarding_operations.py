@@ -254,68 +254,68 @@ class ManageOnboardingOperations(Tool):
                         },
                         "employee_id": {
                             "type": "string",
-                            "description": "Unique identifier of the employee (required for create_checklist only, must exist in system)"
+                            "description": "Unique identifier of the employee for whom the onboarding checklist is being created. Enter the employee ID as a string (e.g., '3001', '5042'). This field is required only when operation_type is 'create_checklist'. The system validates that this employee exists in the database. Only one checklist can exist per employee - the system will prevent duplicate checklist creation. Example: '4008'"
                         },
                         "start_date": {
                             "type": "string",
-                            "description": "Employee start date in MM-DD-YYYY format (required for create_checklist only)"
+                            "description": "Employee's scheduled first day of work. Enter date in MM-DD-YYYY format (e.g., '04-01-2025' for April 1, 2025). This field is required only when operation_type is 'create_checklist'. Must follow the exact format MM-DD-YYYY with hyphens as separators. The system validates the date format. Used for scheduling onboarding activities and tracking timelines. Example: '05-15-2025'"
                         },
                         "position": {
                             "type": "string",
-                            "description": "Employee position/title (required for create_checklist only)"
+                            "description": "Employee's job position or title. Enter the position name as text (e.g., 'Software Engineer', 'Marketing Manager', 'Data Analyst'). This field is required only when operation_type is 'create_checklist'. Should match the employee's official job title. Used for position-specific onboarding requirements. Example: 'Senior Product Designer'"
                         },
                         "hiring_manager_id": {
                             "type": "string",
-                            "description": "Unique identifier of the hiring manager (required for create_checklist only, must exist in system)"
+                            "description": "Unique identifier of the hiring manager responsible for this employee's onboarding. Enter the manager's user ID as a string (e.g., '7001', '8005'). This field is required only when operation_type is 'create_checklist'. The system validates that this user exists in the database. Used for onboarding coordination and manager notifications. Example: '6003'"
                         },
                         "user_id": {
                             "type": "string",
-                            "description": "Unique identifier of the user creating the checklist (required for create_checklist only, must exist in system)"
+                            "description": "Unique identifier of the HR user creating the onboarding checklist. Enter the user ID as a string (e.g., '5001', '9002'). This field is required only when operation_type is 'create_checklist'. The system validates that this user exists in the database. Used for audit trail to track who initiated the onboarding process. Example: '7004'"
                         },
                         "checklist_id": {
                             "type": "string",
-                            "description": "Unique identifier of the checklist (required for update_checklist only, must exist in system)"
+                            "description": "Unique identifier of an existing onboarding checklist to be updated. Enter the checklist ID as a string (e.g., '101', '205'). This field is required only when operation_type is 'update_checklist'. The system validates that this checklist exists in the database. Used to identify which checklist to modify with status updates. Example: '142'"
                         },
                         "pre_onboarding_status": {
                             "type": "string",
-                            "description": "Pre-onboarding status (optional for update_checklist)",
+                            "description": "Status of pre-onboarding activities completed before the start date. Select from: 'pending' for not yet started, 'in_progress' for currently being worked on, or 'completed' for finished. This field is optional and only applies when operation_type is 'update_checklist'. Must be exactly one of these three values. Pre-onboarding includes tasks like paperwork submission and equipment ordering before day one. Example: 'in_progress'",
                             "enum": ["pending", "in_progress", "completed"]
                         },
                         "background_check_status": {
                             "type": "string",
-                            "description": "Background check status (optional for update_checklist)",
+                            "description": "Status of the employment background verification process. Select from: 'pending' for not yet started, 'in_progress' for verification in process, 'passed' for successful clearance, or 'failed' for unsuccessful verification. This field is optional and only applies when operation_type is 'update_checklist'. Must be exactly one of these four values. Critical for employment authorization and compliance. Example: 'passed'",
                             "enum": ["pending", "in_progress", "passed", "failed"]
                         },
                         "background_check_cleared_date": {
                             "type": "string",
-                            "description": "Background check cleared date in MM-DD-YYYY format (optional for update_checklist)"
+                            "description": "Date when the background check was successfully completed and cleared. Enter date in MM-DD-YYYY format (e.g., '03-10-2025' for March 10, 2025). This field is optional and only applies when operation_type is 'update_checklist'. Must follow the exact format MM-DD-YYYY with hyphens as separators. Typically set when background_check_status changes to 'passed'. Example: '04-05-2025'"
                         },
                         "document_verification_status": {
                             "type": "string",
-                            "description": "Document verification status (optional for update_checklist)",
+                            "description": "Status of employment eligibility document verification (e.g., I-9 forms, work authorization). Select from: 'pending' for documents not yet verified, 'verified' for documents approved and compliant, or 'failed' for documents rejected or incomplete. This field is optional and only applies when operation_type is 'update_checklist'. Must be exactly one of these three values. Required for legal employment compliance. Example: 'verified'",
                             "enum": ["pending", "verified", "failed"]
                         },
                         "it_provisioning_status": {
                             "type": "string",
-                            "description": "IT provisioning status (optional for update_checklist)",
+                            "description": "Status of IT equipment and access setup for the new employee. Select from: 'pending' for not yet started, 'in_progress' for equipment being prepared, or 'completed' for all IT resources ready. This field is optional and only applies when operation_type is 'update_checklist'. Must be exactly one of these three values. Includes computer, email, software licenses, and system access. Example: 'completed'",
                             "enum": ["pending", "in_progress", "completed"]
                         },
                         "orientation_completed": {
                             "type": "boolean",
-                            "description": "Whether orientation is completed (optional for update_checklist)"
+                            "description": "Whether the employee has completed the company orientation program. Enter true if orientation is finished, false if not yet completed. This field is optional and only applies when operation_type is 'update_checklist'. Must be a boolean value (true or false, not as strings). Orientation typically covers company policies, culture, and introductory training. Example: true"
                         },
                         "orientation_date": {
                             "type": "string",
-                            "description": "Orientation completion date in MM-DD-YYYY format (optional for update_checklist)"
+                            "description": "Date when the employee completed the orientation program. Enter date in MM-DD-YYYY format (e.g., '04-02-2025' for April 2, 2025). This field is optional and only applies when operation_type is 'update_checklist'. Must follow the exact format MM-DD-YYYY with hyphens as separators. Typically set when orientation_completed is marked as true. Example: '05-16-2025'"
                         },
                         "benefits_enrollment_status": {
                             "type": "string",
-                            "description": "Benefits enrollment status (optional for update_checklist)",
+                            "description": "Status of employee benefits enrollment process (health insurance, retirement plans, etc.). Select from: 'pending' for enrollment not started, 'in_progress' for employee currently enrolling, or 'completed' for enrollment finished. This field is optional and only applies when operation_type is 'update_checklist'. Must be exactly one of these three values. Tracks completion of benefits selection and enrollment. Example: 'completed'",
                             "enum": ["pending", "in_progress", "completed"]
                         },
                         "overall_status": {
                             "type": "string",
-                            "description": "Overall onboarding status (optional for update_checklist)",
+                            "description": "Overall completion status of the entire onboarding process. Select from: 'not_started' for onboarding not yet begun, 'in_progress' for onboarding underway, or 'completed' for all onboarding tasks finished. This field is optional and only applies when operation_type is 'update_checklist'. Must be exactly one of these three values. Provides high-level view of onboarding progress. Example: 'in_progress'",
                             "enum": ["not_started", "in_progress", "completed"]
                         }
                     },

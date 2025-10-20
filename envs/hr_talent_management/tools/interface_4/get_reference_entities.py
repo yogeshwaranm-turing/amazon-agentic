@@ -43,7 +43,7 @@ class GetReferenceEntities(Tool):
             # Supported user filters
             user_exact_keys = [
                 "user_id", "first_name", "last_name", "email", "phone_number",
-                "role", "employment_status", "employee_id"
+                "role", "employment_status"
             ]
 
             for user_id, user in users.items():
@@ -140,7 +140,7 @@ class GetReferenceEntities(Tool):
                         },
                         "filters": {
                             "type": "object",
-                            "description": "Optional filters for discovery. For users: user_id, first_name, last_name, email, phone_number, role, employment_status, employee_id. For locations: location_id, city_name, country, status. For departments: department_id, name, manager_id, status"
+                            "description": "Optional filters for discovery. For users: user_id, first_name, last_name, email, phone_number, role, employment_status. For locations: location_id, city_name, country, status. For departments: department_id, name, manager_id, status"
                         }
                     },
                     "required": ["entity_type"]

@@ -46,8 +46,19 @@ class AdministerCandidateOperations(Tool):
             if missing:
                 return json.dumps({"success": False, "error": f"Halt: Missing mandatory fields: {', '.join(missing)}"})
             
+            # Validate email format
+            email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            if not re.match(email_pattern, kwargs["email_address"]):
+                return json.dumps({"success": False, "error": "Halt: Invalid email format or phone number format"})
+            
+            # Validate phone number format (basic validation - digits, spaces, hyphens, plus, parentheses)
+            phone_pattern = r'^[\d\s\-\+\(\)]+$'
+            if not re.match(phone_pattern, kwargs["contact_number"]):
+                return json.dumps({"success": False, "error": "Halt: Invalid email format or phone number format"})
+            
             # Verify creator exists and has appropriate role
-            creator = users.get(kwargs["created_by"])
+            created_by_str = str(kwargs["created_by"])
+            creator = users.get(created_by_str)
             if not creator or creator.get("employment_status") != "active":
                 return json.dumps({"success": False, "error": "Halt: User is not authorized"})
             
@@ -71,28 +82,17 @@ class AdministerCandidateOperations(Tool):
                     if cand.get("linkedin_profile") == kwargs["linkedin_profile"]:
                         return json.dumps({"success": False, "error": "Halt: Duplicate candidate (same email or contact number already exists)"})
             
-            # Create candidate
-            cand_id = generate_id(candidates)
+            # Generate new candidate ID and create record
+            new_candidate_id = generate_id(candidates)
+            timestamp = "2025-01-01T12:00:00"
+            
             new_candidate = {
-                "candidate_id": cand_id,
+                "candidate_id": str(new_candidate_id),
                 "first_name": kwargs["first_name"],
                 "last_name": kwargs["last_name"],
                 "email_address": kwargs["email_address"],
                 "contact_number": kwargs["contact_number"],
-                "source_of_application": kwargs.get("source_of_application"),
-                "country_of_residence": kwargs["country_of_residence"],
-                "linkedin_profile": kwargs.get("linkedin_profile"),
-                "current_ctc": kwargs.get("current_ctc"),
-                "status": "active",
-                "created_at": "2025-01-01T12:00:00",
-                "updated_at": "2025-01-01T12:00:00"
-            }
-            
-            # Generate new candidate ID and create record
-            new_candidate_id = generate_id(candidates)
-            
-            new_candidate = {
-                "candidate_id": str(new_candidate_id),
+                "source_of_application": kwargs.get("source_of_application", ""),
                 "country_of_residence": kwargs["country_of_residence"],
                 "linkedin_profile": kwargs.get("linkedin_profile", ""),
                 "current_ctc": float(kwargs.get("current_ctc", 0)),
@@ -204,27 +204,66 @@ class AdministerCandidateOperations(Tool):
             "type": "function",
             "function": {
                 "name": "administer_candidate_operations",
-                "description": "Manage candidate operations including creation and updates. Operations: create_candidate, update_candidate.",
+                "description": "Manage candidate profiles including creation and updates. For create_candidate, system auto-generates candidate_id - do not provide candidate_id as input.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "operation_type": {
                             "type": "string",
-                            "description": "Type of operation to perform: 'create_candidate', 'update_candidate'"
+                            "description": "Operation to perform. Values: create_candidate, update_candidate"
                         },
-                        "first_name": {"type": "string", "description": "First name (required for create_candidate)"},
-                        "last_name": {"type": "string", "description": "Last name (required for create_candidate)"},
-                        "email_address": {"type": "string", "description": "Email address (required for create_candidate)"},
-                        "contact_number": {"type": "string", "description": "Contact number (required for create_candidate)"},
-                        "country_of_residence": {"type": "string", "description": "Country of residence (required for create_candidate)"},
-                        "created_by": {"type": "string", "description": "User ID who created candidate (required for create_candidate)"},
-                        "resume_file_name": {"type": "string", "description": "Resume file name (required for create_candidate)"},
-                        "source_of_application": {"type": "string", "description": "Source of application (optional for create_candidate)"},
-                        "linkedin_profile": {"type": "string", "description": "LinkedIn profile URL (optional)"},
-                        "current_ctc": {"type": "number", "description": "Current CTC (optional)"},
-                        "candidate_id": {"type": "string", "description": "Candidate ID (required for update_candidate)"},
-                        "user_id": {"type": "string", "description": "User ID (required for update_candidate)"},
-                        "status": {"type": "string", "description": "Candidate status (optional for update_candidate)"}
+                        "first_name": {
+                            "type": "string", 
+                            "description": "Candidate's first name. Required for: create_candidate"
+                        },
+                        "last_name": {
+                            "type": "string", 
+                            "description": "Candidate's last name. Required for: create_candidate"
+                        },
+                        "email_address": {
+                            "type": "string", 
+                            "description": "Email address (must be unique). Required for: create_candidate"
+                        },
+                        "contact_number": {
+                            "type": "string", 
+                            "description": "Phone number (must be unique). Required for: create_candidate"
+                        },
+                        "country_of_residence": {
+                            "type": "string", 
+                            "description": "Country of residence. Required for: create_candidate. Optional for: update_candidate"
+                        },
+                        "created_by": {
+                            "type": "string", 
+                            "description": "User ID creating the candidate. Required for: create_candidate"
+                        },
+                        "resume_file_name": {
+                            "type": "string", 
+                            "description": "Resume file name. Required for: create_candidate"
+                        },
+                        "source_of_application": {
+                            "type": "string", 
+                            "description": "Source of application. Optional for: create_candidate"
+                        },
+                        "linkedin_profile": {
+                            "type": "string", 
+                            "description": "LinkedIn profile URL (must be unique). Optional for: create_candidate, update_candidate"
+                        },
+                        "current_ctc": {
+                            "type": "number", 
+                            "description": "Current CTC in USD. Optional for: create_candidate, update_candidate"
+                        },
+                        "candidate_id": {
+                            "type": "string", 
+                            "description": "Candidate ID to update. Required for: update_candidate"
+                        },
+                        "user_id": {
+                            "type": "string", 
+                            "description": "User ID. Required for: update_candidate"
+                        },
+                        "status": {
+                            "type": "string", 
+                            "description": "Candidate status. Values: active, inactive, suspended. Optional for: update_candidate"
+                        }
                     },
                     "required": ["operation_type"]
                 }

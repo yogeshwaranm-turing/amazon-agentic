@@ -398,60 +398,60 @@ class ManageInterviewOperations(Tool):
             "type": "function",
             "function": {
                 "name": "manage_interview_operations",
-                "description": "Manage interview operations including scheduling, panel management, and evaluation. Operations: schedule_interview, add_panel_member, conduct_evaluation.",
+                "description": "Manage interview scheduling, panel assignments, and evaluation. For schedule_interview, system auto-generates interview_id - do not provide interview_id as input.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "operation_type": {
                             "type": "string",
-                            "description": "Type of operation to perform: 'schedule_interview', 'add_panel_member', 'conduct_evaluation'"
-                        },
-                        "interview_id": {
-                            "type": "string",
-                            "description": "Required for add_panel_member and conduct_evaluation"
+                            "description": "Operation to perform. Values: schedule_interview, add_panel_member, conduct_evaluation"
                         },
                         "application_id": {
                             "type": "string",
-                            "description": "Required for schedule_interview"
+                            "description": "Application ID (must be shortlisted). Required for: schedule_interview"
                         },
                         "interview_type": {
                             "type": "string",
-                            "description": "Required for schedule_interview. Values: technical, hr, panel, final"
+                            "description": "Interview type. Values: technical, hr, panel, final. Required for: schedule_interview"
                         },
                         "scheduled_date": {
                             "type": "string",
-                            "description": "Required for schedule_interview. Format: MM-DD-YYYY or YYYY-MM-DD"
+                            "description": "Scheduled date. Format: MM-DD-YYYY or YYYY-MM-DD. Required for: schedule_interview"
                         },
                         "panel_member_ids": {
                             "type": "array",
-                            "description": "Required for schedule_interview. Array of user IDs for panel members",
+                            "description": "Array of panel member user IDs. Required for: schedule_interview",
                             "items": {
                                 "type": "string"
                             }
                         },
-                        "panel_member_id": {
-                            "type": "string",
-                            "description": "Required for add_panel_member"
-                        },
                         "user_id": {
                             "type": "string",
-                            "description": "Required for all operations"
+                            "description": "User ID. Required for: schedule_interview, add_panel_member"
+                        },
+                        "interview_id": {
+                            "type": "string",
+                            "description": "Interview ID (auto-generated during scheduling). Required for: add_panel_member, conduct_evaluation"
+                        },
+                        "panel_member_id": {
+                            "type": "string",
+                            "description": "Panel member user ID to add. Required for: add_panel_member"
                         },
                         "rating": {
                             "type": "integer",
-                            "description": "Required for conduct_evaluation. Value: 1-5"
+                            "description": "Interview rating. Values: 1-5 (5 is best). Required for: conduct_evaluation"
                         },
                         "recommendation": {
                             "type": "string",
-                            "description": "Required for conduct_evaluation. Values: yes, no, maybe"
+                            "description": "Hiring recommendation. Values: yes, no, maybe. Required for: conduct_evaluation"
                         },
                         "completed_by": {
                             "type": "string",
-                            "description": "Required for conduct_evaluation"
+                            "description": "User ID completing evaluation (must be panel member). Required for: conduct_evaluation"
                         },
                         "completed_date": {
                             "type": "string",
-                            "description": "Required for conduct_evaluation. Format: MM-DD-YYYY or YYYY-MM-DD"
+                            "description": "Completion date. Format: MM-DD-YYYY or YYYY-MM-DD. Required for: conduct_evaluation"
                         }
                     },
                     "required": ["operation_type"]
