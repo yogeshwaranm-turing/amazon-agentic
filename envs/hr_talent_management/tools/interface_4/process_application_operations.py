@@ -67,15 +67,32 @@ class ProcessApplicationOperations(Tool):
                 return json.dumps({
                     "success": False,
                     "application_id": None,
-                    "message": f"Missing required fields for application creation: {', '.join(missing_fields)}"
+                    "message": f"Halt: Missing mandatory fields ({', '.join(missing_fields)})"
                 })
             
-            # Validate creator exists
-            if str(kwargs["created_by"]) not in users:
+            # Validate creator exists, is active, and has appropriate role
+            created_by_str = str(kwargs["created_by"])
+            if created_by_str not in users:
                 return json.dumps({
                     "success": False,
                     "application_id": None,
-                    "message": f"User {kwargs['created_by']} not found"
+                    "message": f"Halt: User not authorized"
+                })
+            
+            creator = users[created_by_str]
+            if creator.get("employment_status") != "active":
+                return json.dumps({
+                    "success": False,
+                    "application_id": None,
+                    "message": f"Halt: User not authorized"
+                })
+            
+            valid_creator_roles = ["hr_recruiter", "hr_manager", "hr_director", "hr_admin"]
+            if creator.get("role") not in valid_creator_roles:
+                return json.dumps({
+                    "success": False,
+                    "application_id": None,
+                    "message": f"Halt: User not authorized"
                 })
             
             # Validate candidate exists and is active
@@ -84,7 +101,7 @@ class ProcessApplicationOperations(Tool):
                 return json.dumps({
                     "success": False,
                     "application_id": None,
-                    "message": f"Candidate {cand_id} not found"
+                    "message": f"Halt: Candidate not found or inactive"
                 })
             
             candidate = candidates[cand_id]
@@ -92,7 +109,7 @@ class ProcessApplicationOperations(Tool):
                 return json.dumps({
                     "success": False,
                     "application_id": None,
-                    "message": f"Candidate {cand_id} is not active"
+                    "message": f"Halt: Candidate not found or inactive"
                 })
             
             # Validate posting exists and is active
@@ -101,7 +118,7 @@ class ProcessApplicationOperations(Tool):
                 return json.dumps({
                     "success": False,
                     "application_id": None,
-                    "message": f"Job posting {posting_id} not found"
+                    "message": f"Halt: Posting not found or not in 'active' status"
                 })
             
             posting = job_postings[posting_id]
@@ -109,16 +126,24 @@ class ProcessApplicationOperations(Tool):
                 return json.dumps({
                     "success": False,
                     "application_id": None,
-                    "message": f"Job posting {posting_id} is not active"
+                    "message": f"Halt: Posting not found or not in 'active' status"
                 })
             
-            # Validate resume file exists
+            # Validate resume file exists and is active
             resume_file_id = str(kwargs["resume_file_id"])
             if resume_file_id not in documents:
                 return json.dumps({
                     "success": False,
                     "application_id": None,
-                    "message": f"Resume file {resume_file_id} not found"
+                    "message": f"Halt: Resume file not found or archived/expired"
+                })
+            
+            resume_file = documents[resume_file_id]
+            if resume_file.get("status") in ["archived", "expired"]:
+                return json.dumps({
+                    "success": False,
+                    "application_id": None,
+                    "message": f"Halt: Resume file not found or archived/expired"
                 })
             
             # Validate cover letter file if provided
@@ -128,16 +153,24 @@ class ProcessApplicationOperations(Tool):
                     return json.dumps({
                         "success": False,
                         "application_id": None,
-                        "message": f"Cover letter file {cover_letter_id} not found"
+                        "message": f"Halt: Cover letter file not found or archived/expired"
                     })
-            
-            # Check for duplicate application (candidate already applied to this posting)
-            for app_id, app in applications.items():
-                if app.get("candidate_id") == cand_id and app.get("posting_id") == posting_id:
+                
+                cover_letter_file = documents[cover_letter_id]
+                if cover_letter_file.get("status") in ["archived", "expired"]:
                     return json.dumps({
                         "success": False,
                         "application_id": None,
-                        "message": f"Candidate {cand_id} has already applied to posting {posting_id}"
+                        "message": f"Halt: Cover letter file not found or archived/expired"
+                    })
+            
+            # Check for duplicate application (candidate already applied to this posting)
+            for check_app_id, check_app in applications.items():
+                if check_app.get("candidate_id") == cand_id and check_app.get("posting_id") == posting_id:
+                    return json.dumps({
+                        "success": False,
+                        "application_id": None,
+                        "message": f"Halt: Duplicate application (candidate already applied to this posting)"
                     })
             
             # Validate date format
@@ -154,19 +187,19 @@ class ProcessApplicationOperations(Tool):
             timestamp = "2025-10-10T12:00:00"
             
             new_application = {
-                "application_id": app_id,
-                "candidate_id": kwargs["candidate_id"],
-                "posting_id": kwargs["posting_id"],
-                "resume_file_id": kwargs["resume_file_id"],
-                "cover_letter_file_id": kwargs.get("cover_letter_file_id"),
-                "application_date": kwargs["application_date"],
+                "application_id": str(new_application_id),
+                "candidate_id": cand_id,
+                "posting_id": posting_id,
+                "resume_file_id": resume_file_id,
+                "cover_letter_file_id": str(kwargs["cover_letter_file_id"]) if kwargs.get("cover_letter_file_id") else None,
+                "application_date": convert_date_format(kwargs["application_date"]),
                 "status": "applied",
                 "screened_by": None,
                 "screened_date": None,
                 "shortlist_approved_by": None,
                 "shortlist_approval_date": None,
-                "created_at": "2025-01-01T12:00:00",
-                "updated_at": "2025-01-01T12:00:00"
+                "created_at": timestamp,
+                "updated_at": timestamp
             }
             
             applications[str(new_application_id)] = new_application
@@ -262,26 +295,58 @@ class ProcessApplicationOperations(Tool):
             "type": "function",
             "function": {
                 "name": "process_application_operations",
-                "description": "Manage application operations including creation and status updates. Operations: create_application, update_application_status.",
+                "description": "Manage candidate applications including creation and status updates. For create_application, system auto-generates application_id - do not provide application_id as input.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "operation_type": {
                             "type": "string",
-                            "description": "Type of operation to perform: 'create_application', 'update_application_status'"
+                            "description": "Operation to perform. Values: create_application, update_application_status"
                         },
-                        "created_by": {"type": "string", "description": "User ID who created application (required for create_application)"},
-                        "candidate_id": {"type": "string", "description": "Candidate ID (required for create_application)"},
-                        "posting_id": {"type": "string", "description": "Job posting ID (required for create_application)"},
-                        "resume_file_id": {"type": "string", "description": "Resume file ID (required for create_application)"},
-                        "cover_letter_file_id": {"type": "string", "description": "Cover letter file ID (optional for create_application)"},
-                        "application_date": {"type": "string", "description": "Application date (required for create_application)"},
-                        "user_id": {"type": "string", "description": "User ID (required for update_application_status)"},
-                        "application_id": {"type": "string", "description": "Application ID (required for update_application_status and approve_shortlist)"},
-                        "status": {"type": "string", "description": "Application status (required for update_application_status)"},
-                        "screened_date": {"type": "string", "description": "Screened date (optional for update_application_status)"},
-                        "approved_by": {"type": "string", "description": "Approver user ID (required for approve_shortlist)"},
-                        "approval_date": {"type": "string", "description": "Approval date (required for approve_shortlist)"}
+                        "created_by": {
+                            "type": "string", 
+                            "description": "User ID creating the application. Required for: create_application"
+                        },
+                        "candidate_id": {
+                            "type": "string", 
+                            "description": "Candidate ID. Required for: create_application"
+                        },
+                        "posting_id": {
+                            "type": "string", 
+                            "description": "Job posting ID. Required for: create_application"
+                        },
+                        "resume_file_id": {
+                            "type": "string", 
+                            "description": "Resume document ID. Required for: create_application"
+                        },
+                        "cover_letter_file_id": {
+                            "type": "string", 
+                            "description": "Cover letter document ID. Optional for: create_application"
+                        },
+                        "application_date": {
+                            "type": "string", 
+                            "description": "Application date. Format: MM-DD-YYYY or YYYY-MM-DD. Required for: create_application"
+                        },
+                        "application_id": {
+                            "type": "string", 
+                            "description": "Application ID to update (auto-generated during creation, only used for updates). Required for: update_application_status"
+                        },
+                        "user_id": {
+                            "type": "string", 
+                            "description": "User ID. Required for: update_application_status"
+                        },
+                        "status": {
+                            "type": "string", 
+                            "description": "Application status. Values: pending_review, incomplete, screening_passed, shortlisted, interview_scheduled, interview_completed, selected, rejected, offer_issued, offer_accepted, onboarding. Required for: update_application_status"
+                        },
+                        "screened_date": {
+                            "type": "string", 
+                            "description": "Screened date. Format: MM-DD-YYYY or YYYY-MM-DD. Optional for: update_application_status"
+                        },
+                        "shortlist_approval_date": {
+                            "type": "string", 
+                            "description": "Shortlist approval date. Format: MM-DD-YYYY or YYYY-MM-DD. Optional for: update_application_status"
+                        }
                     },
                     "required": ["operation_type"]
                 }

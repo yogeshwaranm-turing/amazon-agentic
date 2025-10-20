@@ -295,26 +295,58 @@ class ManageApplicationOperations(Tool):
             "type": "function",
             "function": {
                 "name": "manage_application_operations",
-                "description": "Manage application operations including creation and status updates. Operations: create_application, update_application_status.",
+                "description": "Manage candidate applications including creation and status updates. For create_application, system auto-generates application_id - do not provide application_id as input.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "operation_type": {
                             "type": "string",
-                            "description": "Type of operation to perform: 'create_application', 'update_application_status'"
+                            "description": "Operation to perform. Values: create_application, update_application_status"
                         },
-                        "created_by": {"type": "string", "description": "User ID who created application (required for create_application)"},
-                        "candidate_id": {"type": "string", "description": "Candidate ID (required for create_application)"},
-                        "posting_id": {"type": "string", "description": "Job posting ID (required for create_application)"},
-                        "resume_file_id": {"type": "string", "description": "Resume file ID (required for create_application)"},
-                        "cover_letter_file_id": {"type": "string", "description": "Cover letter file ID (optional for create_application)"},
-                        "application_date": {"type": "string", "description": "Application date (required for create_application)"},
-                        "user_id": {"type": "string", "description": "User ID (required for update_application_status)"},
-                        "application_id": {"type": "string", "description": "Application ID (required for update_application_status and approve_shortlist)"},
-                        "status": {"type": "string", "description": "Application status (required for update_application_status)"},
-                        "screened_date": {"type": "string", "description": "Screened date (optional for update_application_status)"},
-                        "approved_by": {"type": "string", "description": "Approver user ID (required for approve_shortlist)"},
-                        "approval_date": {"type": "string", "description": "Approval date (required for approve_shortlist)"}
+                        "created_by": {
+                            "type": "string", 
+                            "description": "User ID creating the application. Required for: create_application"
+                        },
+                        "candidate_id": {
+                            "type": "string", 
+                            "description": "Candidate ID. Required for: create_application"
+                        },
+                        "posting_id": {
+                            "type": "string", 
+                            "description": "Job posting ID. Required for: create_application"
+                        },
+                        "resume_file_id": {
+                            "type": "string", 
+                            "description": "Resume document ID. Required for: create_application"
+                        },
+                        "cover_letter_file_id": {
+                            "type": "string", 
+                            "description": "Cover letter document ID. Optional for: create_application"
+                        },
+                        "application_date": {
+                            "type": "string", 
+                            "description": "Application date. Format: MM-DD-YYYY or YYYY-MM-DD. Required for: create_application"
+                        },
+                        "application_id": {
+                            "type": "string", 
+                            "description": "Application ID to update (auto-generated during creation, only used for updates). Required for: update_application_status"
+                        },
+                        "user_id": {
+                            "type": "string", 
+                            "description": "User ID. Required for: update_application_status"
+                        },
+                        "status": {
+                            "type": "string", 
+                            "description": "Application status. Values: pending_review, incomplete, screening_passed, shortlisted, interview_scheduled, interview_completed, selected, rejected, offer_issued, offer_accepted, onboarding. Required for: update_application_status"
+                        },
+                        "screened_date": {
+                            "type": "string", 
+                            "description": "Screened date. Format: MM-DD-YYYY or YYYY-MM-DD. Optional for: update_application_status"
+                        },
+                        "shortlist_approval_date": {
+                            "type": "string", 
+                            "description": "Shortlist approval date. Format: MM-DD-YYYY or YYYY-MM-DD. Optional for: update_application_status"
+                        }
                     },
                     "required": ["operation_type"]
                 }

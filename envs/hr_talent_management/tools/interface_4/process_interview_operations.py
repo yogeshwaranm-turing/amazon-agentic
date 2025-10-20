@@ -37,6 +37,13 @@ class ProcessInterviewOperations(Tool):
                 return f"{year}-{month}-{day}"
             return date_str
         
+        def is_date_in_past(date_str: str, current_date: str = "2025-01-01") -> bool:
+            """Check if a date is in the past compared to current_date"""
+            # Convert both dates to YYYY-MM-DD format for comparison
+            date_normalized = convert_date_format(date_str)
+            current_normalized = convert_date_format(current_date)
+            return date_normalized < current_normalized
+        
         # Validate operation_type
         valid_operations = ["schedule_interview", "add_panel_member", "conduct_evaluation"]
         if operation_type not in valid_operations:
@@ -67,15 +74,32 @@ class ProcessInterviewOperations(Tool):
                 return json.dumps({
                     "success": False,
                     "interview_id": None,
-                    "message": f"Missing required fields for interview scheduling: {', '.join(missing_fields)}"
+                    "message": f"Halt: Missing mandatory fields ({', '.join(missing_fields)})"
                 })
             
-            # Validate user exists
-            if str(kwargs["user_id"]) not in users:
+            # Validate user exists, is active, and has appropriate role
+            user_id_str = str(kwargs["user_id"])
+            if user_id_str not in users:
                 return json.dumps({
                     "success": False,
                     "interview_id": None,
-                    "message": f"User {kwargs['user_id']} not found"
+                    "message": f"Halt: Operation failed due to system errors"
+                })
+            
+            user = users[user_id_str]
+            if user.get("employment_status") != "active":
+                return json.dumps({
+                    "success": False,
+                    "interview_id": None,
+                    "message": f"Halt: Operation failed due to system errors"
+                })
+            
+            valid_user_roles = ["hr_recruiter", "hr_manager", "hr_director", "hr_admin"]
+            if user.get("role") not in valid_user_roles:
+                return json.dumps({
+                    "success": False,
+                    "interview_id": None,
+                    "message": f"Halt: Operation failed due to system errors"
                 })
             
             # Validate application exists and is shortlisted
@@ -84,7 +108,7 @@ class ProcessInterviewOperations(Tool):
                 return json.dumps({
                     "success": False,
                     "interview_id": None,
-                    "message": f"Application {app_id} not found"
+                    "message": f"Halt: Application not found or not shortlisted"
                 })
             
             application = applications[app_id]
@@ -92,7 +116,7 @@ class ProcessInterviewOperations(Tool):
                 return json.dumps({
                     "success": False,
                     "interview_id": None,
-                    "message": f"Application {app_id} is not shortlisted (current status: {application.get('status')})"
+                    "message": f"Halt: Application not found or not shortlisted"
                 })
             
             # Validate interview type
@@ -101,7 +125,7 @@ class ProcessInterviewOperations(Tool):
                 return json.dumps({
                     "success": False,
                     "interview_id": None,
-                    "message": f"Invalid interview_type. Must be one of: {', '.join(valid_interview_types)}"
+                    "message": f"Halt: Invalid interview_type"
                 })
             
             # Validate date format
@@ -111,6 +135,14 @@ class ProcessInterviewOperations(Tool):
                     "success": False,
                     "interview_id": None,
                     "message": date_error
+                })
+            
+            # Validate scheduled date is not in the past
+            if is_date_in_past(kwargs["scheduled_date"]):
+                return json.dumps({
+                    "success": False,
+                    "interview_id": None,
+                    "message": "Halt: Scheduled date in the past"
                 })
             
             # Validate panel members exist and are active
@@ -366,60 +398,60 @@ class ProcessInterviewOperations(Tool):
             "type": "function",
             "function": {
                 "name": "process_interview_operations",
-                "description": "Manage interview operations including scheduling, panel management, and evaluation. Operations: schedule_interview, add_panel_member, conduct_evaluation.",
+                "description": "Manage interview scheduling, panel assignments, and evaluation. For schedule_interview, system auto-generates interview_id - do not provide interview_id as input.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "operation_type": {
                             "type": "string",
-                            "description": "Type of operation to perform: 'schedule_interview', 'add_panel_member', 'conduct_evaluation'"
-                        },
-                        "interview_id": {
-                            "type": "string",
-                            "description": "Required for add_panel_member and conduct_evaluation"
+                            "description": "Operation to perform. Values: schedule_interview, add_panel_member, conduct_evaluation"
                         },
                         "application_id": {
                             "type": "string",
-                            "description": "Required for schedule_interview"
+                            "description": "Application ID (must be shortlisted). Required for: schedule_interview"
                         },
                         "interview_type": {
                             "type": "string",
-                            "description": "Required for schedule_interview. Values: technical, hr, panel, final"
+                            "description": "Interview type. Values: technical, hr, panel, final. Required for: schedule_interview"
                         },
                         "scheduled_date": {
                             "type": "string",
-                            "description": "Required for schedule_interview. Format: MM-DD-YYYY or YYYY-MM-DD"
+                            "description": "Scheduled date. Format: MM-DD-YYYY or YYYY-MM-DD. Required for: schedule_interview"
                         },
                         "panel_member_ids": {
                             "type": "array",
-                            "description": "Required for schedule_interview. Array of user IDs for panel members",
+                            "description": "Array of panel member user IDs. Required for: schedule_interview",
                             "items": {
                                 "type": "string"
                             }
                         },
-                        "panel_member_id": {
-                            "type": "string",
-                            "description": "Required for add_panel_member"
-                        },
                         "user_id": {
                             "type": "string",
-                            "description": "Required for all operations"
+                            "description": "User ID. Required for: schedule_interview, add_panel_member"
+                        },
+                        "interview_id": {
+                            "type": "string",
+                            "description": "Interview ID (auto-generated during scheduling). Required for: add_panel_member, conduct_evaluation"
+                        },
+                        "panel_member_id": {
+                            "type": "string",
+                            "description": "Panel member user ID to add. Required for: add_panel_member"
                         },
                         "rating": {
                             "type": "integer",
-                            "description": "Required for conduct_evaluation. Value: 1-5"
+                            "description": "Interview rating. Values: 1-5 (5 is best). Required for: conduct_evaluation"
                         },
                         "recommendation": {
                             "type": "string",
-                            "description": "Required for conduct_evaluation. Values: yes, no, maybe"
+                            "description": "Hiring recommendation. Values: yes, no, maybe. Required for: conduct_evaluation"
                         },
                         "completed_by": {
                             "type": "string",
-                            "description": "Required for conduct_evaluation"
+                            "description": "User ID completing evaluation (must be panel member). Required for: conduct_evaluation"
                         },
                         "completed_date": {
                             "type": "string",
-                            "description": "Required for conduct_evaluation. Format: MM-DD-YYYY or YYYY-MM-DD"
+                            "description": "Completion date. Format: MM-DD-YYYY or YYYY-MM-DD. Required for: conduct_evaluation"
                         }
                     },
                     "required": ["operation_type"]

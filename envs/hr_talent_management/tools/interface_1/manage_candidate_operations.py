@@ -204,27 +204,66 @@ class ManageCandidateOperations(Tool):
             "type": "function",
             "function": {
                 "name": "manage_candidate_operations",
-                "description": "Manage candidate operations including creation and updates. Operations: create_candidate, update_candidate.",
+                "description": "Manage candidate profiles including creation and updates. For create_candidate, system auto-generates candidate_id - do not provide candidate_id as input.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "operation_type": {
                             "type": "string",
-                            "description": "Type of operation to perform: 'create_candidate', 'update_candidate'"
+                            "description": "Operation to perform. Values: create_candidate, update_candidate"
                         },
-                        "first_name": {"type": "string", "description": "First name (required for create_candidate)"},
-                        "last_name": {"type": "string", "description": "Last name (required for create_candidate)"},
-                        "email_address": {"type": "string", "description": "Email address (required for create_candidate)"},
-                        "contact_number": {"type": "string", "description": "Contact number (required for create_candidate)"},
-                        "country_of_residence": {"type": "string", "description": "Country of residence (required for create_candidate)"},
-                        "created_by": {"type": "string", "description": "User ID who created candidate (required for create_candidate)"},
-                        "resume_file_name": {"type": "string", "description": "Resume file name (required for create_candidate)"},
-                        "source_of_application": {"type": "string", "description": "Source of application (optional for create_candidate)"},
-                        "linkedin_profile": {"type": "string", "description": "LinkedIn profile URL (optional)"},
-                        "current_ctc": {"type": "number", "description": "Current CTC (optional)"},
-                        "candidate_id": {"type": "string", "description": "Candidate ID (required for update_candidate)"},
-                        "user_id": {"type": "string", "description": "User ID (required for update_candidate)"},
-                        "status": {"type": "string", "description": "Candidate status (optional for update_candidate)"}
+                        "first_name": {
+                            "type": "string", 
+                            "description": "Candidate's first name. Required for: create_candidate"
+                        },
+                        "last_name": {
+                            "type": "string", 
+                            "description": "Candidate's last name. Required for: create_candidate"
+                        },
+                        "email_address": {
+                            "type": "string", 
+                            "description": "Email address (must be unique). Required for: create_candidate"
+                        },
+                        "contact_number": {
+                            "type": "string", 
+                            "description": "Phone number (must be unique). Required for: create_candidate"
+                        },
+                        "country_of_residence": {
+                            "type": "string", 
+                            "description": "Country of residence. Required for: create_candidate. Optional for: update_candidate"
+                        },
+                        "created_by": {
+                            "type": "string", 
+                            "description": "User ID creating the candidate. Required for: create_candidate"
+                        },
+                        "resume_file_name": {
+                            "type": "string", 
+                            "description": "Resume file name. Required for: create_candidate"
+                        },
+                        "source_of_application": {
+                            "type": "string", 
+                            "description": "Source of application. Optional for: create_candidate"
+                        },
+                        "linkedin_profile": {
+                            "type": "string", 
+                            "description": "LinkedIn profile URL (must be unique). Optional for: create_candidate, update_candidate"
+                        },
+                        "current_ctc": {
+                            "type": "number", 
+                            "description": "Current CTC in USD. Optional for: create_candidate, update_candidate"
+                        },
+                        "candidate_id": {
+                            "type": "string", 
+                            "description": "Candidate ID to update. Required for: update_candidate"
+                        },
+                        "user_id": {
+                            "type": "string", 
+                            "description": "User ID. Required for: update_candidate"
+                        },
+                        "status": {
+                            "type": "string", 
+                            "description": "Candidate status. Values: active, inactive, suspended. Optional for: update_candidate"
+                        }
                     },
                     "required": ["operation_type"]
                 }
