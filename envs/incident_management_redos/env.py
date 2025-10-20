@@ -1,7 +1,7 @@
-from tau_bench.envs.incident_management_redo.data import load_data
-from tau_bench.envs.incident_management_redo.rules import RULES
-from tau_bench.envs.incident_management_redo.tools import ALL_TOOLS_INTERFACE_1, ALL_TOOLS_INTERFACE_2, ALL_TOOLS_INTERFACE_3, ALL_TOOLS_INTERFACE_4, ALL_TOOLS_INTERFACE_5
-from tau_bench.envs.incident_management_redo.wiki import WIKI
+from tau_bench.envs.incident_management_redos.data import load_data
+from tau_bench.envs.incident_management_redos.rules import RULES
+from tau_bench.envs.incident_management_redos.tools import ALL_TOOLS_INTERFACE_1, ALL_TOOLS_INTERFACE_2, ALL_TOOLS_INTERFACE_3, ALL_TOOLS_INTERFACE_4, ALL_TOOLS_INTERFACE_5
+from tau_bench.envs.incident_management_redos.wiki import WIKI
 from tau_bench.envs.base import Env
 from typing import Optional, Union
 from tau_bench.envs.user import UserStrategy
@@ -19,17 +19,17 @@ class MockIncidentManagementExpertsDomainEnv(Env):
     ):
         match task_split:
             case "test":
-                from tau_bench.envs.incident_management_redo.tasks_test import TASKS_TEST as tasks
+                from tau_bench.envs.incident_management_redos.tasks_test import TASKS_TEST as tasks
             case "test_interface_1":
-                from tau_bench.envs.incident_management_redo.interface_1_tasks import INTERFACE_1_TEST as tasks
+                from tau_bench.envs.incident_management_redos.interface_1_tasks import INTERFACE_1_TEST as tasks
             case "test_interface_2":
-                from tau_bench.envs.incident_management_redo.interface_2_tasks import INTERFACE_2_TEST as tasks
+                from tau_bench.envs.incident_management_redos.interface_2_tasks import INTERFACE_2_TEST as tasks
             case "test_interface_3":
-                from tau_bench.envs.incident_management_redo.interface_3_tasks import INTERFACE_3_TEST as tasks
+                from tau_bench.envs.incident_management_redos.interface_3_tasks import INTERFACE_3_TEST as tasks
             case "test_interface_4":
-                from tau_bench.envs.incident_management_redo.interface_4_tasks import INTERFACE_4_TEST as tasks
+                from tau_bench.envs.incident_management_redos.interface_4_tasks import INTERFACE_4_TEST as tasks
             case "test_interface_5":
-                from tau_bench.envs.incident_management_redo.interface_5_tasks import INTERFACE_5_TEST as tasks
+                from tau_bench.envs.incident_management_redos.interface_5_tasks import INTERFACE_5_TEST as tasks
             case _:
                 raise ValueError(f"Unknown task split: {task_split}")
         

@@ -1,1 +1,1 @@
-from tau_bench.envs.incident_management_redo.env import MockIncidentManagementRedoDomainEnv as MockIncidentManagementRedoDomainEnv
+from tau_bench.envs.incident_management_redos.env import MockIncidentManagementExpertsDomainEnv as MockIncidentManagementExpertsDomainEnv
