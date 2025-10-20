@@ -30,6 +30,7 @@ from .retrieve_payment_entities import RetrievePaymentEntities
 from .retrieve_payroll_entities import RetrievePayrollEntities
 from .retrieve_reference_entities import RetrieveReferenceEntities
 from .retrieve_system_entities import RetrieveSystemEntities
+from .route_to_human import RouteToHuman
 
 ALL_TOOLS_INTERFACE_5 = [
     HandleApplicationOperations,
@@ -63,5 +64,6 @@ ALL_TOOLS_INTERFACE_5 = [
     RetrievePaymentEntities,
     RetrievePayrollEntities,
     RetrieveReferenceEntities,
-    RetrieveSystemEntities
+    RetrieveSystemEntities,
+    RouteToHuman
 ]

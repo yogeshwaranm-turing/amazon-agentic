@@ -30,6 +30,7 @@ from .fetch_payment_entities import FetchPaymentEntities
 from .fetch_payroll_entities import FetchPayrollEntities
 from .fetch_reference_entities import FetchReferenceEntities
 from .fetch_system_entities import FetchSystemEntities
+from .switch_to_human import SwitchToHuman
 
 ALL_TOOLS_INTERFACE_2 = [
     AddAuditEntry,
@@ -63,5 +64,6 @@ ALL_TOOLS_INTERFACE_2 = [
     FetchPaymentEntities,
     FetchPayrollEntities,
     FetchReferenceEntities,
-    FetchSystemEntities
+    FetchSystemEntities,
+    SwitchToHuman
 ]

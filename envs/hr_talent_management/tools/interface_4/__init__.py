@@ -9,6 +9,7 @@ from .get_payment_entities import GetPaymentEntities
 from .get_payroll_entities import GetPayrollEntities
 from .get_reference_entities import GetReferenceEntities
 from .get_system_entities import GetSystemEntities
+from .handover_to_human import HandOverToHuman
 from .process_application_operations import ProcessApplicationOperations
 from .process_benefit_enrollment_operations import ProcessBenefitEnrollmentOperations
 from .process_benefit_plan_operations import ProcessBenefitPlanOperations
@@ -43,6 +44,7 @@ ALL_TOOLS_INTERFACE_4 = [
     GetPayrollEntities,
     GetReferenceEntities,
     GetSystemEntities,
+    HandOverToHuman,
     ProcessApplicationOperations,
     ProcessBenefitEnrollmentOperations,
     ProcessBenefitPlanOperations,

@@ -1,3 +1,4 @@
+from .escalate_to_human import EscalateToHuman
 from .execute_application_operations import ExecuteApplicationOperations
 from .execute_benefit_enrollment_operations import ExecuteBenefitEnrollmentOperations
 from .execute_benefit_plan_operations import ExecuteBenefitPlanOperations
@@ -32,6 +33,7 @@ from .lookup_system_entities import LookupSystemEntities
 from .make_audit_entry import MakeAuditEntry
 
 ALL_TOOLS_INTERFACE_3 = [
+    EscalateToHuman,
     ExecuteApplicationOperations,
     ExecuteBenefitEnrollmentOperations,
     ExecuteBenefitPlanOperations,

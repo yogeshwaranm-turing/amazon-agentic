@@ -31,7 +31,7 @@ from .manage_payment_operations import ManagePaymentOperations
 from .manage_user_operations import ManageUserOperations
 from .manage_location_operations import ManageLocationOperations
 from .manage_department_operations import ManageDepartmentOperations
-
+from .transfer_to_human import TransferToHuman
 
 ALL_TOOLS_INTERFACE_1 = [
     DiscoverReferenceEntities,
@@ -66,5 +66,6 @@ ALL_TOOLS_INTERFACE_1 = [
     ManageUserOperations,
     ManageLocationOperations,
     ManageDepartmentOperations,
+    TransferToHuman
 ]
 
