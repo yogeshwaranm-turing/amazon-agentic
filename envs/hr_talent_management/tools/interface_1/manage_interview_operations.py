@@ -398,60 +398,74 @@ class ManageInterviewOperations(Tool):
             "type": "function",
             "function": {
                 "name": "manage_interview_operations",
-                "description": "Manage interview operations including scheduling, panel management, and evaluation. Operations: schedule_interview, add_panel_member, conduct_evaluation.",
+                "description": """Manage interview scheduling, panel assignments, and evaluation recording throughout the interview process.
+
+OPERATION 1: schedule_interview - Schedule a new interview for a shortlisted candidate application
+Required: application_id (string), interview_type (string), scheduled_date (string, format: MM-DD-YYYY or YYYY-MM-DD), panel_member_ids (array of user ID strings), user_id (string)
+Valid interview_type values: technical, hr, panel, final
+Note: User must be active HR Recruiter, HR Manager, HR Director, or HR Admin. Application must exist and be in 'shortlisted' status. Scheduled date cannot be in the past (must be >= 2025-01-01). All panel members must be active users. System auto-generates unique interview_id and automatically assigns all panel members to the interview. Returns interview_id.
+
+OPERATION 2: add_panel_member - Add additional panel member to an existing scheduled interview
+Required: interview_id (string), panel_member_id (user ID string), user_id (string)
+Note: User must be active HR role. Interview must exist and be in 'scheduled' status. Panel member must be an active user and not already assigned to this interview. Prevents duplicate panel member assignments.
+
+OPERATION 3: conduct_evaluation - Record interview evaluation and results
+Required: interview_id (string), rating (integer 1-5), recommendation (string), completed_by (user ID string), completed_date (string, format: MM-DD-YYYY or YYYY-MM-DD)
+Valid recommendation values: yes, no, maybe
+Note: Interview must exist and be in 'scheduled' status. User (completed_by) must be an active user and must be assigned as a panel member for this specific interview. Rating must be between 1 and 5. Updates interview status to 'completed'.""",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "operation_type": {
                             "type": "string",
-                            "description": "Type of operation to perform: 'schedule_interview', 'add_panel_member', 'conduct_evaluation'"
-                        },
-                        "interview_id": {
-                            "type": "string",
-                            "description": "Required for add_panel_member and conduct_evaluation"
+                            "description": "Type of operation: 'schedule_interview', 'add_panel_member', 'conduct_evaluation'"
                         },
                         "application_id": {
                             "type": "string",
-                            "description": "Required for schedule_interview"
+                            "description": "ID of shortlisted application to schedule interview for (for schedule_interview)"
                         },
                         "interview_type": {
                             "type": "string",
-                            "description": "Required for schedule_interview. Values: technical, hr, panel, final"
+                            "description": "Type of interview: technical, hr, panel, final (for schedule_interview)"
                         },
                         "scheduled_date": {
                             "type": "string",
-                            "description": "Required for schedule_interview. Format: MM-DD-YYYY or YYYY-MM-DD"
+                            "description": "Interview date MM-DD-YYYY or YYYY-MM-DD - cannot be in past (for schedule_interview)"
                         },
                         "panel_member_ids": {
                             "type": "array",
-                            "description": "Required for schedule_interview. Array of user IDs for panel members",
+                            "description": "Array of user IDs for panel members - all will be auto-assigned to interview (for schedule_interview)",
                             "items": {
                                 "type": "string"
                             }
                         },
-                        "panel_member_id": {
-                            "type": "string",
-                            "description": "Required for add_panel_member"
-                        },
                         "user_id": {
                             "type": "string",
-                            "description": "Required for all operations"
+                            "description": "User performing the operation (for schedule_interview, add_panel_member)"
+                        },
+                        "interview_id": {
+                            "type": "string",
+                            "description": "ID of interview - NOTE: Auto-generated by schedule_interview, used for add_panel_member and conduct_evaluation"
+                        },
+                        "panel_member_id": {
+                            "type": "string",
+                            "description": "User ID of panel member to add - must be active and not already assigned (for add_panel_member)"
                         },
                         "rating": {
                             "type": "integer",
-                            "description": "Required for conduct_evaluation. Value: 1-5"
+                            "description": "Interview rating 1-5 where 5 is best (for conduct_evaluation)"
                         },
                         "recommendation": {
                             "type": "string",
-                            "description": "Required for conduct_evaluation. Values: yes, no, maybe"
+                            "description": "Hiring recommendation: yes, no, maybe (for conduct_evaluation)"
                         },
                         "completed_by": {
                             "type": "string",
-                            "description": "Required for conduct_evaluation"
+                            "description": "User ID of panel member completing evaluation - must be assigned to this interview (for conduct_evaluation)"
                         },
                         "completed_date": {
                             "type": "string",
-                            "description": "Required for conduct_evaluation. Format: MM-DD-YYYY or YYYY-MM-DD"
+                            "description": "Date evaluation completed MM-DD-YYYY or YYYY-MM-DD (for conduct_evaluation)"
                         }
                     },
                     "required": ["operation_type"]

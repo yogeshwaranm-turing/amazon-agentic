@@ -204,27 +204,76 @@ class ManageCandidateOperations(Tool):
             "type": "function",
             "function": {
                 "name": "manage_candidate_operations",
-                "description": "Manage candidate operations including creation and updates. Operations: create_candidate, update_candidate.",
+                "description": """Manage candidate profiles throughout the recruitment process. This tool handles candidate creation and profile updates.
+
+OPERATION 1: create_candidate - Create a new candidate profile in the system
+Required: first_name (string), last_name (string), email_address (string, valid email format), contact_number (string, valid phone format), country_of_residence (string), created_by (user ID string), resume_file_name (string)
+Optional: source_of_application (string), linkedin_profile (string URL), current_ctc (number in USD)
+Note: User must be active HR Recruiter, HR Manager, HR Admin, or HR Director. Email, phone, and LinkedIn profile (if provided) must be unique - no duplicate candidates allowed. Resume file name must not already exist in system. Returns auto-generated candidate_id.
+
+OPERATION 2: update_candidate - Update existing candidate profile information
+Required: candidate_id (string), user_id (string)
+Optional: country_of_residence (string), linkedin_profile (string URL), current_ctc (number in USD), status (active/inactive/suspended)
+Note: Candidate must exist and be active. LinkedIn profile (if updated) must be unique. Only authorized HR roles can update candidate profiles.""",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "operation_type": {
                             "type": "string",
-                            "description": "Type of operation to perform: 'create_candidate', 'update_candidate'"
+                            "description": "Type of operation: 'create_candidate', 'update_candidate'"
                         },
-                        "first_name": {"type": "string", "description": "First name (required for create_candidate)"},
-                        "last_name": {"type": "string", "description": "Last name (required for create_candidate)"},
-                        "email_address": {"type": "string", "description": "Email address (required for create_candidate)"},
-                        "contact_number": {"type": "string", "description": "Contact number (required for create_candidate)"},
-                        "country_of_residence": {"type": "string", "description": "Country of residence (required for create_candidate)"},
-                        "created_by": {"type": "string", "description": "User ID who created candidate (required for create_candidate)"},
-                        "resume_file_name": {"type": "string", "description": "Resume file name (required for create_candidate)"},
-                        "source_of_application": {"type": "string", "description": "Source of application (optional for create_candidate)"},
-                        "linkedin_profile": {"type": "string", "description": "LinkedIn profile URL (optional)"},
-                        "current_ctc": {"type": "number", "description": "Current CTC (optional)"},
-                        "candidate_id": {"type": "string", "description": "Candidate ID (required for update_candidate)"},
-                        "user_id": {"type": "string", "description": "User ID (required for update_candidate)"},
-                        "status": {"type": "string", "description": "Candidate status (optional for update_candidate)"}
+                        "first_name": {
+                            "type": "string", 
+                            "description": "Candidate's first name (for create_candidate)"
+                        },
+                        "last_name": {
+                            "type": "string", 
+                            "description": "Candidate's last name (for create_candidate)"
+                        },
+                        "email_address": {
+                            "type": "string", 
+                            "description": "Valid email address - must be unique (for create_candidate)"
+                        },
+                        "contact_number": {
+                            "type": "string", 
+                            "description": "Phone number with digits, spaces, hyphens, +, parentheses - must be unique (for create_candidate)"
+                        },
+                        "country_of_residence": {
+                            "type": "string", 
+                            "description": "Country where candidate resides (for create/update)"
+                        },
+                        "created_by": {
+                            "type": "string", 
+                            "description": "User ID of HR person creating candidate record (for create_candidate)"
+                        },
+                        "resume_file_name": {
+                            "type": "string", 
+                            "description": "Name of resume file - must not already exist (for create_candidate)"
+                        },
+                        "source_of_application": {
+                            "type": "string", 
+                            "description": "Source channel where candidate applied from (optional for create_candidate)"
+                        },
+                        "linkedin_profile": {
+                            "type": "string", 
+                            "description": "LinkedIn profile URL - must be unique (optional for create/update)"
+                        },
+                        "current_ctc": {
+                            "type": "number", 
+                            "description": "Current compensation in USD (optional for create/update)"
+                        },
+                        "candidate_id": {
+                            "type": "string", 
+                            "description": "ID of candidate to update (for update_candidate)"
+                        },
+                        "user_id": {
+                            "type": "string", 
+                            "description": "User performing the update (for update_candidate)"
+                        },
+                        "status": {
+                            "type": "string", 
+                            "description": "Candidate status: active, inactive, suspended (for update_candidate)"
+                        }
                     },
                     "required": ["operation_type"]
                 }

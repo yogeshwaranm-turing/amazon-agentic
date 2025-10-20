@@ -495,69 +495,113 @@ class ManageJobOperations(Tool):
             "type": "function",
             "function": {
                 "name": "manage_job_operations",
-                "description": "Manage job operations including requisitions and postings. Operations: create_requisition, update_requisition, approve_requisition, create_posting, update_posting.",
+                "description": """Manage job requisitions and postings throughout the hiring lifecycle. This tool handles creation, updates, approvals, and posting operations.
+
+OPERATION 1: create_requisition - Create a new job requisition
+Required: job_title (string), department_id (string), location_id (string), employment_type (full_time/part_time/contract/intern), hiring_manager_id (string), budgeted_salary_min (number), budgeted_salary_max (number), created_by (user ID string)
+Optional: job_description (string), grade (string), shift_type (string), remote_indicator (string)
+Note: User must be an active HR Recruiter, HR Manager, HR Admin, HR Director, or Department Manager. Returns auto-generated requisition_id.
+
+OPERATION 2: update_requisition - Update existing job requisition details
+Required: requisition_id (string), user_id (string)
+Optional: job_title, department_id, location_id, employment_type, hiring_manager_id, budgeted_salary_min, budgeted_salary_max, job_description, grade, shift_type, remote_indicator, status
+Note: Requisition must be in 'draft' or 'pending_approval' status. Only authorized HR roles or Department Manager can update.
+
+OPERATION 3: approve_requisition - Approve a pending job requisition
+Required: requisition_id (string), user_id (string)
+Optional: approval_date (string, format: MM-DD-YYYY or YYYY-MM-DD)
+Note: User must be HR Manager, Finance Manager, or Department Manager. Requisition must be in 'pending_approval' status. Approvals are role-based.
+
+OPERATION 4: create_posting - Create job posting from approved requisition
+Required: requisition_id (string), posted_date (string, format: MM-DD-YYYY or YYYY-MM-DD), portal_type (internal/external/both), user_id (string)
+Note: Requisition must be in 'approved' status. User must be active HR Recruiter, HR Manager, HR Admin, or HR Director. Returns auto-generated posting_id.
+
+OPERATION 5: update_posting - Update job posting details
+Required: posting_id (string), user_id (string)
+Optional: portal_type (internal/external/both), status (active/closed/archived)
+Note: Posting must be in 'active' status to update.""",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "operation_type": {
                             "type": "string",
-                            "description": "Type of operation to perform: 'create_requisition', 'update_requisition', 'approve_requisition', 'create_posting', 'update_posting'"
+                            "description": "Type of operation: 'create_requisition', 'update_requisition', 'approve_requisition', 'create_posting', 'update_posting'"
                         },
                         "requisition_id": {
                             "type": "string",
-                            "description": "Required for update_requisition, approve_requisition. Optional for create_posting"
+                            "description": "Requisition ID (for update_requisition, approve_requisition, create_posting)"
                         },
                         "posting_id": {
                             "type": "string",
-                            "description": "Required for update_posting"
+                            "description": "Posting ID (for update_posting only)"
                         },
                         "user_id": {
                             "type": "string",
-                            "description": "Required for all operations except create_requisition where created_by is used"
+                            "description": "User performing operation (for all except create_requisition)"
                         },
                         "job_title": {
                             "type": "string",
-                            "description": "Required for create_requisition"
+                            "description": "Job title (for create_requisition, update_requisition)"
                         },
                         "department_id": {
                             "type": "string",
-                            "description": "Required for create_requisition"
+                            "description": "Department ID (for create_requisition, update_requisition)"
                         },
                         "location_id": {
                             "type": "string",
-                            "description": "Required for create_requisition"
+                            "description": "Location ID (for create_requisition, update_requisition)"
                         },
                         "employment_type": {
                             "type": "string",
-                            "description": "Required for create_requisition. Values: full_time, part_time, contract, intern"
+                            "description": "Employment type: full_time, part_time, contract, intern (for create/update requisition)"
                         },
                         "hiring_manager_id": {
                             "type": "string",
-                            "description": "Required for create_requisition"
+                            "description": "Hiring manager user ID (for create_requisition, update_requisition)"
                         },
                         "budgeted_salary_min": {
                             "type": "number",
-                            "description": "Required for create_requisition"
+                            "description": "Minimum salary in USD (for create_requisition, update_requisition)"
                         },
                         "budgeted_salary_max": {
                             "type": "number",
-                            "description": "Required for create_requisition"
+                            "description": "Maximum salary in USD (for create_requisition, update_requisition)"
                         },
                         "created_by": {
                             "type": "string",
-                            "description": "Required for create_requisition"
+                            "description": "User ID creating requisition (for create_requisition only)"
+                        },
+                        "job_description": {
+                            "type": "string",
+                            "description": "Job description text (optional for create/update requisition)"
+                        },
+                        "grade": {
+                            "type": "string",
+                            "description": "Job grade/level (optional for create/update requisition)"
+                        },
+                        "shift_type": {
+                            "type": "string",
+                            "description": "Shift type (optional for create/update requisition)"
+                        },
+                        "remote_indicator": {
+                            "type": "string",
+                            "description": "Remote work indicator (optional for create/update requisition)"
+                        },
+                        "approval_date": {
+                            "type": "string",
+                            "description": "Approval date MM-DD-YYYY or YYYY-MM-DD (optional for approve_requisition)"
                         },
                         "posted_date": {
                             "type": "string",
-                            "description": "Required for create_posting. Format: MM-DD-YYYY or YYYY-MM-DD"
+                            "description": "Posting date MM-DD-YYYY or YYYY-MM-DD (for create_posting)"
                         },
                         "portal_type": {
                             "type": "string",
-                            "description": "Required for create_posting. Values: internal, external, both"
+                            "description": "Portal: internal, external, both (for create_posting, update_posting)"
                         },
                         "status": {
                             "type": "string",
-                            "description": "Optional for update operations"
+                            "description": "Status value (for update operations)"
                         }
                     },
                     "required": ["operation_type"]
