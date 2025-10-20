@@ -30,7 +30,7 @@ from .address_work_orders import AddressWorkOrders
 from .address_assets import AddressAssets
 from .handover_to_human import HandoverToHuman
 
-ALL_TOOLS_INTERFACE_1 = [
+ALL_TOOLS_INTERFACE_4 = [
     AddressAttachments,
     CalculateIncidentSeverity,
     AddressChangeControl,
