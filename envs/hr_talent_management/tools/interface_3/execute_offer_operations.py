@@ -392,83 +392,83 @@ class ExecuteOfferOperations(Tool):
                         },
                         "candidate_id": {
                             "type": "string",
-                            "description": "Unique identifier of the candidate (required for create_offer only, must exist in system)"
+                            "description": "Unique identifier of the candidate receiving the offer. Enter the candidate's ID number as a string (e.g., '123' or '456'). This field is required only when operation_type is 'create_offer'. The system validates that this candidate exists in the database before creating the offer. Example: '1001'"
                         },
                         "requisition_id": {
                             "type": "string",
-                            "description": "Unique identifier of the job requisition (required for create_offer only)"
+                            "description": "Unique identifier of the job requisition this offer fulfills. Enter the requisition ID number as a string (e.g., '789'). This field is required only when operation_type is 'create_offer'. Links the offer to the original job posting or requisition. Example: '2001'"
                         },
                         "position": {
                             "type": "string",
-                            "description": "Job position title (required for create_offer only)"
+                            "description": "Job position title for this offer. Enter the full job title as text (e.g., 'Senior Software Engineer', 'Marketing Manager'). This field is required only when operation_type is 'create_offer'. Should match the position title in the job requisition. Example: 'Senior Data Analyst'"
                         },
                         "start_date": {
                             "type": "string",
-                            "description": "Proposed start date in MM-DD-YYYY format (required for create_offer only)"
+                            "description": "Proposed employment start date for the candidate. Enter date in MM-DD-YYYY format (e.g., '01-15-2025' for January 15, 2025). This field is required only when operation_type is 'create_offer'. Must follow the exact format MM-DD-YYYY with hyphens as separators. The system will validate the date format. Example: '03-01-2025'"
                         },
                         "base_salary": {
                             "type": "number",
-                            "description": "Base salary amount (required for create_offer only, must be positive)"
+                            "description": "Annual base salary amount in dollars. Enter as a positive number (e.g., 85000 or 120000.50). This field is required only when operation_type is 'create_offer'. Must be a positive number greater than 0. Do not include currency symbols or commas. The system validates that the value is positive. Example: 95000"
                         },
                         "reporting_manager_id": {
                             "type": "string",
-                            "description": "Unique identifier of the reporting manager (required for create_offer only)"
+                            "description": "Unique identifier of the manager to whom the candidate will report. Enter the manager's user ID as a string (e.g., '5001'). This field is required only when operation_type is 'create_offer'. Identifies the direct supervisor for organizational hierarchy purposes. Example: '3005'"
                         },
                         "user_id": {
                             "type": "string",
-                            "description": "Unique identifier of the user performing the operation (required for create_offer and issue_offer, must exist in system)"
+                            "description": "Unique identifier of the user performing this operation. Enter the user ID as a string (e.g., '7001'). This field is required when operation_type is either 'create_offer' or 'issue_offer'. The system validates that this user exists in the database and is authorized to perform the operation. Used for audit trail and authorization checks. Example: '4002'"
                         },
                         "stock_options_amount": {
                             "type": "number",
-                            "description": "Stock options amount (optional for create_offer, must be non-negative)"
+                            "description": "Stock options or equity grant amount. Enter as a non-negative number (e.g., 5000 or 0). This field is optional and only applies when operation_type is 'create_offer'. Enter 0 or omit if no stock options are included. Must be non-negative (0 or positive). Do not include currency symbols. Example: 10000"
                         },
                         "signing_bonus_amount": {
                             "type": "number",
-                            "description": "Signing bonus amount (optional for create_offer, must be non-negative)"
+                            "description": "One-time signing bonus amount in dollars. Enter as a non-negative number (e.g., 15000 or 0). This field is optional and only applies when operation_type is 'create_offer'. Enter 0 or omit if no signing bonus is included. Must be non-negative (0 or positive). Do not include currency symbols or commas. Example: 20000"
                         },
                         "relocation_allowance_amount": {
                             "type": "number",
-                            "description": "Relocation allowance amount (optional for create_offer, must be non-negative)"
+                            "description": "Relocation assistance amount in dollars. Enter as a non-negative number (e.g., 8000 or 0). This field is optional and only applies when operation_type is 'create_offer'. Enter 0 or omit if no relocation allowance is provided. Must be non-negative (0 or positive). Do not include currency symbols or commas. Example: 12000"
                         },
                         "offer_id": {
                             "type": "string",
-                            "description": "Unique identifier of the offer (required for add_benefit, verify_compliance, approve_offer, issue_offer, and record_acceptance, must exist in system)"
+                            "description": "Unique identifier of an existing offer to be modified or updated. Enter the offer ID as a string (e.g., '501'). This field is required when operation_type is 'add_benefit', 'verify_compliance', 'approve_offer', 'issue_offer', or 'record_acceptance'. The system validates that this offer exists in the database before performing the operation. Used to reference which offer to update. Example: '1005'"
                         },
                         "benefit_type": {
                             "type": "string",
-                            "description": "Type of benefit being added (required for add_benefit only)"
+                            "description": "Category or type of benefit being added to the offer. Enter the benefit category as text (e.g., 'Health Insurance', 'Dental Coverage', 'Retirement Plan', 'Gym Membership'). This field is required only when operation_type is 'add_benefit'. Used to categorize different types of benefits offered. Example: 'Health Insurance Premium'"
                         },
                         "benefit_description": {
                             "type": "string",
-                            "description": "Description of the benefit being added (required for add_benefit only)"
+                            "description": "Detailed description of the benefit being added. Enter a full text description explaining the benefit details (e.g., 'Full medical, dental, and vision coverage with company paying 80% of premiums'). This field is required only when operation_type is 'add_benefit'. Provide complete information about coverage, costs, and terms. Example: 'Company-sponsored 401k with 6% employer match after 90 days'"
                         },
                         "compliance_approved_by": {
                             "type": "string",
-                            "description": "User ID of compliance approver (required for verify_compliance only)"
+                            "description": "User ID of the compliance officer or team member who approved the offer. Enter the compliance approver's user ID as a string (e.g., '8001'). This field is required only when operation_type is 'verify_compliance'. Used to record who provided compliance approval for audit trail purposes. The system validates user exists. Example: '6003'"
                         },
                         "compliance_approval_date": {
                             "type": "string",
-                            "description": "Date of compliance approval in MM-DD-YYYY format (required for verify_compliance only)"
+                            "description": "Date when compliance approval was granted. Enter date in MM-DD-YYYY format (e.g., '02-10-2025' for February 10, 2025). This field is required only when operation_type is 'verify_compliance'. Must follow the exact format MM-DD-YYYY with hyphens as separators. Used for compliance audit trail. Example: '02-15-2025'"
                         },
                         "hr_manager_approved_by": {
                             "type": "string",
-                            "description": "User ID of HR manager approver (required for approve_offer only)"
+                            "description": "User ID of the HR manager who approved the offer for issuance. Enter the HR manager's user ID as a string (e.g., '9001'). This field is required only when operation_type is 'approve_offer'. Used to record final HR approval before offer can be issued. The system validates user exists. Example: '7002'"
                         },
                         "hr_manager_approval_date": {
                             "type": "string",
-                            "description": "Date of HR manager approval in MM-DD-YYYY format (required for approve_offer only)"
+                            "description": "Date when HR manager approval was granted. Enter date in MM-DD-YYYY format (e.g., '02-12-2025' for February 12, 2025). This field is required only when operation_type is 'approve_offer'. Must follow the exact format MM-DD-YYYY with hyphens as separators. Records when final HR approval occurred. Example: '02-18-2025'"
                         },
                         "issue_date": {
                             "type": "string",
-                            "description": "Date offer was issued in MM-DD-YYYY format (required for issue_offer only)"
+                            "description": "Date when the offer was officially issued or sent to the candidate. Enter date in MM-DD-YYYY format (e.g., '02-14-2025' for February 14, 2025). This field is required only when operation_type is 'issue_offer'. Must follow the exact format MM-DD-YYYY with hyphens as separators. Marks when the offer was formally communicated to the candidate. Example: '02-20-2025'"
                         },
                         "acceptance_date": {
                             "type": "string",
-                            "description": "Date candidate accepted offer in MM-DD-YYYY format (required for record_acceptance only)"
+                            "description": "Date when the candidate accepted the offer. Enter date in MM-DD-YYYY format (e.g., '02-18-2025' for February 18, 2025). This field is required only when operation_type is 'record_acceptance'. Must follow the exact format MM-DD-YYYY with hyphens as separators. Records the candidate's acceptance date for documentation. Example: '02-25-2025'"
                         },
                         "offer_accepted_date": {
                             "type": "string",
-                            "description": "Date offer acceptance was recorded in MM-DD-YYYY format (required for record_acceptance only)"
+                            "description": "Date when the offer acceptance was recorded in the system. Enter date in MM-DD-YYYY format (e.g., '02-19-2025' for February 19, 2025). This field is required only when operation_type is 'record_acceptance'. Must follow the exact format MM-DD-YYYY with hyphens as separators. May differ from acceptance_date if there was a delay in recording. Example: '02-26-2025'"
                         }
                     },
                     "required": ["operation_type"]

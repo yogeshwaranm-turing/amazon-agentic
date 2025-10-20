@@ -333,73 +333,77 @@ class AdministerEmployeeOperations(Tool):
                         },
                         "first_name": {
                             "type": "string",
-                            "description": "Employee first name (required for create_employee)"
+                            "description": "Employee's legal first name. Enter the employee's first name as text (e.g., 'John', 'Sarah', 'Michael'). This field is required only when operation_type is 'create_employee'. Should match legal documents for payroll and tax purposes. Example: 'Jennifer'"
                         },
                         "last_name": {
                             "type": "string",
-                            "description": "Employee last name (required for create_employee)"
+                            "description": "Employee's legal last name or surname. Enter the employee's last name as text (e.g., 'Smith', 'Johnson', 'Garcia'). This field is required only when operation_type is 'create_employee'. Should match legal documents for payroll and tax purposes. Example: 'Anderson'"
                         },
                         "employee_type": {
                             "type": "string",
-                            "description": "Type of employment (required for create_employee)",
+                            "description": "Type of employment classification. Select from: 'Full-time' for regular full-time employees (typically 40 hours/week), 'Part-time' for part-time employees (less than full-time hours), or 'Contractor' for contract workers. This field is required only when operation_type is 'create_employee'. Must be exactly one of these three values with proper capitalization and hyphenation. Determines benefits eligibility and employment terms. Example: 'Full-time'",
                             "enum": ["Full-time", "Part-time", "Contractor"]
                         },
                         "department_id": {
                             "type": "string",
-                            "description": "Department ID (required for create_employee, must exist in system)"
+                            "description": "Unique identifier of the department where the employee will work. Enter the department ID as a string (e.g., '101', '205'). This field is required only when operation_type is 'create_employee'. The system validates that this department exists in the database before creating the employee record. Used for organizational structure and reporting. Example: '304'"
                         },
                         "location_id": {
                             "type": "string",
-                            "description": "Location ID (required for create_employee, must exist in system)"
+                            "description": "Unique identifier of the physical work location or office. Enter the location ID as a string (e.g., '1', '5', '12'). This field is required only when operation_type is 'create_employee'. The system validates that this location exists in the database. Determines office assignment, timezone, and local HR policies. Example: '7'"
                         },
                         "job_title": {
                             "type": "string",
-                            "description": "Job title (required for create_employee)"
+                            "description": "Official job title or position name. Enter the full job title as text (e.g., 'Software Engineer II', 'Senior Marketing Specialist', 'Accountant'). This field is required only when operation_type is 'create_employee'. Should match the title in the offer letter and organizational hierarchy. Example: 'Senior Product Manager'"
                         },
                         "start_date": {
                             "type": "string",
-                            "description": "Start date in MM-DD-YYYY format (required for create_employee)"
+                            "description": "Employee's first day of employment. Enter date in MM-DD-YYYY format (e.g., '03-15-2025' for March 15, 2025). This field is required only when operation_type is 'create_employee'. Must follow the exact format MM-DD-YYYY with hyphens as separators. The system validates the date format. Used for benefits eligibility, tenure calculations, and onboarding scheduling. Example: '04-01-2025'"
                         },
                         "tax_id": {
                             "type": "string",
-                            "description": "Tax ID/SSN in ###-##-#### format (required for create_employee)"
+                            "description": "Tax identification number or Social Security Number (SSN). Enter in the format ###-##-#### (e.g., '123-45-6789'). This field is required only when operation_type is 'create_employee'. Must follow the exact format with three digits, hyphen, two digits, hyphen, four digits. The system validates the format. Required for payroll tax reporting and compliance. Example: '987-65-4321'"
                         },
                         "bank_account_number": {
                             "type": "string",
-                            "description": "Bank account number, 8-17 digits (required for create_employee)"
+                            "description": "Employee's bank account number for direct deposit of salary. Enter as 8-17 digits (e.g., '12345678' or '12345678901234567'). This field is required only when operation_type is 'create_employee'. Must contain only digits, with a minimum of 8 digits and maximum of 17 digits. The system validates the length. Required for payroll direct deposit setup. Example: '987654321012'"
                         },
                         "routing_number": {
                             "type": "string",
-                            "description": "Bank routing number, exactly 9 digits (required for create_employee)"
+                            "description": "Bank routing number for direct deposit transactions. Enter as exactly 9 digits (e.g., '123456789'). This field is required only when operation_type is 'create_employee'. Must be precisely 9 digits with no hyphens or spaces. The system validates the length. Used with bank_account_number for payroll direct deposit. Example: '021000021'"
                         },
                         "work_email": {
                             "type": "string",
-                            "description": "Work email address (required for create_employee, must be unique)"
+                            "description": "Employee's company email address. Enter in valid email format (e.g., 'john.smith@company.com'). This field is required only when operation_type is 'create_employee'. Must be a properly formatted email address with @ symbol and valid domain. The system validates email format and checks that this email is not already in use by another employee. Used for system access and communications. Example: 'sarah.jones@company.com'"
                         },
                         "user_id": {
                             "type": "string",
-                            "description": "User ID of creator (required for create_employee, must exist in system)"
+                            "description": "Unique identifier of the HR user creating or updating the employee record. Enter the user ID as a string (e.g., '5001'). This field is required when operation_type is 'create_employee'. The system validates that this user exists in the database. Used for audit trail to track who created the employee record. Example: '6002'"
+                        },
+                        "employee_id": {
+                            "type": "string",
+                            "description": "Unique identifier of the existing employee to be updated. Enter the employee ID as a string (e.g., '3001'). This field is required only when operation_type is 'update_employee_data'. The system validates that this employee exists and has an 'active' status. Used to identify which employee record to modify. Example: '4005'"
                         },
                         "candidate_id": {
                             "type": "string",
-                            "description": "Candidate ID if hired from recruiting process (optional, must exist in system if provided)"
+                            "description": "Unique identifier linking this employee to their candidate record from the recruiting process. Enter the candidate ID as a string (e.g., '2001'). This field is optional for operation_type 'create_employee'. If provided, the system validates that this candidate exists in the database. Creates connection between recruiting and employee records for reporting. Example: '1503'"
                         },
                         "phone_number": {
                             "type": "string",
-                            "description": "Phone number (optional)"
+                            "description": "Employee's contact phone number. Enter phone number as text (e.g., '555-123-4567', '(555) 123-4567', or '+1-555-123-4567'). This field is optional for operation_type 'create_employee'. No specific format is enforced. Used for employee contact and emergency purposes. Example: '425-555-0123'"
                         },
                         "manager_id": {
                             "type": "string",
-                            "description": "Manager user ID (optional, must exist in system if provided)"
+                            "description": "Unique identifier of the employee's direct manager or supervisor. Enter the manager's user ID as a string (e.g., '7001'). This field is optional for operation_type 'create_employee'. If provided, the system validates that this user exists in the database. Establishes reporting hierarchy for organizational structure. Example: '8003'"
                         },
                         "tax_filing_status": {
                             "type": "string",
-                            "description": "Tax filing status (optional)",
+                            "description": "Employee's tax filing status for withholding purposes. Select from: 'single' for single filers, 'married_filing_joint' for married filing jointly, 'married_filing_separate' for married filing separately, 'head_of_household' for head of household, or 'qualifying_widow' for qualifying widow(er). This field is optional for operation_type 'create_employee'. Must be exactly one of these five values. Affects payroll tax withholding calculations. Example: 'married_filing_joint'",
                             "enum": ["single", "married_filing_joint", "married_filing_separate", "head_of_household", "qualifying_widow"]
                         },
                         "employment_status": {
                             "type": "string",
-                            "description": "Employment status (optional for update_employee_data)"
+                            "description": "Current employment status of the employee. Enter status value as text (e.g., 'active', 'terminated', 'on_leave'). This field is optional and only applicable when operation_type is 'update_employee_data'. Used to update an existing employee's status. Common values include 'active' for currently employed, 'terminated' for ended employment, 'on_leave' for temporary leave. Example: 'active'"
                         }
                     },
                     "required": ["operation_type"]
