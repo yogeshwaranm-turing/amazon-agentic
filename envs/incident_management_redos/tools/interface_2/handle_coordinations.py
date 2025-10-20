@@ -115,11 +115,12 @@ class HandleCoordinations(Tool):
                 # Validate non-empty start_time, end_time if provided
                 optional_fields = ["start_time", "end_time"]
                 for field in optional_fields:
-                    if not bridge_data[field] or (isinstance(bridge_data[field], str) and bridge_data[field].strip() == ""):
-                        return json.dumps({
-                            "success": False,
-                            "error": f"Field '{field}' cannot be empty"
-                        })
+                    if field in bridge_data:
+                        if not bridge_data[field] or (isinstance(bridge_data[field], str) and bridge_data[field].strip() == ""):
+                            return json.dumps({
+                                "success": False,
+                                "error": f"Field '{field}' cannot be empty"
+                            })
 
                 # Validate bridge_type enum
                 if bridge_data["bridge_type"] not in valid_bridge_types:
