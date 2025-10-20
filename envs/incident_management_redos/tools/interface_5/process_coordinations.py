@@ -96,7 +96,7 @@ class ProcessCoordinations(Tool):
                     })
 
                 # Validate required fields
-                required_fields = ["incident_id", "bridge_type", "bridge_host"]
+                required_fields = ["incident_id", "bridge_type", "bridge_host", "start_time"]
                 missing_fields = [field for field in required_fields if field not in bridge_data]
                 if missing_fields:
                     return json.dumps({
@@ -110,6 +110,14 @@ class ProcessCoordinations(Tool):
                         return json.dumps({
                             "success": False,
                             "error": f"Field '{field}' cannot be empty"
+                        })
+                    
+                # Validate non-empty end_time if provided
+                if "end_time" in bridge_data:
+                    if not bridge_data["end_time"] or (isinstance(bridge_data["end_time"], str) and bridge_data["end_time"].strip() == ""):
+                        return json.dumps({
+                            "success": False,
+                            "error": "Field 'end_time' cannot be empty"
                         })
 
                 # Validate bridge_type enum
