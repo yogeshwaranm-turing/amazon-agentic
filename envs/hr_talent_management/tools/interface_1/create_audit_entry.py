@@ -9,12 +9,14 @@ class CreateAuditEntry(Tool):
     """
     Create an audit trail record consistent with the HR SOP and DB schema.
     - Enforces valid reference_type and action enums (DB-aligned).
+    - Accepts common aliases for reference_type and normalizes to canonical DB values.
     - Requires a caller user id for traceability (SOP: auditable, role-bound actions).
     - Uses UTC ISO8601 timestamps for created_at (DB: timestamp).
     - For 'update' actions, requires field_name and at least one of old_value/new_value.
     - Normalizes enums to lowercase to reduce caller error, while validating against allowed sets.
     """
 
+    # Canonical enums (must match DB schema exactly)
     VALID_REFERENCE_TYPES = {
         "requisition", "application", "offer", "employee", "payroll",
         "benefit", "exit", "document", "shortlist"
@@ -25,9 +27,41 @@ class CreateAuditEntry(Tool):
         "lock", "unlock", "submit", "verify"
     }
 
+    # Friendly aliases → canonical reference_type
+    REFERENCE_TYPE_ALIASES = {
+        "job_requisition": "requisition",
+        "requisitions": "requisition",
+        "jobreq": "requisition",
+
+        "applications": "application",
+        "app": "application",
+
+        "offers": "offer",
+
+        "employees": "employee",
+        "worker": "employee",
+        "workers": "employee",
+
+        "payroll_cycle": "payroll",
+        "payroll_cycles": "payroll",
+        "payrun": "payroll",
+
+        "benefits": "benefit",
+
+        "employee_exit": "exit",
+        "employee_exits": "exit",
+        "termination": "exit",
+
+        "doc": "document",
+        "documents": "document",
+
+        "short_list": "shortlist",
+        "short_listed": "shortlist",
+        "shortlists": "shortlist",
+    }
+
     @staticmethod
     def _now_utc_iso(data: Dict[str, Any]) -> str:
-        # Prefer injected clock for determinism in tests; otherwise real UTC
         injected = data.get("_now_utc")
         if isinstance(injected, str) and injected.strip():
             return injected
@@ -43,9 +77,17 @@ class CreateAuditEntry(Tool):
 
     @staticmethod
     def _next_numeric_id_str(store: Dict[str, Any]) -> str:
-        # Tolerate non-numeric keys; increment max of numeric keys
         numeric_keys = [int(k) for k in store.keys() if str(k).isdigit()]
         return str((max(numeric_keys) if numeric_keys else 0) + 1)
+
+    @classmethod
+    def _normalize_reference_type(cls, value: str) -> str:
+        v = (value or "").strip().lower()
+        if v in cls.VALID_REFERENCE_TYPES:
+            return v
+        if v in cls.REFERENCE_TYPE_ALIASES:
+            return cls.REFERENCE_TYPE_ALIASES[v]
+        return v  # return as-is; will be validated later
 
     @staticmethod
     def invoke(
@@ -61,16 +103,19 @@ class CreateAuditEntry(Tool):
         if not isinstance(reference_id, str) or not reference_id.strip():
             raise ValueError("Invalid reference_id. Must be a non-empty string.")
 
-        ref_type_norm = reference_type.lower().strip() if isinstance(reference_type, str) else ""
+        ref_type_norm = CreateAuditEntry._normalize_reference_type(reference_type)
         action_norm = action.lower().strip() if isinstance(action, str) else ""
 
         if ref_type_norm not in CreateAuditEntry.VALID_REFERENCE_TYPES:
+            allowed = ", ".join(sorted(CreateAuditEntry.VALID_REFERENCE_TYPES))
             raise ValueError(
-                f"Invalid reference_type. Must be one of {sorted(CreateAuditEntry.VALID_REFERENCE_TYPES)}"
+                f"Invalid reference_type '{reference_type}'. Must be one of [{allowed}] "
+                f"(aliases accepted: {', '.join(sorted(CreateAuditEntry.REFERENCE_TYPE_ALIASES.keys()))})."
             )
         if action_norm not in CreateAuditEntry.VALID_ACTIONS:
+            allowed = ", ".join(sorted(CreateAuditEntry.VALID_ACTIONS))
             raise ValueError(
-                f"Invalid action. Must be one of {sorted(CreateAuditEntry.VALID_ACTIONS)}"
+                f"Invalid action '{action}'. Must be one of [{allowed}]."
             )
 
         # For 'update', require field_name and at least one of old/new
@@ -105,21 +150,42 @@ class CreateAuditEntry(Tool):
 
     @staticmethod
     def get_info() -> Dict[str, Any]:
-        # Use proper JSON Schema primitive types ("string")
+        # Provide explicit enums for clarity + short descriptions for each reference_type.
         return {
             "type": "function",
             "function": {
                 "name": "create_audit_entry",
-                "description": "Append a record to audit_trails adhering to HR audit policy.",
+                "description": (
+                    "Append a record to audit_trails adhering to HR audit policy. "
+                    "Valid reference_type values mirror the DB enum. Common aliases are accepted and normalized."
+                ),
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "reference_id": {"type": "string"},
-                        "reference_type": {"type": "string"},
-                        "action": {"type": "string"},
-                        "field_name": {"type": "string"},
-                        "old_value": {"type": "string"},
-                        "new_value": {"type": "string"},
+                        "reference_id": {"type": "string", "description": "Primary key of the referenced record."},
+                        "reference_type": {
+                            "type": "string",
+                            "description": (
+                                "Entity type for the reference. "
+                                "Allowed: requisition (job requisitions), application (candidate applications), "
+                                "offer (candidate offers), employee (employee records), payroll (payroll cycles/ops), "
+                                "benefit (benefit plans/enrollments), exit (employee exits), document (uploaded docs), "
+                                "shortlist (shortlisting decisions). "
+                                "Aliases accepted: job_requisition→requisition, payroll_cycle→payroll, employee_exit→exit, doc→document, etc."
+                            ),
+                            "enum": [
+                                "requisition","application","offer","employee","payroll",
+                                "benefit","exit","document","shortlist"
+                            ],
+                        },
+                        "action": {
+                            "type": "string",
+                            "description": "Audit action verb.",
+                            "enum": ["create","update","delete","approve","reject","lock","unlock","submit","verify"],
+                        },
+                        "field_name": {"type": "string", "description": "Required for 'update' actions."},
+                        "old_value": {"type": "string", "description": "Optional; recommended for 'update' actions."},
+                        "new_value": {"type": "string", "description": "Optional; recommended for 'update' actions."},
                     },
                     "required": ["reference_id", "reference_type", "action"],
                 },
