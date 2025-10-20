@@ -7,12 +7,14 @@ class AdministerUserOperations(Tool):
     def invoke(data: Dict[str, Any], operation_type: str, user_id: str = None, 
                employee_id: str = None, first_name: str = None, last_name: str = None, 
                email: str = None, phone_number: str = None, role: str = None, 
-               employment_status: str = None) -> str:
+               employment_status: str = None, created_by: str = None) -> str:
         """
         Manage user operations for HR talent management system.
         
         Operations:
-        - create_user: Create new user (requires employee_id, first_name, last_name, email, role, employment_status)
+        - create_user: Create new user (requires employee_id, role, and created_by). Validates employee exists and is active,
+          ensures no duplicate user account exists for the employee, inherits first_name, last_name, 
+          and email from employee data, and validates that created_by user has appropriate role permissions.
         - update_user: Update existing user (requires user_id and field changes)
         - deactivate_user: Deactivate user account (requires user_id)
         """
@@ -36,6 +38,7 @@ class AdministerUserOperations(Tool):
             })
         
         users = data.get("users", {})
+        employees = data.get("employees", {})
         
         if operation_type == "create_user":
             # Validate required fields for creation
@@ -44,25 +47,83 @@ class AdministerUserOperations(Tool):
                     "success": False,
                     "error": "employee_id is required for create_user operation"
                 })
-            if not first_name:
-                return json.dumps({
-                    "success": False,
-                    "error": "first_name is required for create_user operation"
-                })
-            if not last_name:
-                return json.dumps({
-                    "success": False,
-                    "error": "last_name is required for create_user operation"
-                })
-            if not email:
-                return json.dumps({
-                    "success": False,
-                    "error": "email is required for create_user operation"
-                })
             if not role:
                 return json.dumps({
                     "success": False,
                     "error": "role is required for create_user operation"
+                })
+            if not created_by:
+                return json.dumps({
+                    "success": False,
+                    "error": "created_by is required for create_user operation"
+                })
+            
+            # Validate that created_by user exists and has appropriate role
+            if created_by not in users:
+                return json.dumps({
+                    "success": False,
+                    "error": f"User with created_by '{created_by}' does not exist"
+                })
+            
+            creator_user = users[created_by]
+            if creator_user.get("employment_status") != "active":
+                return json.dumps({
+                    "success": False,
+                    "error": f"User with created_by '{created_by}' is not active"
+                })
+            
+            # Check if creator has appropriate role to create users
+            creator_role = creator_user.get("role")
+            valid_creator_roles = ["hr_admin", "hr_manager", "hr_director"]
+            if creator_role not in valid_creator_roles:
+                return json.dumps({
+                    "success": False,
+                    "error": f"User with created_by '{created_by}' does not have permission to create users. Required roles: {', '.join(valid_creator_roles)}"
+                })
+            
+            # Validate that employee exists and is active
+            if employee_id not in employees:
+                return json.dumps({
+                    "success": False,
+                    "error": f"Employee with employee_id '{employee_id}' does not exist"
+                })
+            
+            employee = employees[employee_id]
+            if employee.get("employment_status") != "active":
+                return json.dumps({
+                    "success": False,
+                    "error": f"Employee with employee_id '{employee_id}' is not active (status: {employee.get('employment_status', 'unknown')})"
+                })
+            
+            # Check for duplicate user account for this employee_id
+            for existing_user in users.values():
+                if existing_user.get("employee_id") == employee_id:
+                    return json.dumps({
+                        "success": False,
+                        "error": f"User account already exists for employee_id '{employee_id}'"
+                    })
+            
+            # When employee_id is provided, inherit data from employee record
+            # Override any provided first_name, last_name, email with employee data
+            first_name = employee.get("first_name")
+            last_name = employee.get("last_name")
+            email = employee.get("work_email")
+            
+            # Validate that employee has required data
+            if not first_name:
+                return json.dumps({
+                    "success": False,
+                    "error": f"Employee {employee_id} missing first_name in employee record"
+                })
+            if not last_name:
+                return json.dumps({
+                    "success": False,
+                    "error": f"Employee {employee_id} missing last_name in employee record"
+                })
+            if not email:
+                return json.dumps({
+                    "success": False,
+                    "error": f"Employee {employee_id} missing work_email in employee record"
                 })
             
             # Validate role enum
@@ -131,7 +192,7 @@ class AdministerUserOperations(Tool):
                 "success": True,
                 "operation_type": "create_user",
                 "user_id": str(new_user_id),
-                "message": f"User {new_user_id} created successfully with email '{email}'",
+                "message": f"User {new_user_id} created successfully with email '{email}' by user {created_by}",
                 "user_data": new_user
             })
         
@@ -260,7 +321,7 @@ class AdministerUserOperations(Tool):
             "type": "function",
             "function": {
                 "name": "administer_user_operations",
-                "description": "Manage user operations in the HR talent management system. This tool handles user account lifecycle management including creation of new user accounts, updates to existing user information, and user account deactivation. For creation, establishes new user records with comprehensive validation to ensure data integrity and prevent duplicates. For updates, modifies existing user records while maintaining referential integrity. For deactivation, safely transitions user accounts to inactive status. Validates user roles, employment status, email formats, and enforces uniqueness constraints. Essential for user administration, access control, and maintaining accurate user records throughout the employee lifecycle.",
+                "description": "Manage user operations in the HR talent management system. This tool handles user account lifecycle management including creation of new user accounts, updates to existing user information, and user account deactivation. For creation, validates that the employee_id exists and is active, ensures no duplicate user account exists for the employee, inherits first_name, last_name, and email from the employee record, and validates that the created_by user has appropriate role permissions (hr_admin, hr_manager, or hr_director). Establishes new user records with comprehensive validation to ensure data integrity and prevent duplicates. For updates, modifies existing user records while maintaining referential integrity. For deactivation, safely transitions user accounts to inactive status. Validates user roles, employment status, email formats, and enforces uniqueness constraints. Essential for user administration, access control, and maintaining accurate user records throughout the employee lifecycle.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -271,19 +332,19 @@ class AdministerUserOperations(Tool):
                         },
                         "employee_id": {
                             "type": "string",
-                            "description": "Employee identifier (required for create_user, cannot be updated)"
+                            "description": "Employee identifier (required for create_user, must exist and be active, cannot be updated). When provided, first_name, last_name, and email are inherited from employee data."
                         },
                         "first_name": {
                             "type": "string",
-                            "description": "User's first name (required for create_user, optional for update_user)"
+                            "description": "User's first name (inherited from employee data when employee_id is provided, optional for update_user)"
                         },
                         "last_name": {
                             "type": "string",
-                            "description": "User's last name (required for create_user, optional for update_user)"
+                            "description": "User's last name (inherited from employee data when employee_id is provided, optional for update_user)"
                         },
                         "email": {
                             "type": "string",
-                            "description": "User's email address (required for create_user, optional for update_user, must be unique)"
+                            "description": "User's email address (inherited from employee work_email when employee_id is provided, optional for update_user, must be unique)"
                         },
                         "phone_number": {
                             "type": "string",
@@ -302,6 +363,10 @@ class AdministerUserOperations(Tool):
                         "user_id": {
                             "type": "string",
                             "description": "Unique identifier of the user (required for update_user and deactivate_user operations)"
+                        },
+                        "created_by": {
+                            "type": "string",
+                            "description": "Unique identifier of the user creating the new user account (required for create_user operation, must have hr_admin, hr_manager, or hr_director role)"
                         }
                     },
                     "required": ["operation_type"]

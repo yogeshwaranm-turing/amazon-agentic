@@ -54,7 +54,7 @@ Based on `entity_type`, choose the correct discovery tool:
 **Candidate Entities (Candidates, Applications, Shortlists):**
 - **Tool:** `fetch_candidate_entities`
 - **Parameters:** `entity_type` (mandatory), `filters` (optional dictionary)
-- For `entity_type` candidates, the valid filters keys are: `candidate_id`, `user_id`, `full_name`, `email_address`, `contact_number`, `country_of_residence`, `linkedin_profile`, `status`
+- For `entity_type` candidates, the valid filters keys are: `candidate_id`, `first_name`, `last_name`, `email_address`, `contact_number`, `country_of_residence`, `linkedin_profile`, `status`
 - For `entity_type` applications, the valid filters keys are: `application_id`, `candidate_id`, `posting_id`, `resume_file_id`, `cover_letter_file_id`, `application_date_from`, `application_date_to`, `status`, `screened_by`, `shortlist_approved_by`, `shortlist_approval_date_from`, `shortlist_approval_date_to`, `screened_date_from`, `screened_date_to`
 
 **Interview/Offer Entities:**
