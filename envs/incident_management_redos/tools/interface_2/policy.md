@@ -36,7 +36,7 @@ Steps:
    * registration_number (optional)  
    * status (optional)  
 3. If registration_number is provided, verify it is unique across all client records using search_parties.  
-4. Create the client record with all required and optional fields using handle_clients_vendors.  
+4. Create the client record with all required and optional fields using handle_clients.  
 5. Log the client creation action using record_audit_records.
 
 Halt, and use escalate_to_human if you receive the following problems; otherwise complete the SOP:
@@ -73,7 +73,7 @@ Halt, and use escalate_to_human if you receive the following problems; otherwise
    * status (optional)  
        
 3. Retrieve the current client record using client_id using search_parties.  
-4. Apply all changes to the client record using handle_clients_vendors.  
+4. Apply all changes to the client record using handle_clients.  
 5. Log the client update action using record_audit_records.
 
 **Halt, and use escalate_to_human if you receive the following problems; otherwise complete the SOP:**
