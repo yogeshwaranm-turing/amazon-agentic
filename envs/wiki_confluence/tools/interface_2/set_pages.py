@@ -387,7 +387,7 @@ class SetPages(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "set_pages",
+                "name": "set_page",
                 "description": "Create, update, delete, publish, unpublish, or restore pages in the Confluence system. This tool manages the complete page lifecycle including creation of new content pages within spaces, updates to existing page properties, state transitions between draft and published states, soft and hard deletion, and restoration from trash. Validates parent page relationships, space membership, user permissions, and content format specifications. Essential for content management, collaborative documentation, and knowledge base administration.",
                 "parameters": {
                     "type": "object",

@@ -78,7 +78,7 @@ class RecordConfigChange(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "record_config_change",
+                "name": "log_config_change",
                 "description": "Record configuration changes for traceability in the Confluence system. This tool creates version-tracked records of space configuration modifications, capturing both old and new configuration states with user attribution and timestamps. Automatically increments version numbers to maintain chronological configuration history. Essential for configuration management, change tracking, rollback capabilities, audit compliance, and troubleshooting configuration issues.",
                 "parameters": {
                     "type": "object",

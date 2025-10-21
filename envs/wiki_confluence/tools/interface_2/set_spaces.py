@@ -218,7 +218,7 @@ class SetSpaces(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "set_spaces",
+                "name": "set_space",
                 "description": "Create, update, or delete spaces in the Confluence system. This tool manages the complete space lifecycle including creation of new content containers, updates to existing space configurations, and space deletion (both soft and hard delete). Spaces are top-level organizational units that contain pages and manage access control. Validates space key uniqueness, ensures proper user attribution, and supports both recoverable soft deletion and permanent hard deletion. Essential for organizing content, managing team workspaces, and maintaining system structure.",
                 "parameters": {
                     "type": "object",

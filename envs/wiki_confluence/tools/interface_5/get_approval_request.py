@@ -47,7 +47,7 @@ class GetApprovalRequest(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "get_approval_request",
+                "name": "access_approval_request",
                 "description": "Retrieve an approval request by ID in the Confluence system. This tool fetches comprehensive approval request details including request ID, target entity information, requester, status, reason, timestamps, due dates, metadata, and all associated approval decisions. Returns complete workflow state with decision history sorted chronologically. Essential for workflow tracking, approval status monitoring, and understanding approval request outcomes.",
                 "parameters": {
                     "type": "object",

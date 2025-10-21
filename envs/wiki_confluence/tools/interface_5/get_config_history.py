@@ -46,7 +46,7 @@ class GetConfigHistory(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "get_config_history",
+                "name": "access_config_history",
                 "description": "Retrieve configuration change history for a space in the Confluence system. This tool fetches the complete version history of space configuration changes, including config version numbers, change timestamps, user attribution, and old/new configuration states. Returns entries sorted by version number in descending order. Essential for configuration management, change tracking, audit trails, and troubleshooting configuration issues.",
                 "parameters": {
                     "type": "object",
