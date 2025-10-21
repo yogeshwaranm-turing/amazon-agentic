@@ -4,7 +4,7 @@ from tau_bench.envs.tool import Tool
 
 class ProcessPayrollEarningOperations(Tool):
     @staticmethod
-    def invoke(data: Dict[str, Any], operation_type: str, payroll_input_id: str = None, employee_id: str = None,
+    def invoke(data: Dict[str, Any], operation_type: str, payroll_input_id: str = None,
                earning_type: str = None, amount: float = None, user_id: str = None,
                earning_id: str = None, approval_status: str = None, approved_by: str = None,
                approval_date: str = None) -> str:
@@ -12,7 +12,7 @@ class ProcessPayrollEarningOperations(Tool):
         Manage payroll earning operations including creation and approval.
         
         Operations:
-        - create_earning: Create additional earning record for employee (requires payroll_input_id, employee_id, earning_type, amount, user_id)
+        - create_earning: Create additional earning record for employee (requires payroll_input_id, earning_type, amount, user_id)
         - approve_earning: Approve additional earning record (requires earning_id, approval_status, approved_by, approval_date)
         """
         
@@ -44,11 +44,19 @@ class ProcessPayrollEarningOperations(Tool):
         audit_trails = data.get("audit_trails", {})
         
         if operation_type == "create_earning":
-            # Validate mandatory fields
-            if not all([payroll_input_id, employee_id, earning_type, amount, user_id]):
+            # Validate mandatory fields and identify missing ones
+            required_fields = {
+                "payroll_input_id": payroll_input_id,
+                "earning_type": earning_type,
+                "amount": amount,
+                "user_id": user_id
+            }
+            missing_fields = [field for field, value in required_fields.items() if value is None]
+            
+            if missing_fields:
                 return json.dumps({
                     "success": False,
-                    "error": "Halt: Missing mandatory fields - payroll_input_id, employee_id, earning_type, amount, and user_id are required"
+                    "error": f"Halt: Missing mandatory fields - {', '.join(missing_fields)} are required"
                 })
             
             # Verify the user is an active HR Payroll Administrator, HR Manager, or HR Director
@@ -74,13 +82,6 @@ class ProcessPayrollEarningOperations(Tool):
                     "error": "Halt: User is not an active HR Payroll Administrator - user is not active"
                 })
             
-            # Verify the employee exists
-            if employee_id not in employees:
-                return json.dumps({
-                    "success": False,
-                    "error": "Halt: Employee mismatch with payroll input - employee not found"
-                })
-            
             # Verify payroll_input_id exists and is approved
             if payroll_input_id not in payroll_inputs:
                 return json.dumps({
@@ -93,13 +94,6 @@ class ProcessPayrollEarningOperations(Tool):
                 return json.dumps({
                     "success": False,
                     "error": "Halt: Payroll input not found or not approved - payroll input is not approved"
-                })
-            
-            # Verify employee mismatch with payroll input
-            if payroll_input.get("employee_id") != employee_id:
-                return json.dumps({
-                    "success": False,
-                    "error": "Halt: Employee mismatch with payroll input - employee ID does not match payroll input"
                 })
             
             # Validate earning_type
@@ -158,11 +152,19 @@ class ProcessPayrollEarningOperations(Tool):
             })
         
         elif operation_type == "approve_earning":
-            # Validate mandatory fields for approval
-            if not all([earning_id, approval_status, approved_by, approval_date]):
+            # Validate mandatory fields for approval and identify missing ones
+            required_fields = {
+                "earning_id": earning_id,
+                "approval_status": approval_status,
+                "approved_by": approved_by,
+                "approval_date": approval_date
+            }
+            missing_fields = [field for field, value in required_fields.items() if value is None]
+            
+            if missing_fields:
                 return json.dumps({
                     "success": False,
-                    "error": "Halt: Missing mandatory fields - earning_id, approval_status, approved_by, and approval_date are required"
+                    "error": f"Halt: Missing mandatory fields - {', '.join(missing_fields)} are required"
                 })
             
             # Verify earning exists and is in 'pending' status
@@ -264,7 +266,7 @@ class ProcessPayrollEarningOperations(Tool):
             "type": "function",
             "function": {
                 "name": "process_payroll_earning_operations",
-                "description": "Manage payroll earning operations in the HR talent management system. This tool handles the creation of additional earning records (bonus, incentive, reimbursement, commission) for employees and manager approval of these earnings. For creation, validates payroll input approval status, employee matching, and earning type/amount. For approval, verifies manager authorization and updates earning status. Essential for accurate payroll processing with proper approval workflows for additional earnings.",
+                "description": "Manage payroll earning operations in the HR talent management system. This tool handles the creation of additional earning records (bonus, incentive, reimbursement, commission) for employees and manager approval of these earnings. For creation, validates payroll input approval status and earning type/amount. For approval, verifies manager authorization and updates earning status. Essential for accurate payroll processing with proper approval workflows for additional earnings.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -276,10 +278,6 @@ class ProcessPayrollEarningOperations(Tool):
                         "payroll_input_id": {
                             "type": "string",
                             "description": "Payroll input identifier (required for create_earning, must exist and be approved)"
-                        },
-                        "employee_id": {
-                            "type": "string",
-                            "description": "Employee identifier (required for create_earning, must match payroll input employee)"
                         },
                         "earning_type": {
                             "type": "string",
