@@ -7,66 +7,58 @@ from datetime import datetime, date
 
 class HandleBenefitEnrollmentOperations(Tool):
 
-    # --- Utility Methods ---
-    @staticmethod
-    def _generate_id(table: Dict[str, Any]) -> int:
-        """Utility to generate a new sequential ID for the benefit_enrollments table."""
-        if not table:
-            return 11001
-        return max(int(k) for k in table.keys()) + 1
-
-    @staticmethod
-    def _validate_date_format(date_str: str, field_name: str, allow_future: bool = True) -> Optional[str]:
-        """Validates date format (YYYY-MM-DD) and checks if it's not in the future."""
-        if date_str:
-            date_pattern = r'^\d{4}-\d{2}-\d{2}$'
-            if not re.match(date_pattern, date_str):
-                return f"Invalid {field_name} format. Must be YYYY-MM-DD"
-            
-            try:
-                dt_obj = datetime.strptime(date_str, '%Y-%m-%d')
-                # Check for future date if not allowed
-                if not allow_future:
-                    simulated_today = date(2025, 10, 10) # Using same simulated date as other tools
-                    if dt_obj.date() > simulated_today:
-                         return f"{field_name} cannot be in the future (compared to the system date)."
-            except ValueError:
-                return f"Invalid date value provided for {field_name}. Please check year/month/day validity."
-        return None
-
-    @staticmethod
-    def _convert_date_format(date_str: str) -> str:
-        """Convert YYYY-MM-DD format for internal storage."""
-        if date_str and re.match(r'^\d{4}-\d{2}-\d{2}$', date_str):
-            return date_str
-        return date_str
-
-
-    @staticmethod
-    def _validate_status_field(status_value: str, field_name: str, valid_statuses: list) -> Optional[str]:
-        """Validate status field against allowed values."""
-        if status_value and status_value not in valid_statuses:
-            return f"Invalid {field_name}. Must be one of: {', '.join(valid_statuses)}"
-        return None
-
-    @staticmethod
-    def _is_date_in_range(date_str: str, start_date: str, end_date: str) -> bool:
-        """Check if date is within the specified range."""
-        try:
-            date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
-            start_obj = datetime.strptime(start_date, '%Y-%m-%d').date()
-            end_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
-            return start_obj <= date_obj <= end_obj
-        except ValueError:
-            return False
-
-    # --- Core Tool Logic ---
-
     @staticmethod
     def invoke(data: Dict[str, Any], operation_type: str, **kwargs) -> str:
         """
         Manages benefit enrollment operations, including creation and HR approval.
         """
+        
+        # --- Utility Functions ---
+        def _generate_id(table: Dict[str, Any]) -> int:
+            """Utility to generate a new sequential ID for the benefit_enrollments table."""
+            if not table:
+                return 11001
+            return max(int(k) for k in table.keys()) + 1
+
+        def _validate_date_format(date_str: str, field_name: str, allow_future: bool = True) -> Optional[str]:
+            """Validates date format (YYYY-MM-DD) and checks if it's not in the future."""
+            if date_str:
+                date_pattern = r'^\d{4}-\d{2}-\d{2}$'
+                if not re.match(date_pattern, date_str):
+                    return f"Invalid {field_name} format. Must be YYYY-MM-DD"
+                
+                try:
+                    dt_obj = datetime.strptime(date_str, '%Y-%m-%d')
+                    # Check for future date if not allowed
+                    if not allow_future:
+                        simulated_today = date(2025, 10, 10) # Using same simulated date as other tools
+                        if dt_obj.date() > simulated_today:
+                             return f"{field_name} cannot be in the future (compared to the system date)."
+                except ValueError:
+                    return f"Invalid date value provided for {field_name}. Please check year/month/day validity."
+            return None
+
+        def _convert_date_format(date_str: str) -> str:
+            """Convert YYYY-MM-DD format for internal storage."""
+            if date_str and re.match(r'^\d{4}-\d{2}-\d{2}$', date_str):
+                return date_str
+            return date_str
+
+        def _validate_status_field(status_value: str, field_name: str, valid_statuses: list) -> Optional[str]:
+            """Validate status field against allowed values."""
+            if status_value and status_value not in valid_statuses:
+                return f"Invalid {field_name}. Must be one of: {', '.join(valid_statuses)}"
+            return None
+
+        def _is_date_in_range(date_str: str, start_date: str, end_date: str) -> bool:
+            """Check if date is within the specified range."""
+            try:
+                date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+                start_obj = datetime.strptime(start_date, '%Y-%m-%d').date()
+                end_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
+                return start_obj <= date_obj <= end_obj
+            except ValueError:
+                return False
 
         valid_operations = ["create_enrollment", "approve_enrollment"]
         if operation_type not in valid_operations:
@@ -137,18 +129,18 @@ class HandleBenefitEnrollmentOperations(Tool):
             date_fields = ["effective_date", "enrollment_window_start", "enrollment_window_end", "selection_date"]
             converted_dates = {}
             for field in date_fields:
-                date_error = HandleBenefitEnrollmentOperations._validate_date_format(kwargs[field], field)
+                date_error = _validate_date_format(kwargs[field], field)
                 if date_error:
                     return json.dumps({"success": False, "enrollment_id": None, "message": date_error, "transfer_to_human": True})
-                converted_dates[field] = HandleBenefitEnrollmentOperations._convert_date_format(kwargs[field])
+                converted_dates[field] = _convert_date_format(kwargs[field])
 
             # Separate check for future date restriction on effective_date
-            effective_date_error = HandleBenefitEnrollmentOperations._validate_date_format(effective_date, "effective_date", allow_future=False)
+            effective_date_error = _validate_date_format(effective_date, "effective_date", allow_future=False)
             if effective_date_error:
                 return json.dumps({"success": False, "enrollment_id": None, "message": f"Halt: {effective_date_error}", "transfer_to_human": True})
 
             # Validate selection date is within enrollment window
-            if not HandleBenefitEnrollmentOperations._is_date_in_range(converted_dates["selection_date"], converted_dates["enrollment_window_start"], converted_dates["enrollment_window_end"]):
+            if not _is_date_in_range(converted_dates["selection_date"], converted_dates["enrollment_window_start"], converted_dates["enrollment_window_end"]):
                 return json.dumps({"success": False, "enrollment_id": None, "message": "Halt: Selection date outside enrollment window", "transfer_to_human": True})
 
             # Validate contribution amounts
@@ -181,7 +173,7 @@ class HandleBenefitEnrollmentOperations(Tool):
 
 
             # 2. Create Benefit Enrollment Record
-            new_enrollment_id = HandleBenefitEnrollmentOperations._generate_id(enrollments)
+            new_enrollment_id = _generate_id(enrollments)
             timestamp = datetime.now().isoformat()
 
             new_enrollment = {
@@ -309,15 +301,15 @@ class HandleBenefitEnrollmentOperations(Tool):
             # 2. Validation and Date Conversion
             valid_statuses = ["approved", "rejected"]
             approval_status = kwargs["hr_manager_approval_status"]
-            status_error = HandleBenefitEnrollmentOperations._validate_status_field(approval_status, "hr_manager_approval_status", valid_statuses)
+            status_error = _validate_status_field(approval_status, "hr_manager_approval_status", valid_statuses)
             if status_error:
                 return json.dumps({"success": False, "enrollment_id": None, "message": status_error})
 
-            date_error = HandleBenefitEnrollmentOperations._validate_date_format(kwargs["approval_date"], "approval_date")
+            date_error = _validate_date_format(kwargs["approval_date"], "approval_date")
             if date_error:
                 return json.dumps({"success": False, "enrollment_id": None, "message": date_error})
 
-            converted_approval_date = HandleBenefitEnrollmentOperations._convert_date_format(kwargs["approval_date"])
+            converted_approval_date = _convert_date_format(kwargs["approval_date"])
 
             # 3. Execute Approval/Rejection
             timestamp = datetime.now().isoformat()
@@ -367,7 +359,7 @@ class HandleBenefitEnrollmentOperations(Tool):
         return {
              "type": "function",
             "function": {
-                "name": "execute_benefit_enrollment_operations",
+                "name": "handle_benefit_enrollment_operations",
                 "description": "Manages benefit enrollment operations. 'create_enrollment' creates benefit enrollments with proper validation of enrollment windows, contribution amounts, and supporting documents. 'approve_enrollment' manages HR Manager approval status (approved/rejected).",
                 "parameters": {
                     "type": "object",

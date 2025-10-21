@@ -7,54 +7,48 @@ from datetime import datetime, date
 
 class ExecutePaymentOperations(Tool):
 
-    # --- Utility Methods ---
-    @staticmethod
-    def _generate_id(table: Dict[str, Any]) -> int:
-        """Utility to generate a new sequential ID for the payments table."""
-        if not table:
-            return 10001
-        return max(int(k) for k in table.keys()) + 1
-
-     @staticmethod
-    def _validate_date_format(date_str: str, field_name: str, allow_future: bool = True) -> Optional[str]:
-        """Validates date format (YYYY-MM-DD) and checks if it's not in the future."""
-        if date_str:
-            date_pattern = r'^\d{4}-\d{2}-\d{2}$'
-            if not re.match(date_pattern, date_str):
-                return f"Invalid {field_name} format. Must be YYYY-MM-DD"
-            
-            try:
-                dt_obj = datetime.strptime(date_str, '%Y-%m-%d')
-                # Check for future date if not allowed
-                if not allow_future:
-                    simulated_today = date(2025, 10, 1) # Using same simulated date as other tools
-                    if dt_obj.date() > simulated_today:
-                         return f"{field_name} cannot be in the future (compared to the system date)."
-            except ValueError:
-                return f"Invalid date value provided for {field_name}. Please check year/month/day validity."
-        return None
-
-    @staticmethod
-    def _convert_date_format(date_str: str) -> str:
-        """Convert YYYY-MM-DD format for internal storage."""
-        if date_str and re.match(r'^\d{4}-\d{2}-\d{2}$', date_str):
-            return date_str
-        return date_str
-
-    @staticmethod
-    def _validate_status_field(status_value: str, field_name: str, valid_statuses: list) -> Optional[str]:
-        """Validate status field against allowed values."""
-        if status_value and status_value not in valid_statuses:
-            return f"Invalid {field_name}. Must be one of: {', '.join(valid_statuses)}"
-        return None
-
-    # --- Core Tool Logic ---
-
     @staticmethod
     def invoke(data: Dict[str, Any], operation_type: str, **kwargs) -> str:
         """
         Manages payment operations for released payslips and payment status updates.
         """
+        
+        # --- Utility Functions ---
+        def _generate_id(table: Dict[str, Any]) -> int:
+            """Utility to generate a new sequential ID for the payments table."""
+            if not table:
+                return 10001
+            return max(int(k) for k in table.keys()) + 1
+
+        def _validate_date_format(date_str: str, field_name: str, allow_future: bool = True) -> Optional[str]:
+            """Validates date format (YYYY-MM-DD) and checks if it's not in the future."""
+            if date_str:
+                date_pattern = r'^\d{4}-\d{2}-\d{2}$'
+                if not re.match(date_pattern, date_str):
+                    return f"Invalid {field_name} format. Must be YYYY-MM-DD"
+                
+                try:
+                    dt_obj = datetime.strptime(date_str, '%Y-%m-%d')
+                    # Check for future date if not allowed
+                    if not allow_future:
+                        simulated_today = date(2025, 10, 1) # Using same simulated date as other tools
+                        if dt_obj.date() > simulated_today:
+                             return f"{field_name} cannot be in the future (compared to the system date)."
+                except ValueError:
+                    return f"Invalid date value provided for {field_name}. Please check year/month/day validity."
+            return None
+
+        def _convert_date_format(date_str: str) -> str:
+            """Convert YYYY-MM-DD format for internal storage."""
+            if date_str and re.match(r'^\d{4}-\d{2}-\d{2}$', date_str):
+                return date_str
+            return date_str
+
+        def _validate_status_field(status_value: str, field_name: str, valid_statuses: list) -> Optional[str]:
+            """Validate status field against allowed values."""
+            if status_value and status_value not in valid_statuses:
+                return f"Invalid {field_name}. Must be one of: {', '.join(valid_statuses)}"
+            return None
 
         valid_operations = ["create_payment", "update_payment_status"]
         if operation_type not in valid_operations:
@@ -128,12 +122,12 @@ class ExecutePaymentOperations(Tool):
 
             # Validate payment_method
             valid_payment_methods = ["bank_transfer", "check", "cash"]
-            method_error = ExecutePaymentOperations._validate_status_field(kwargs["payment_method"], "payment_method", valid_payment_methods)
+            method_error = _validate_status_field(kwargs["payment_method"], "payment_method", valid_payment_methods)
             if method_error:
                 return json.dumps({"success": False, "payment_id": None, "message": f"Halt: {method_error}", "transfer_to_human": True})
 
             # Validate payment_date format and ensure it's not in the future (allow_future=False)
-            date_error = ExecutePaymentOperations._validate_date_format(kwargs["payment_date"], "payment_date", allow_future=False)
+            date_error = _validate_date_format(kwargs["payment_date"], "payment_date", allow_future=False)
             if date_error:
                 return json.dumps({"success": False, "payment_id": None, "message": f"Halt: {date_error}", "transfer_to_human": True})
 
@@ -151,9 +145,9 @@ class ExecutePaymentOperations(Tool):
                 return json.dumps({"success": False, "payment_id": None, "message": "Halt: Payment already exists for this payslip", "transfer_to_human": True})
 
             # 2. Create Payment Record
-            new_payment_id = ExecutePaymentOperations._generate_id(payments)
+            new_payment_id = _generate_id(payments)
             timestamp = datetime.now().isoformat()
-            converted_payment_date = ExecutePaymentOperations._convert_date_format(kwargs["payment_date"])
+            converted_payment_date = _convert_date_format(kwargs["payment_date"])
 
             new_payment = {
                 "payment_id": str(new_payment_id),
@@ -222,14 +216,14 @@ class ExecutePaymentOperations(Tool):
 
             # Validate payment status transition against schema (pending, processed, failed, reversed)
             valid_statuses = ["pending", "processed", "failed", "reversed"]
-            status_error = ExecutePaymentOperations._validate_status_field(kwargs["payment_status"], "payment_status", valid_statuses)
+            status_error = _validate_status_field(kwargs["payment_status"], "payment_status", valid_statuses)
             if status_error:
                 return json.dumps({"success": False, "payment_id": payment_id_str, "message": f"Halt: {status_error}", "transfer_to_human": True})
 
             # Validate bank_confirmation_date format if provided
             if "bank_confirmation_date" in kwargs and kwargs["bank_confirmation_date"] is not None:
                 # Allowing future dates for bank confirmation date, assuming this is an external system update.
-                date_error = ExecutePaymentOperations._validate_date_format(kwargs["bank_confirmation_date"], "bank_confirmation_date", allow_future=True)
+                date_error = _validate_date_format(kwargs["bank_confirmation_date"], "bank_confirmation_date", allow_future=True)
                 if date_error:
                     return json.dumps({"success": False, "payment_id": payment_id_str, "message": f"Halt: {date_error}", "transfer_to_human": True})
 
@@ -244,7 +238,7 @@ class ExecutePaymentOperations(Tool):
                 payment["transaction_id"] = kwargs["transaction_id"]
 
             if "bank_confirmation_date" in kwargs and kwargs["bank_confirmation_date"] is not None:
-                payment["bank_confirmation_date"] = ExecutePaymentOperations._convert_date_format(kwargs["bank_confirmation_date"])
+                payment["bank_confirmation_date"] = _convert_date_format(kwargs["bank_confirmation_date"])
 
             timestamp = datetime.now().isoformat()
             payment["updated_at"] = timestamp
