@@ -98,7 +98,7 @@ class CreateNewAuditTrail(Tool):
                         },
                         "details": {
                             "type": "string",
-                            "description": "Additional context or description of the action (optional)"
+                            "description": "Additional context or description of the action (optional) in JSON format"
                         }
                     },
                     "required": ["actor_user_id", "action_type", "target_entity_type", "target_entity_id"]
