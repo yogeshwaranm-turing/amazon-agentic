@@ -200,18 +200,18 @@ class RetrieveBenefitEntities(Tool):
             "type": "function",
             "function": {
                 "name": "retrieve_benefit_entities",
-                "description": "Discover and filter benefit entities in the HR talent management system. This tool allows comprehensive discovery of benefit plans and benefit enrollments with flexible filtering options. Supports date range filtering and exact match filtering for plan details, enrollment status, and approval information. Essential for benefits administration, enrollment tracking, and benefits reporting.",
+                "description": "List and filter benefit plans and enrollments with clear input guidance for trainers.\n\nWhat this tool does:\n- Returns entities for benefit_plans or benefit_enrollments.\n- Supports exact matches and date ranges using …_from/…_to.\n- Enforces optional requester authorization if provided.\n\nWho can use it:\n- Anyone can omit requesting_user_id. If provided, requester must be active with role in {hr_payroll_administrator, hr_manager, hr_admin, finance_manager}.\n\nInput guidance:\n- entity_type: Choose one of benefit_plans | benefit_enrollments.\n- filters: Provide an object with keys listed below for the chosen entity_type. Use YYYY-MM-DD for dates. Unknown filter keys will be rejected.\n\nAllowed filters by entity_type:\n- benefit_plans: plan_id, benefit_type (medical|dental|vision|401k|life_insurance|disability), plan_name, provider_name, plan_status (active|inactive|discontinued), effective_from_from, effective_from_to, effective_until_from, effective_until_to.\n- benefit_enrollments: enrollment_id, employee_id, plan_id, effective_date_from, effective_date_to, enrollment_window_start_from, enrollment_window_start_to, enrollment_window_end_from, enrollment_window_end_to, enrollment_status (pending|valid|outside_window|approved|active), hr_manager_approval_status (pending|approved|rejected), approved_by, approval_date_from, approval_date_to.\n\nExample queries:\n- Active medical plans effective in 2025:\n{\n  \"entity_type\": \"benefit_plans\",\n  \"filters\": {\n    \"benefit_type\": \"medical\",\n    \"plan_status\": \"active\",\n    \"effective_from_from\": \"2025-01-01\",\n    \"effective_until_to\": \"2025-12-31\"\n  }\n}\n- Approved enrollments within enrollment window:\n{\n  \"entity_type\": \"benefit_enrollments\",\n  \"filters\": {\n    \"enrollment_status\": \"approved\",\n    \"enrollment_window_start_from\": \"2025-01-01\",\n    \"enrollment_window_end_to\": \"2025-03-31\"\n  }\n}\n\nTypical errors if inputs are incorrect:\n- Missing or invalid entity_type.\n- Invalid filter keys or conflicting ranges (e.g., *_from > *_to).\n- Unauthorized requester when requesting_user_id is provided but not permitted.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "entity_type": {
                             "type": "string",
-                            "description": "Type of benefit entity to discover",
+                            "description": "Type of benefit entity to discover: benefit_plans | benefit_enrollments",
                             "enum": ["benefit_plans", "benefit_enrollments"]
                         },
                         "requesting_user_id": {
                             "type": "string",
-                            "description": "User ID of the requester (optional, must be active hr_payroll_administrator, hr_manager, hr_admin, or finance_manager)"
+                            "description": "Optional requester id. If provided: must exist, be 'active', and role in {hr_payroll_administrator, hr_manager, hr_admin, finance_manager}."
                         },
                         "filters": {
                             "type": "object",
