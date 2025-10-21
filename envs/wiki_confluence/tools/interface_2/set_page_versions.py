@@ -145,7 +145,7 @@ class SetPageVersions(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "set_page_versions",
+                "name": "set_page_version",
                 "description": "Create or restore page versions in the Confluence system. This tool manages page version history by creating new version snapshots when content is updated or restoring previous versions to become the current version. Version creation captures content snapshots with editor attribution and timestamps. Version restoration creates a new version with content from a previous version, maintaining complete version history. Essential for content versioning, change tracking, audit trails, and content recovery.",
                 "parameters": {
                     "type": "object",

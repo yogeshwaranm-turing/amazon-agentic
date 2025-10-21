@@ -52,7 +52,7 @@ class GetUser(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "get_user",
+                "name": "access_user",
                 "description": "Retrieve user details by ID or email in the Confluence system. This tool fetches comprehensive user account information including user ID, email, account ID, full name, global role, and creation timestamp. Supports lookup by user ID or email address. Essential for user verification, authentication checks, profile display, and validating user existence before performing operations.",
                 "parameters": {
                     "type": "object",

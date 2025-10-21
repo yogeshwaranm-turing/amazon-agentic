@@ -52,7 +52,7 @@ class GetNotifications(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "get_notifications",
+                "name": "access_notifications",
                 "description": "Retrieve notifications for a user in the Confluence system, optionally filtered by status and event type. This tool fetches user notifications with comprehensive details including notification IDs, event types, messages, related entities, sender information, delivery status, and timestamps. Supports filtering by delivery status (pending, sent, read) and event type. Returns notifications sorted by creation date with most recent first. Essential for notification management, user communication, and keeping users informed of system events.",
                 "parameters": {
                     "type": "object",

@@ -61,7 +61,7 @@ class GetWatchers(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "get_watchers",
+                "name": "access_watchers",
                 "description": "Retrieve all watchers for a space or page in the Confluence system. This tool fetches the complete list of users and groups subscribed to receive notifications about changes to a specific space or page. Returns watcher details including watcher IDs, types (user or group), and subscription timestamps. Essential for notification management, understanding content subscribers, and managing watch lists.",
                 "parameters": {
                     "type": "object",

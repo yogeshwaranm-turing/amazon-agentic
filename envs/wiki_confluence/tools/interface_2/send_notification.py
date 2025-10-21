@@ -74,7 +74,7 @@ class SendNotification(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "send_notification",
+                "name": "set_notification",
                 "description": "Send a system alert, email, or custom message to a specified user account in the Confluence system. This tool creates and dispatches notifications to users for various events including system alerts, approval updates, content changes, and custom messages. Supports multiple delivery channels, sender attribution, entity references, and custom metadata. Tracks delivery status and timestamps. Essential for user communication, event notifications, workflow updates, and keeping stakeholders informed.",
                 "parameters": {
                     "type": "object",

@@ -64,7 +64,7 @@ class GetPermissions(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "get_permissions",
+                "name": "access_permissions",
                 "description": "Retrieve all permissions for a space or page in the Confluence system. This tool fetches the complete list of access control permissions including permission IDs, types (view, edit, admin), grantees (users or groups), grantors, timestamps, active status, and expiration dates. Returns permissions sorted by grant date with most recent first. Essential for access control auditing, permission management, security reviews, and understanding who has access to content.",
                 "parameters": {
                     "type": "object",

@@ -79,7 +79,7 @@ class CreateApprovalRequest(Tool):
         return {
             "type": "function",
             "function": {
-                "name": "create_approval_request",
+                "name": "submit_approval_request",
                 "description": "Create a new approval request workflow in the Confluence system. This tool initiates formal approval processes for content review or system changes requiring authorization. Creates approval request records with target entity specification, requester attribution, optional reasons, due dates, and custom metadata. Sets initial status as pending. Essential for workflow management, content governance, compliance processes, and collaborative review workflows.",
                 "parameters": {
                     "type": "object",
