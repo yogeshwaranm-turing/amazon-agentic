@@ -17,33 +17,30 @@ class HandleBenefitEnrollmentOperations(Tool):
 
     @staticmethod
     def _validate_date_format(date_str: str, field_name: str, allow_future: bool = True) -> Optional[str]:
-        """Validates date format (MM-DD-YYYY) and checks if it's not in the future."""
+        """Validates date format (YYYY-MM-DD) and checks if it's not in the future."""
         if date_str:
-            date_pattern = r'^\d{2}-\d\d-\d{4}$'
+            date_pattern = r'^\d{4}-\d{2}-\d{2}$'
             if not re.match(date_pattern, date_str):
-                return f"Invalid {field_name} format. Must be MM-DD-YYYY"
-
+                return f"Invalid {field_name} format. Must be YYYY-MM-DD"
+            
             try:
-                dt_obj = datetime.strptime(date_str, '%m-%d-%Y')
+                dt_obj = datetime.strptime(date_str, '%Y-%m-%d')
                 # Check for future date if not allowed
                 if not allow_future:
-                    simulated_today = date(2025, 10, 1) # Using same simulated date as other tools
+                    simulated_today = date(2025, 10, 10) # Using same simulated date as other tools
                     if dt_obj.date() > simulated_today:
-                        return f"{field_name} cannot be in the future (compared to the system date)."
+                         return f"{field_name} cannot be in the future (compared to the system date)."
             except ValueError:
-                return f"Invalid date value provided for {field_name}. Please check month/day/year validity."
+                return f"Invalid date value provided for {field_name}. Please check year/month/day validity."
         return None
 
     @staticmethod
     def _convert_date_format(date_str: str) -> str:
-        """Convert MM-DD-YYYY to YYYY-MM-DD for internal storage."""
-        if date_str and re.match(r'^\d{2}-\d{2}-\d{4}$', date_str):
-            try:
-                dt = datetime.strptime(date_str, '%m-%d-%Y')
-                return dt.strftime('%Y-%m-%d')
-            except ValueError:
-                return date_str
+        """Convert YYYY-MM-DD format for internal storage."""
+        if date_str and re.match(r'^\d{4}-\d{2}-\d{2}$', date_str):
+            return date_str
         return date_str
+
 
     @staticmethod
     def _validate_status_field(status_value: str, field_name: str, valid_statuses: list) -> Optional[str]:
@@ -368,17 +365,17 @@ class HandleBenefitEnrollmentOperations(Tool):
     @staticmethod
     def get_info() -> Dict[str, Any]:
         return {
-            "type": "function",
+             "type": "function",
             "function": {
-                "name": "handle_benefit_enrollment_operations",
-                "description": "Manages benefit enrollment operations. 'create_enrollment' creates a new benefit enrollment record with validation on dates, contribution amounts, and supporting documents. 'approve_enrollment' manages the HR manager's approval or rejection of a pending enrollment.",
+                "name": "execute_benefit_enrollment_operations",
+                "description": "Manages benefit enrollment operations. 'create_enrollment' creates benefit enrollments with proper validation of enrollment windows, contribution amounts, and supporting documents. 'approve_enrollment' manages HR Manager approval status (approved/rejected).",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "operation_type": {
                             "type": "string",
-                            "description": "Type of operation to perform: 'create_enrollment' or 'approve_enrollment'.",
-                            "enum": ["create_enrollment", "approve_enrollment"]
+                            "description": "Type of operation to perform: 'create_enrollment'.",
+                            "enum": ["create_enrollment","approve_enrollment"]
                         },
                         "employee_id": {
                             "type": "string",
@@ -390,7 +387,7 @@ class HandleBenefitEnrollmentOperations(Tool):
                         },
                         "effective_date": {
                             "type": "string",
-                            "description": "Effective date for the enrollment (MM-DD-YYYY, required for create_enrollment, must not be in the past)."
+                            "description": "Effective date for the enrollment (YYYY-MM-DD, required for create_enrollment, must not be in the past)."
                         },
                         "employee_contribution": {
                             "type": "number",
@@ -402,40 +399,23 @@ class HandleBenefitEnrollmentOperations(Tool):
                         },
                         "enrollment_window_start": {
                             "type": "string",
-                            "description": "Enrollment window start date (MM-DD-YYYY, required for create_enrollment)."
+                            "description": "Enrollment window start date (YYYY-MM-DD, required for create_enrollment)."
                         },
                         "enrollment_window_end": {
                             "type": "string",
-                            "description": "Enrollment window end date (MM-DD-YYYY, required for create_enrollment)."
+                            "description": "Enrollment window end date (YYYY-MM-DD, required for create_enrollment)."
                         },
                         "selection_date": {
                             "type": "string",
-                            "description": "Date when enrollment was selected (MM-DD-YYYY, required for create_enrollment, must be within enrollment window)."
+                            "description": "Date when enrollment was selected (YYYY-MM-DD, required for create_enrollment, must be within enrollment window)."
                         },
                         "user_id": {
                             "type": "string",
-                            "description": "Unique identifier of the HR Admin/Manager/Director creating the enrollment (required for create_enrollment)."
-                        },
-                        "enrollment_id": {
-                            "type": "string",
-                            "description": "Unique identifier of the enrollment record (required for approve_enrollment)."
-                        },
-                        "hr_manager_approval_status": {
-                            "type": "string",
-                            "description": "The new approval status for the enrollment (required for approve_enrollment).",
-                            "enum": ["approved", "rejected"]
-                        },
-                        "approved_by": {
-                            "type": "string",
-                            "description": "Unique identifier of the HR Manager performing the approval/rejection (required for approve_enrollment)."
-                        },
-                        "approval_date": {
-                            "type": "string",
-                            "description": "Date of the approval/rejection (MM-DD-YYYY, required for approve_enrollment)."
+                            "description": "Unique identifier of the HR Admin/Manager/Director creating the enrollment (required for all operations)."
                         },
                         "supporting_documents": {
                             "type": "array",
-                            "description": "Optional supporting documents for the enrollment (used only in create_enrollment).",
+                            "description": "Optional supporting documents for the enrollment.",
                             "items": {
                                 "type": "object",
                                 "properties": {
